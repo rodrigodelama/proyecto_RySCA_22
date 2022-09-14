@@ -13,7 +13,7 @@ struct arp_header
     ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
     mac_addr_t dest_MAC_addr; //target MAC address
     ipv4_addr_t dest_IPv4_addr; //target IPv4 address
-} arp_header;
+} arp_header_t;
 
 
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -43,5 +43,31 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 int main(int argc, char* argv[])
 {
     //Comprobaciones de nº correcto de argumentos y si son correctos.
+    memset(&arp_header_t, 0, sizeof(struct arp_header));
+    if(argc != 2)
+    {
+        fprintf(stderr, "%s\n", "No input arguments.\n");
+        printf("Uso: %s <iface> <target_ip>\n", myself);
+    printf("       <iface>: Nombre de la interfaz Ethernet\n");
+    printf("        <target_ip>: Direccion ip para solicitar su MAC \n");
+        exit(-1);
+    }
+    
+    ipv4_addr_t target_ip;
+    if (ipv4_str_addr ( argv[2], target_ip ) == -1)
+    {
+        fprintf(stderr, "%s\n", "Wrong target IP.\n");
+        exit(-1);
+    }
+    char* iface_name = argv[1];
+    eth_iface_t* iface_controller = eth_open(iface_name);
+    if( eth_open(iface_name) == NULL)
+    {
+        fprintf(stderr, "%s\n", "Error con la interfaz.\n");
+        exit(-1);
+    }
+
+
+
     
 }
