@@ -1,6 +1,6 @@
 # include "arp_client.h"
 
-#define MAC_STR_SIZE = 17
+#define MAC_STR_SIZE  17
 
 struct arp_header
 {
@@ -13,7 +13,7 @@ struct arp_header
     ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
     mac_addr_t dest_MAC_addr; //target MAC address
     ipv4_addr_t dest_IPv4_addr; //target IPv4 address
-};
+} arp_header;
 
 
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -25,7 +25,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     char y[MAC_STR_SIZE];
     //Rellenamos la estructura con los datos correspondientes
     //Comprobamos que la mac introducida se corresponde con una mac 
-    y = mac_str_addr(dest_MAC_addr, arp_header.dest_addr_mac); 
+    //y = mac_str_addr(dest_MAC_addr, arp_header.dest_addr_mac); 
 
     // Abrimos la interfaz Ethernet
 
@@ -40,3 +40,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     //Hasta que sea la trama buscada
 }
 
+int main(int argc, char* argv[])
+{
+    //Comprobaciones de nº correcto de argumentos y si son correctos.
+    
+}
