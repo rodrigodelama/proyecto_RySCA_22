@@ -1,0 +1,22 @@
+//this to arp.c
+struct arp_header
+{
+    uint8_t hw_type;
+    uint8_t proto_type
+}
+
+FORMATO DATAGRAMA IPv4
+
+longitud de cabezera que sea constante
+
+tamañno de paquetes variara (up to 1440 o 1460)
+
+to eth tamaño de cabezera + payload
+
+no (datagram) fragmentation in our stack
+
+ttl 64 o 32
+
+protocol TCP/UDP/other
+
+checksum
