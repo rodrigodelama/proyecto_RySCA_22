@@ -4,7 +4,7 @@
 
 struct arp_header
 {
-    //constants
+    //TODO: constants
     uint16_t hardware_type; //protocolo capa inferior (eth)
     uint16_t protocol_type; //protocolo capa superior (ipv4)
     uint8_t hw_size; //numero de bytes de las direcciones de la capa inferior (6 bytes en eth)
