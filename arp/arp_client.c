@@ -1,6 +1,4 @@
-# include "../eth_base/eth.h"
-# include "../ipv4_base/ipv4.h"
-# include <stdint.h>
+# include "arp_client.h"
 
 #define MAC_STR_SIZE = 17
 
