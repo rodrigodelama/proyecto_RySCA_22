@@ -1,5 +1,6 @@
-# include "arp_client.h"
-# include <stdlib.h>
+#include "arp_client.h"
+#include <stdio.h>
+
 #define MAC_STR_SIZE  17
 
 struct arp_header
@@ -64,30 +65,31 @@ int main(int argc, char* argv[])
 {
     //Comprobaciones de nº correcto de argumentos y si son correctos.
     memset(&arp_header_t, 0, sizeof(struct arp_header));
+
     if(argc != 2)
     {
-        fprintf(stderr, "%s\n", "No input arguments.\n");
+        fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: %s <iface> <target_ip>\n");
-    printf("       <iface>: Nombre de la interfaz Ethernet\n");
-    printf("        <target_ip>: Direccion ip para solicitar su MAC \n");
+        printf("        <iface>: Nombre de la interfaz Ethernet\n");
+        printf("        <target_ip>: Direccion ip para solicitar su MAC \n");
         exit(-1);
     }
     
-    ipv4_addr_t target_ip;
-    if (ipv4_str_addr ( argv[2], target_ip ) == -1)
-    {
-        fprintf(stderr, "%s\n", "Wrong target IP.\n");
-        exit(-1);
-    }
+    //Potentially we should check for of the network interface (eg: eth0) is valid
     char* iface_name = argv[1];
     eth_iface_t* iface_controller = eth_open(iface_name);
     if( eth_open(iface_name) == NULL)
     {
-        fprintf(stderr, "%s\n", "Error con la interfaz.\n");
+        fprintf(stderr, "%s\n", "Error con la interfaz\n");
         exit(-1);
     }
 
+    ipv4_addr_t target_ip;
+    if (ipv4_str_addr ( argv[2], target_ip ) == -1)
+    {
+        fprintf(stderr, "\nInvalid target IP Address");
+        exit(-1);
+    }
 
-
-    
+    arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
 }
