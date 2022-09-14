@@ -20,3 +20,11 @@ ttl 64 o 32
 protocol TCP/UDP/other
 
 checksum
+
+
+arp_hdr_t req;
+
+memset(&req, sizeof(arp_hdr_t), 0); //clean all the memory before writing
+
+
+final step of the subject is to implement RIP (use metric to determine shortest route)
