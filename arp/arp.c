@@ -115,10 +115,10 @@ int main(int argc, char* argv[])
 
     //Montamos el paquete a mandar.
     arp_header_t.opcode = OPCODE_REQUEST;
-    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr ) ;
-    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);
-    memcpy(arp_header_t.dest_IPv4_addr, target_ip);
-    memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR);
+    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr, MAC_ADDR_SIZE ) ;
+    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr,4);//Tamaño dirs IP  4 bytes.
+    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
+    memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
     
     //Paquete montado -> Mandamos el paquete:
     //Type de ARP = 0x0806
