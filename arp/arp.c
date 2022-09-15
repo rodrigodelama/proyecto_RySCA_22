@@ -50,7 +50,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     */
 
     //Creamos variables auxiliares
-    char y[MAC_STR_SIZE];
+    //char y[MAC_STR_SIZE];
     //Rellenamos la estructura con los datos correspondientes
     //Comprobamos que la mac introducida se corresponde con una mac 
     //y = mac_str_addr(dest_MAC_addr, arp_header.dest_addr_mac); 
@@ -115,9 +115,9 @@ int main(int argc, char* argv[])
 
     //Montamos el paquete a mandar.
     arp_header_t.opcode = OPCODE_REQUEST;
-    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr, MAC_ADDR_SIZE ) ;
-    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr,4);//Tamaño dirs IP  4 bytes.
-    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
+    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr) ;
+    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
+    memcpy(arp_header_t.dest_IPv4_addr, target_ip);
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
     
     //Paquete montado -> Mandamos el paquete:
