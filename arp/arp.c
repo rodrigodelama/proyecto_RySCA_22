@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
     //Montamos el paquete a mandar.
     arp_header_t.opcode = OPCODE_REQUEST;
-    eth_getaddr ( &iface_controller, arp_header_t.src_MAC_addr) ;
+    eth_getaddr ( iface_controller, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
     memcpy(arp_header_t.dest_IPv4_addr, target_ip, 6);
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
