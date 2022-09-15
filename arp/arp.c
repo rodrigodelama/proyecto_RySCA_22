@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
     //Comprobaciones de nº correcto de argumentos y si son correctos.
     memset(&arp_header_t, 0, sizeof(struct arp_header));
 
-    if(argc != 2)
+    if(argc != 3 )
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso:  <iface> <target_ip>\n");
