@@ -66,6 +66,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     // Comprobamos si es la trama que estamos buscando 
     //} while (); 
     //Hasta que sea la trama buscada
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -115,15 +116,15 @@ int main(int argc, char* argv[])
 
     //Montamos el paquete a mandar.
     arp_header_t.opcode = OPCODE_REQUEST;
-    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr) ;
+    eth_getaddr ( &iface_controller, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
-    memcpy(arp_header_t.dest_IPv4_addr, target_ip);
+    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 6);
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
     
     //Paquete montado -> Mandamos el paquete:
     //Type de ARP = 0x0806
     
-    eth_send ( iface_name, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header) );
+    eth_send ( iface_controller, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header) );
 
     //arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
 }
