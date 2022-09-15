@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     arp_header_t.protocol_type = htons(PROT_TYPE_IPV4);
 
     //Montamos el paquete a mandar.
-    arp_header_t.opcode = (uint8_t) OPCODE_REQUEST;
+    arp_header_t.opcode = htons(OPCODE_REQUEST);
     eth_getaddr ( iface_controller, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
     memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
