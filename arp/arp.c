@@ -2,7 +2,14 @@
 #include <stdio.h>
 
 #define MAC_STR_SIZE  17
+#define HW_TYPE_ETH 1
+#define PROT_TYPE_IPV4 0x0800
+#define HW_SIZE_MAC_ADDR 6 //6 bytes las dir MAC.
+#define PROT_SIZE_IP_ADDR 4// 4 bytes las dir IP.
+#define OPCODE_REQUEST 1
+#define OPCODE_REPLY 2
 
+//mac_addr_t MAC_BCAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 struct arp_header
 {
     //TODO: constants
@@ -17,7 +24,7 @@ struct arp_header
     ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
     mac_addr_t dest_MAC_addr; //target MAC address
     ipv4_addr_t dest_IPv4_addr; //target IPv4 address
-} arp_header_t;
+};
 
 
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -63,6 +70,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 
 int main(int argc, char* argv[])
 {
+
+    struct arp_header arp_header_t;
     //Comprobaciones de nº correcto de argumentos y si son correctos.
     memset(&arp_header_t, 0, sizeof(struct arp_header));
 
@@ -90,6 +99,29 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\nInvalid target IP Address");
         exit(-1);
     }
+    //ipv4_str_addr ( argv[2], target_ip );
 
-    arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
+    //A partir de aqui, los parametros pasados por linea de comandos son correctos.
+    //Empezamos a convertir y rellenar los campos de la cabecera ARP.
+    //Ya tenemos la IP target convertida en el "if" y el controlador de la interfaz.
+    //Podemos meter tal cual los valores de 1 byte (8 bits), que son hw_size y protocol_size.
+    //Necesitamos convertir con htons() los de 16 bits, que son hardware_type y protocol_type. Luego el opcode cuando mandemos.
+
+    arp_header_t.hw_size = HW_SIZE_MAC_ADDR;
+    arp_header_t.protocol_size = HW_SIZE_MAC_ADDR;
+
+    arp_header_t.hardware_type= htons(HW_TYPE_ETH);
+    arp_header_t.hw_size = htons(PROT_TYPE_IPV4);
+
+    //Montamos el paquete a mandar.
+    arp_header_t.opcode = OPCODE_REQUEST;
+    eth_getaddr ( iface_name, arp_header_t.src_MAC_addr ) ;
+    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);
+    memcpy(arp_header_t.dest_IPv4_addr, target_ip);
+    memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR);
+    
+    //Paquete montado -> Mandamos el paquete:
+
+
+    //arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
 }

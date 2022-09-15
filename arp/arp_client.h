@@ -2,4 +2,6 @@
 # include "../ipv4_base/ipv4.h"
 # include <stdint.h>
 
+//extern mac_addr_t MAC_BCAST_ADDR ;
+
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr);
