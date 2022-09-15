@@ -108,14 +108,14 @@ int main(int argc, char* argv[])
     //Podemos meter tal cual los valores de 1 byte (8 bits), que son hw_size y protocol_size.
     //Necesitamos convertir con htons() los de 16 bits, que son hardware_type y protocol_type. Luego el opcode cuando mandemos.
 
-    arp_header_t.hw_size = HW_SIZE_MAC_ADDR;
-    arp_header_t.protocol_size = HW_SIZE_MAC_ADDR;
+    arp_header_t.hw_size = (uint8_t) HW_SIZE_MAC_ADDR;
+    arp_header_t.protocol_size = (uint8_t) PROT_SIZE_IP_ADDR;
 
     arp_header_t.hardware_type= htons(HW_TYPE_ETH);
-    arp_header_t.hw_size = htons(PROT_TYPE_IPV4);
+    arp_header_t.protocol_type = htons(PROT_TYPE_IPV4);
 
     //Montamos el paquete a mandar.
-    arp_header_t.opcode = OPCODE_REQUEST;
+    arp_header_t.opcode = (uint8_t) OPCODE_REQUEST;
     eth_getaddr ( iface_controller, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
     memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
