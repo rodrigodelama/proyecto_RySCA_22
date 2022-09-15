@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     if(argc != 2)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso: %s <iface> <target_ip>\n");
+        printf("Uso:  <iface> <target_ip>\n");
         printf("        <iface>: Nombre de la interfaz Ethernet\n");
         printf("        <target_ip>: Direccion ip para solicitar su MAC \n");
         exit(-1);
