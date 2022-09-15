@@ -121,7 +121,9 @@ int main(int argc, char* argv[])
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR);
     
     //Paquete montado -> Mandamos el paquete:
-
+    //Type de ARP = 0x0806
+    
+    eth_send ( iface_name, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header) );
 
     //arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
 }
