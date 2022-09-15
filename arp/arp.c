@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 
     struct arp_header arp_header_t;
     //Comprobaciones de nº correcto de argumentos y si son correctos.
-    memset(&arp_header_t, 0, sizeof(struct arp_header));
+    memset(&arp_header_t, 0, sizeof(struct arp_header));//Relleno la zona de memoria que guarda nuestra cabecera ARP con 0. 
 
     if(argc != 3 )
     {
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\nInvalid target IP Address");
         exit(-1);
     }
-    //ipv4_str_addr ( argv[2], target_ip );
+    
 
     //A partir de aqui, los parametros pasados por linea de comandos son correctos.
     //Empezamos a convertir y rellenar los campos de la cabecera ARP.
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     arp_header_t.opcode = OPCODE_REQUEST;
     eth_getaddr ( iface_controller, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
-    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 6);
+    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
     
     //Paquete montado -> Mandamos el paquete:
