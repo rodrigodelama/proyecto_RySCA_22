@@ -81,8 +81,6 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
 
 
-    char * name=eth_getname(&iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
-    eth_open(&name); //Abro la interfaz
     //Type de ARP = 0x0806
     //Envio ARP Request
     eth_send(&iface,arp_header_t.dest_MAC_addr,0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
@@ -102,10 +100,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         eth_close(&iface);
         return -1;
     }
-    //Si hay datos, almacenar el mac_address
-    mac_addr=src_addr;
-    //cerrar interfaz
-    eth_close(&iface);
+   
     return 0;
 }
 
