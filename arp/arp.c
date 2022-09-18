@@ -43,17 +43,17 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 
         //Montamos el paquete a mandar.
     arp_header_t.opcode = htons(OPCODE_REQUEST);
-    eth_getaddr ( &iface, arp_header_t.src_MAC_addr) ;
+    eth_getaddr ( iface, arp_header_t.src_MAC_addr) ;
     ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
     memcpy(arp_header_t.dest_IPv4_addr, ip_addr, 4);
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
 
 
-    char * name=eth_getname(&iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
+    char * name=eth_getname(iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
     
     //Type de ARP = 0x0806
     //Envio ARP Request
-    eth_send(&iface,arp_header_t.dest_MAC_addr,0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+    eth_send(iface,arp_header_t.dest_MAC_addr,0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
     
     //Recibir el reply
     //variables para almacenar datos de eth_rcv
@@ -61,9 +61,9 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     unsigned char buffer[ETH_MTU];
     long int timeout = 2000;
 
-    len = eth_recv(&iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
+    int len = eth_recv(iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
     if (len == -1) { //Si no hay datos
-        printf(stderr, "ERROR en eth_recv()\n");
+        fprintf(stderr, "ERROR en eth_recv()\n");
         return -1;
     } else if (len == 0) { //Si no hay datos
         fprintf(stderr, "%s: ERROR: Temporizador agotado, no hay respuesta del Servidor Ethernet\n",name);
@@ -73,11 +73,14 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     struct arp_header * arp_header_recv = (struct arp_header*) buffer;
     memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t));
     //mac_addr = arp_header_recv -> src_MAC_addr;
-    char* dest_ip_str;
+    char* dest_ip_str = (char*) malloc(sizeof(ipv4_addr_t));
     ipv4_addr_str( ip_addr, dest_ip_str);
-    char* dest_mac_str;
+    char* dest_mac_str = (char*) malloc(sizeof(mac_addr_t));
     mac_addr_str ( mac_addr, dest_mac_str ); 
     printf("%s -> %s \n", dest_ip_str, dest_mac_str);
+    free(dest_ip_str);
+    free(dest_mac_str);
+    
     return 0;
 }
 
@@ -115,4 +118,6 @@ int main(int argc, char* argv[])
     //A partir de aqui, los parametros pasados por linea de comandos son correctos.
     
     arp_resolve(iface_controller, target_ip, NULL); //mac_addr should be the thing to recover!!
+
+    eth_close(iface_controller);//Cerramos la interfaz al terminar, en el futuro nos quedaremos solo con arp_resolve(). 
 }
