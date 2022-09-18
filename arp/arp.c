@@ -92,18 +92,24 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     mac_addr_t src_addr; 
     unsigned char buffer[ETH_MTU];
     long int timeout = 2000;
+    
     len = eth_recv(&iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
     if (len == -1) { //Si no hay datos
         printf(stderr, "ERROR en eth_recv()\n");
         return -1;
     } else if (len == 0) { //Si no hay datos
-        fprintf(stderr, "%s: ERROR: No hay respuesta del Servidor Ethernet\n",name);
+        fprintf(stderr, "%s: ERROR: Temporizador agotado, no hay respuesta del Servidor Ethernet\n",name);
         return -1;
     }
 
     struct arp_header * arp_header_recv = (struct arp_header*) buffer;
     memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t));
     //mac_addr = arp_header_recv -> src_MAC_addr;
+    char* dest_ip_str;
+    ipv4_addr_str( ip_addr, dest_ip_str);
+    char* dest_mac_str;
+    mac_addr_str ( mac_addr, dest_mac_str ); 
+    printf("%s -> %s \n", dest_ip_str, dest_mac_str);
     return 0;
 }
 
