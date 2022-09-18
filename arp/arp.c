@@ -29,43 +29,11 @@ struct arp_header
 
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 {
-    //ARP - Address Resolution Protocol
-    //reply MAC address when asked who has that IP Address
-    /*
-    Se pide desarrollar un programa (arp_client.c) basado en la librería librawnet que 
-    muestre en pantalla la dirección MAC asociada a la dirección IPv4 que se pasa como 
-    parámetro en su línea de comandos, junto con el interfaz que se desea emplear.
-    Para ello debe implementar la función “int arp_resolve(eth_iface_t * iface, 
-    ipv4_addr_t ip_addr, mac_addr_t mac_addr)” que, dada la dirección IPv4
-    “ip_addr”, envíe una petición ARP por el interfaz Ethernet especificado (“iface”) y 
-    rellene la dirección “mac_addr” con la respuesta obtenida, o devuelva un valor de error
-    distinto de 0 si la respuesta no ha llegado después de 2 segundos. Como todavía no se
-    dispone de una dirección IPv4 configurada, la dirección de red origen del mensaje ARP
-    debe ser 0.0.0.0.
-    El funcionamiento correcto del cliente desarrollado se probará utilizando el servidor 
-    ARP implementado por la pila de protocolos TCP/IP estándar de los ordenadores del 
-    laboratorio.
-    Así, el resultado de ejecutar “arp_client eth0 163.117.144.241” debería ser:
-    163.117.144.241 -> 00:10:DC:D9:83:2B
-    */
-
-    //Creamos variables auxiliares
-    //char y[MAC_STR_SIZE];
-    //Rellenamos la estructura con los datos correspondientes
-    //Comprobamos que la mac introducida se corresponde con una mac 
-    //y = mac_str_addr(dest_MAC_addr, arp_header.dest_addr_mac); 
-
-    // Abrimos la interfaz Ethernet
-
-    // Enviamos tramas Ethernet 
-    // Inicializamos el temporizador para mantener timeout si se reciben tramas con tipo incorrecto.
-    //do
-    //{
-    //Recibimos tramas Ethernet
-    //Comprobamos que tenga un tamaño correcto 
-    // Comprobamos si es la trama que estamos buscando 
-    //} while (); 
-    //Hasta que sea la trama buscada
+    
+    //Empezamos a convertir y rellenar los campos de la cabecera ARP.
+    //Ya tenemos la IP target convertida en el "if" y el controlador de la interfaz.
+    //Podemos meter tal cual los valores de 1 byte (8 bits), que son hw_size y protocol_size.
+    //Necesitamos convertir con htons() los de 16 bits, que son hardware_type y protocol_type. Luego el opcode cuando mandemos.
     struct arp_header arp_header_t; //Creo header de ARP
     memset(&arp_header_t, 0, sizeof(struct arp_header));//Relleno la zona de memoria que guarda nuestra cabecera ARP con 0. 
     arp_header_t.hardware_type= htons(HW_TYPE_ETH);
@@ -92,7 +60,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     mac_addr_t src_addr; 
     unsigned char buffer[ETH_MTU];
     long int timeout = 2000;
-    
+
     len = eth_recv(&iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
     if (len == -1) { //Si no hay datos
         printf(stderr, "ERROR en eth_recv()\n");
@@ -144,31 +112,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\nInvalid target IP Address");
         exit(-1);
     }
-    
-
     //A partir de aqui, los parametros pasados por linea de comandos son correctos.
-    //Empezamos a convertir y rellenar los campos de la cabecera ARP.
-    //Ya tenemos la IP target convertida en el "if" y el controlador de la interfaz.
-    //Podemos meter tal cual los valores de 1 byte (8 bits), que son hw_size y protocol_size.
-    //Necesitamos convertir con htons() los de 16 bits, que son hardware_type y protocol_type. Luego el opcode cuando mandemos.
-
-    arp_header_t.hw_size = (uint8_t) HW_SIZE_MAC_ADDR;
-    arp_header_t.protocol_size = (uint8_t) PROT_SIZE_IP_ADDR;
-
-    arp_header_t.hardware_type= htons(HW_TYPE_ETH);
-    arp_header_t.protocol_type = htons(PROT_TYPE_IPV4);
-
-    //Montamos el paquete a mandar.
-    arp_header_t.opcode = htons(OPCODE_REQUEST);
-    eth_getaddr ( iface_controller, arp_header_t.src_MAC_addr) ;
-    ipv4_str_addr("0.0.0.0",arp_header_t.src_IPv4_addr);//Tamaño dirs IP  4 bytes.
-    memcpy(arp_header_t.dest_IPv4_addr, target_ip, 4);
-    memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
     
-    //Paquete montado -> Mandamos el paquete:
-    //Type de ARP = 0x0806
-    
-    eth_send ( iface_controller, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header) );
-
-    //arp_resolve(iface_name, target_ip, NULL); //mac_addr should be the thing to recover!!
+    arp_resolve(iface_controller, target_ip, NULL); //mac_addr should be the thing to recover!!
 }
