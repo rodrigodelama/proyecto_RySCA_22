@@ -81,6 +81,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     memcpy(arp_header_t.dest_MAC_addr,  MAC_BCAST_ADDR, MAC_ADDR_SIZE);
 
 
+    char * name=eth_getname(&iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
+    
     //Type de ARP = 0x0806
     //Envio ARP Request
     eth_send(&iface,arp_header_t.dest_MAC_addr,0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
@@ -90,17 +92,18 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     mac_addr_t src_addr; 
     unsigned char buffer[ETH_MTU];
     long int timeout = 2000;
-    len=eth_recv(&iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
+    len = eth_recv(&iface,src_addr,0x0806,buffer, ETH_MTU,timeout);
     if (len == -1) { //Si no hay datos
         printf(stderr, "ERROR en eth_recv()\n");
-        eth_close(&iface);
         return -1;
     } else if (len == 0) { //Si no hay datos
         fprintf(stderr, "%s: ERROR: No hay respuesta del Servidor Ethernet\n",name);
-        eth_close(&iface);
         return -1;
     }
-   
+
+    struct arp_header * arp_header_recv = (struct arp_header*) buffer;
+    memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t));
+    //mac_addr = arp_header_recv -> src_MAC_addr;
     return 0;
 }
 
