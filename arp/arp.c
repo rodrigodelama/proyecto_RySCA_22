@@ -56,6 +56,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     long int timeout = 2000;
 
     int len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout);
+
     if (len == -1)
     {
         //Si no hay datos
@@ -64,9 +65,29 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     }
     else if (len == 0)
     {
-        //Si no hay datos
-        fprintf(stderr, "%s: ERROR: Temporizador agotado, no hay respuesta de la IP de destino\n", name);
-        return -1;
+    //Parte Opcional 1:
+        fprintf(stderr, "%s: ERROR: Temporizador de 2s agotado, no hay respuesta de la IP de destino\n", name);
+        //No hemos recibido una respuesta en 2 segundos, reenviamos el ARP_request y ponemos un limite de tiempo de 3 segundos (3000ms)
+
+        //Cambiamos el limite de tiempo.
+        timeout = 3000;
+        //Reenviamos ARP_request
+        eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+
+        len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout); //Esperamos a recibir el ARP_reply.
+
+        if (len == -1)
+        {
+            //Si no hay datos
+            fprintf(stderr, "ERROR: eth_recv() broke\n");
+            return -1;
+        }
+        else if (len == 0)
+        {
+            //Si pasan los 3 segundos.
+            fprintf(stderr, "%s: ERROR: Temporizador de 3s agotado, cerrando conexion...\n", name);
+            return -1;
+        }
     }
 
     struct arp_header * arp_header_recv = (struct arp_header *) buffer;
