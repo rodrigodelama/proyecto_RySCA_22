@@ -33,8 +33,7 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ipv4_route_t * ipv4_route_create
-( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw )
+ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw)
 {
   ipv4_route_t * route = (ipv4_route_t *) malloc(sizeof(struct ipv4_route));
 
