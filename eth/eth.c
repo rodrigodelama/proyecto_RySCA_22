@@ -277,7 +277,7 @@ int eth_recv
 
     /* Recibir trama del interfaz Ethernet y procesar errores */
     frame_len = rawnet_recv (iface->raw_iface, eth_buffer, eth_buf_len,
-                             time_left);
+                            time_left);
     if (frame_len < 0) {
       fprintf(stderr, "eth_recv(): ERROR en rawnet_recv(): %s\n", 
               rawnet_strerror());

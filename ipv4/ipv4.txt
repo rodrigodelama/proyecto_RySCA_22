@@ -20,6 +20,16 @@ Indicar si la dirección IP puesta como argumento prenece a un prefijo también 
     pertenece a la subred -> devolvemos tamaño del prefijo.
 - 6º Si no da 1 la comparación, devolvemos un -1. 
 
+route = entrada de la tabla ip.
+manera de contar unos (1's) -> for por cada uno de los 4 octetos y hagamos un case, si la máscara vale 255, sumamos 8, y hay 9 casos.
+1111 1111 -> 255 -> +8
+1111 1110 -> 254 -> +7
+1111 1100 -> 252 -> +6
+1111 1000 -> 248 -> +5
+1111 0000 -> 240 -> +4
+1110 0000 -> 224 -> +3
+1100 0000 -> 192 -> +2
+1000 0000 -> 128 -> +1
 Prototipo funciones ipv4_open(), ipv4_close(), ipv4_send(), ipv4_recv():
 
 ipv4_open(eth_iface_t * iface, ipv4_addr_t ip_host);

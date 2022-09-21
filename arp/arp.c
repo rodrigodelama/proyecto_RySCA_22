@@ -47,34 +47,32 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     
     //Type de ARP = 0x0806
     //Envio ARP Request
-    eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+    eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));//0x0806 es el type code de ARP de capa superior.
     
     //Recibir el reply
     //variables para almacenar datos de eth_rcv
     mac_addr_t src_addr; 
     unsigned char buffer[ETH_MTU];
+    
+    /*
+    int eth_buf_len = ETH_HEADER_SIZE + buf_len;
+    unsigned char eth_buffer[eth_buf_len];
+    */
     long int timeout = 2000;
-
-    int len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout);
-
-    if (len == -1)
+    timerms_t timer;
+    timerms_reset(&timer, timeout);
+    struct arp_header * arp_header_recv = NULL;
+    //int is_hardware_type;
+    //int is_protocol_type;
+    //int is_my_ip;//checckea si es para mi ip y no es broadcast.
+    int is_my_dest_ip;//checkea si es la ip de destino pasada como argumento de esta función.
+    int is_request;
+    int len;
+    do
     {
-        //Si no hay datos
-        fprintf(stderr, "ERROR: eth_recv() broke\n");
-        return -1;
-    }
-    else if (len == 0)
-    {
-    //Parte Opcional 1:
-        fprintf(stderr, "%s: ERROR: Temporizador de 2s agotado, no hay respuesta de la IP de destino\n", name);
-        //No hemos recibido una respuesta en 2 segundos, reenviamos el ARP_request y ponemos un limite de tiempo de 3 segundos (3000ms)
+        long int time_left = timerms_left(&timer);
 
-        //Cambiamos el limite de tiempo.
-        timeout = 3000;
-        //Reenviamos ARP_request
-        eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
-
-        len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout); //Esperamos a recibir el ARP_reply.
+        len = eth_recv(iface, src_addr, PROT_TYPE_ARP, buffer, ETH_MTU, time_left);
 
         if (len == -1)
         {
@@ -84,13 +82,49 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         }
         else if (len == 0)
         {
-            //Si pasan los 3 segundos.
-            fprintf(stderr, "%s: ERROR: Temporizador de 3s agotado, cerrando conexion...\n", name);
-            return -1;
-        }
-    }
+        //Parte Opcional 1:
+            fprintf(stderr, "%s: ERROR: Temporizador de 2s agotado, no hay respuesta de la IP de destino\n", name);
+            //No hemos recibido una respuesta en 2 segundos, reenviamos el ARP_request y ponemos un limite de tiempo de 3 segundos (3000ms)
 
-    struct arp_header * arp_header_recv = (struct arp_header *) buffer;
+            //Cambiamos el limite de tiempo.
+            timeout = 3000;
+            //Reenviamos ARP_request
+            eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+
+            len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout); //Esperamos a recibir el ARP_reply.
+
+            if (len == -1)
+            {
+                //Si no hay datos
+                fprintf(stderr, "ERROR: eth_recv() broke\n");
+                return -1;
+            }
+            else if (len == 0)
+            {
+                //Si pasan los 3 segundos.
+                fprintf(stderr, "%s: ERROR: Temporizador de 3s agotado, cerrando conexion...\n", name);
+                return -1;
+            }
+
+        }/*else if(frame_len < ETH_HEADER_SIZE){
+            fprintf(stderr, "eth_recv(): Trama de tamaño invalido: %d bytes\n",frame_len);
+            continue;
+        }
+        */
+        /* Comprobar si es la trama que estamos buscando */
+        arp_header_recv = (struct arp_header*) buffer;
+        //is_my_mac = (memcmp(arp_header_recv->dest_MAC_addr,iface->mac_address, MAC_ADDR_SIZE) == 0);
+        //is_my_ip = (memcmp(arp_header_recv ->dest_IPv4_addr, "0.0.0.0") == 0); no hace falta, hay que ser permisivo en este caso
+        //is_hardware_type = (ntohs(arp_header_recv->hardware_type) == HW_TYPE_ETH);
+        //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
+        is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
+        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr) == 0);
+        //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
+        //TODO: mirar si hay que checkear más campos.
+    } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
+    
+
+    //struct arp_header * arp_header_recv = (struct arp_header *) buffer;
 
 
     //FIXME: potentially unnecessary - check with the pdf: 20202021_RYSCA_enunciado_cliente_ARP.pdf
