@@ -1,4 +1,5 @@
 #include "arp.h"
+
 #include <stdio.h>
 #include <timerms.h>
 //extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
@@ -7,7 +8,7 @@
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 {
     //Proveniente del "main" tenemos la interfaz y direccion IP convertidas a sus respectivos tipos
- 
+
     struct arp_header arp_header_t; //Creo header de ARP
     
     //Empezamos a convertir y rellenar los campos de la cabecera ARP

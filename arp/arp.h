@@ -1,10 +1,10 @@
-# include "../eth/eth.h"
-# include "../ipv4/ipv4.h"
+#include "../eth/eth.h"
+#include "../ipv4/ipv4.h"
 
-# include <stdint.h>
-# include <stdlib.h>    //Para funcion exit()
-# include <string.h>    //Para funcion memset()
-# include <arpa/inet.h> //Para htons, ntons y demas
+#include <stdint.h>
+#include <stdlib.h>    //Para funcion exit()
+#include <string.h>    //Para funcion memset()
+#include <arpa/inet.h> //Para htons, ntons y demas
 
 #define MAC_STR_SIZE  17
 #define HW_TYPE_ETH 1

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <errno.h>
 
-
 /* ipv4_route_t * ipv4_route_create
  * ( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw );
  * 
@@ -150,7 +149,7 @@ ipv4_route_t* ipv4_route_read ( char* filename, int linenum, char * line )
 
   /* Parse line: Format "<subnet> <mask> <iface> <gw>\n" */
   int params = sscanf(line, "%s %s %s %s\n", 
-	       subnet_str, mask_str, iface_name, gw_str);
+	        subnet_str, mask_str, iface_name, gw_str);
   if (params != 4) {
     fprintf(stderr, "%s:%d: Invalid IPv4 Route format: '%s' (%d params)\n",
 	    filename, linenum, line, params);
@@ -247,8 +246,6 @@ int ipv4_route_output ( ipv4_route_t * route, int header, FILE * out )
 
   return 0;
 }
-
-
 
 struct ipv4_route_table {
   ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
@@ -385,8 +382,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
  *   Esta función devuelve 'NULL' si no no existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
-ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, 
-                                         ipv4_addr_t addr )
+ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t addr )
 {
   ipv4_route_t * best_route = NULL;
   int best_route_prefix = -1;

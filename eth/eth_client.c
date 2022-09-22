@@ -82,8 +82,7 @@ int main ( int argc, char * argv[] )
   char client_addr_str[MAC_STR_LENGTH];
   mac_addr_str(client_addr, client_addr_str);
   
-  printf("Abriendo interfaz Ethernet %s. Dirección MAC: %s\n", 
-         iface_name, client_addr_str);
+  printf("Abriendo interfaz Ethernet %s. Dirección MAC: %s\n", iface_name, client_addr_str);
 
   /* Generar payload */
   unsigned char payload[payload_len];
@@ -97,8 +96,7 @@ int main ( int argc, char * argv[] )
   unsigned char buffer[ETH_MTU];
 
   /* Enviar trama Ethernet al Servidor */
-  printf("Enviando %d bytes al Servidor Ethernet (%s):\n",
-         payload_len, server_addr_str);
+  printf("Enviando %d bytes al Servidor Ethernet (%s):\n", payload_len, server_addr_str);
   print_pkt(payload, payload_len, 0);
   
   err = eth_send(eth_iface, server_addr, eth_type, payload, payload_len);
@@ -121,8 +119,7 @@ int main ( int argc, char * argv[] )
     char src_addr_str[MAC_STR_LENGTH];
     mac_addr_str(src_addr, src_addr_str);    
 
-    printf("Recibidos %d bytes del Servidor Ethernet (%s)\n", 
-           len, src_addr_str);
+    printf("Recibidos %d bytes del Servidor Ethernet (%s)\n", len, src_addr_str);
     print_pkt(buffer, len, 0);
   }
 
