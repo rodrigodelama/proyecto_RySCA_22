@@ -3,7 +3,6 @@ Pseudo-codigo funcion ipv4_route_lookup():
 
 int ipv4_route_lookup(ipv4_route_t * route, ipv4_addr_t addr)
 
-
 /*  
     ipv4_addr_t subnet_addr; //198.162.1.0
     ipv4_addr_t subnet_mask; //255.255.255.0 -> /24 [0,23]

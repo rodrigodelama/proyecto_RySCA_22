@@ -1,6 +1,6 @@
 #include "arp.h"
 #include <stdio.h>
-
+#inclcude <timerms.h>
 //extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
 
 struct arp_header
@@ -118,7 +118,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         //is_hardware_type = (ntohs(arp_header_recv->hardware_type) == HW_TYPE_ETH);
         //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
         is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
-        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr) == 0);
+        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr, sizeof(ipv4_addr_t)) == 0);
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
     } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
@@ -148,38 +148,3 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     return 0;
 }
 
-int main(int argc, char* argv[])
-{
-
-    struct arp_header arp_header_t;
-    //Comprobaciones del numero correcto de argumentos y si son correctos.
-    memset(&arp_header_t, 0, sizeof(struct arp_header));//Relleno la zona de memoria que guarda nuestra cabecera ARP con 0. 
-
-    if(argc != 3 )
-    {
-        fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso:  <iface> <target_ip>\n");
-        printf("      <iface>: Nombre de la interfaz Ethernet\n");
-        printf("      <target_ip>: Direccion ip para solicitar su MAC \n");
-        exit(-1);
-    }
-    
-    char* iface_name = argv[1];
-    eth_iface_t* iface_controller = eth_open(iface_name);
-    if(eth_open(iface_name) == NULL) //Checking if the interface is a valid one
-    {
-        fprintf(stderr, "%s\n", "Error con la interfaz\n");
-        exit(-1);
-    }
-
-    ipv4_addr_t target_ip;
-    if (ipv4_str_addr(argv[2], target_ip) == -1)
-    {
-        fprintf(stderr, "\nInvalid target IP Address");
-        exit(-1);
-    }
-    //A partir de aqui, los parametros pasados por linea de comandos estaran en el formato correcto
-    arp_resolve(iface_controller, target_ip, discovery_mac_addr); //mac_addr should be the thing to recover!!
-
-    eth_close(iface_controller); //Cerramos la interfaz al terminar, en el futuro nos quedaremos solo con arp_resolve(). 
-}
