@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "../eth/eth.h"
+#include "../ipv4_route_table/ipv4_route_table.h"
 #include "../ipv4_route_table/ipv4_config.h"
 
 /* Dirección IPv4 a cero: "0.0.0.0" */

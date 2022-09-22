@@ -1,22 +1,7 @@
 #include "arp.h"
 #include <stdio.h>
-#inclcude <timerms.h>
+#include <timerms.h>
 //extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
-
-struct arp_header
-{
-    //constants by the "defines"
-    uint16_t hardware_type; //protocolo capa inferior (eth)
-    uint16_t protocol_type; //protocolo capa superior (ipv4)
-    uint8_t hw_size; //numero de bytes de las direcciones de la capa inferior (6 bytes en eth)
-    uint8_t protocol_size; //numero de bytes de las direcciones de la capa superior (4 bytes en IPv4)
-
-    uint16_t opcode; //request = 1, reply = 2
-    mac_addr_t src_MAC_addr; //sender MAC address - format XX:XX:XX:XX:XX:XX
-    ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
-    mac_addr_t dest_MAC_addr; //target MAC address
-    ipv4_addr_t dest_IPv4_addr; //target IPv4 address
-};
 
 //ARP request and reply handling
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -122,17 +107,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
     } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
-    
-
-    //struct arp_header * arp_header_recv = (struct arp_header *) buffer;
-
-
-    //FIXME: potentially unnecessary - check with the pdf: 20202021_RYSCA_enunciado_cliente_ARP.pdf
     memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t)); //whats the point?
 
-    //Copied to our global var for future use
-    memcpy(discovery_mac_addr, mac_addr, sizeof(mac_addr_t));
-    
     //To print out the found out data:
     char* dest_ip_str = (char*) malloc(sizeof(ipv4_addr_t));
     ipv4_addr_str(ip_addr, dest_ip_str);

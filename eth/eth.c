@@ -185,13 +185,17 @@ int eth_send
   memcpy(eth_frame.payload, payload, payload_len);
   int eth_frame_len = ETH_HEADER_SIZE + payload_len;
 
-  /* Imprimir trama Ethernet */
+  /* Imprimir trama Ethernet - LOGS
+  //
+
   char* iface_name = eth_getname(iface);
   char mac_str[MAC_STR_LENGTH];
   mac_addr_str(dst, mac_str);
   printf("eth_send(type=0x%04x, payload[%d]) > %s/%s\n",
-         type, payload_len, iface_name, mac_str);
+          type, payload_len, iface_name, mac_str);
   print_pkt((unsigned char *) &eth_frame, eth_frame_len, ETH_HEADER_SIZE);
+  
+  */
 
   /* Enviar la trama Ethernet creada con rawnet_send() y comprobar errores */
   bytes_sent = rawnet_send

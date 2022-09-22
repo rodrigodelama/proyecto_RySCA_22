@@ -16,4 +16,17 @@
 #define OPCODE_REPLY 2
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr);
 
-mac_addr_t discovery_mac_addr; //MAC Address to be "discovered" by our ARP request
+struct arp_header
+{
+    //constants by the "defines"
+    uint16_t hardware_type; //protocolo capa inferior (eth)
+    uint16_t protocol_type; //protocolo capa superior (ipv4)
+    uint8_t hw_size; //numero de bytes de las direcciones de la capa inferior (6 bytes en eth)
+    uint8_t protocol_size; //numero de bytes de las direcciones de la capa superior (4 bytes en IPv4)
+
+    uint16_t opcode; //request = 1, reply = 2
+    mac_addr_t src_MAC_addr; //sender MAC address - format XX:XX:XX:XX:XX:XX
+    ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
+    mac_addr_t dest_MAC_addr; //target MAC address
+    ipv4_addr_t dest_IPv4_addr; //target IPv4 address
+};

@@ -1,14 +1,17 @@
 #include "arp.h"
+
 #include <stdio.h>
 
 int main(int argc, char* argv[])
 {
-
-    struct arp_header arp_header_t;
+    mac_addr_t discovery_mac_addr; //MAC Address to be "discovered" by our ARP request
+    
+    //struct arp_header* arp_header_t = (struct arp_header*) malloc(sizeof(struct arp_header));
+    struct arp_header arp_header_t; //Creo header de ARP
     //Comprobaciones del numero correcto de argumentos y si son correctos.
     memset(&arp_header_t, 0, sizeof(struct arp_header));//Relleno la zona de memoria que guarda nuestra cabecera ARP con 0. 
 
-    if(argc != 3 )
+    if(argc != 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso:  <iface> <target_ip>\n");
