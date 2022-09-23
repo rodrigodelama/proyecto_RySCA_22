@@ -5,7 +5,6 @@
 #include <string.h>
 #include <errno.h>
 
-
 /* ipv4_route_t * ipv4_route_create
  * ( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw );
  * 
@@ -75,8 +74,43 @@ ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* ifa
 int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
 {
   int prefix_length = -1;
-
-  /* TODO: Debe implementar este método */
+  ipv4_addr_t aux[4]; //aux de ipv4 X.X.X.X
+  for(int i=0;i<4;i++){ 
+    aux[i]=addr[i]&route->subnet_mask[i]; //Bit AND con addr y la mask. Se guarda en aux
+    }
+  if(memcmp(aux,subnet_addr,4)==0){ //comparo aux con subnet_addr, 4 bytes
+    prefix_length=0;
+    for(int i=0;i<4;i++){
+      switch (aux[i]){ //para cada caso, sumo los bytes correspondientes
+        case 255:
+          prefix_length += 8;
+          break;
+        case 254:
+          prefix_length += 7;
+          break;
+        case 252:
+          prefix_length += 6;
+          break;
+        case 248:
+          prefix_length += 5;
+          break;
+        case 240:
+          prefix_length += 4;
+          break;
+        case 224:
+          prefix_length += 3;
+          break;
+        case 192:
+          prefix_length += 2;
+          break;
+        case 128:
+          prefix_length += 1;
+          break;
+        default:
+          prefix_length +=0;
+          break;
+        }
+      }
 
   return prefix_length;
 }
@@ -150,7 +184,7 @@ ipv4_route_t* ipv4_route_read ( char* filename, int linenum, char * line )
 
   /* Parse line: Format "<subnet> <mask> <iface> <gw>\n" */
   int params = sscanf(line, "%s %s %s %s\n", 
-	       subnet_str, mask_str, iface_name, gw_str);
+	        subnet_str, mask_str, iface_name, gw_str);
   if (params != 4) {
     fprintf(stderr, "%s:%d: Invalid IPv4 Route format: '%s' (%d params)\n",
 	    filename, linenum, line, params);
@@ -247,8 +281,6 @@ int ipv4_route_output ( ipv4_route_t * route, int header, FILE * out )
 
   return 0;
 }
-
-
 
 struct ipv4_route_table {
   ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
@@ -385,8 +417,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
  *   Esta función devuelve 'NULL' si no no existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
-ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, 
-                                         ipv4_addr_t addr )
+ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t addr )
 {
   ipv4_route_t * best_route = NULL;
   int best_route_prefix = -1;

@@ -1,28 +1,14 @@
 #include "arp.h"
+
 #include <stdio.h>
 #include <timerms.h>
 //extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
-
-struct arp_header
-{
-    //constants by the "defines"
-    uint16_t hardware_type; //protocolo capa inferior (eth)
-    uint16_t protocol_type; //protocolo capa superior (ipv4)
-    uint8_t hw_size; //numero de bytes de las direcciones de la capa inferior (6 bytes en eth)
-    uint8_t protocol_size; //numero de bytes de las direcciones de la capa superior (4 bytes en IPv4)
-
-    uint16_t opcode; //request = 1, reply = 2
-    mac_addr_t src_MAC_addr; //sender MAC address - format XX:XX:XX:XX:XX:XX
-    ipv4_addr_t src_IPv4_addr; //sender IPv4 address - format xxx.xxx.xxx.xxx, where x is any int [0,255]
-    mac_addr_t dest_MAC_addr; //target MAC address
-    ipv4_addr_t dest_IPv4_addr; //target IPv4 address
-};
 
 //ARP request and reply handling
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 {
     //Proveniente del "main" tenemos la interfaz y direccion IP convertidas a sus respectivos tipos
- 
+
     struct arp_header arp_header_t; //Creo header de ARP
     
     //Empezamos a convertir y rellenar los campos de la cabecera ARP
@@ -118,21 +104,12 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         //is_hardware_type = (ntohs(arp_header_recv->hardware_type) == HW_TYPE_ETH);
         //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
         is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
-        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr,sizeof(ipv4_addr_t)) == 0);
+        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr, sizeof(ipv4_addr_t)) == 0);
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
     } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
-    
-
-    //struct arp_header * arp_header_recv = (struct arp_header *) buffer;
-
-
-    //FIXME: potentially unnecessary - check with the pdf: 20202021_RYSCA_enunciado_cliente_ARP.pdf
     memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t)); //whats the point?
 
-    //Copied to our global var for future use
-    memcpy(discovery_mac_addr, mac_addr, sizeof(mac_addr_t));
-    
     //To print out the found out data:
     char* dest_ip_str = (char*) malloc(sizeof(ipv4_addr_t));
     ipv4_addr_str(ip_addr, dest_ip_str);
@@ -148,38 +125,3 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     return 0;
 }
 
-int main(int argc, char* argv[])
-{
-
-    struct arp_header arp_header_t;
-    //Comprobaciones del numero correcto de argumentos y si son correctos.
-    memset(&arp_header_t, 0, sizeof(struct arp_header));//Relleno la zona de memoria que guarda nuestra cabecera ARP con 0. 
-
-    if(argc != 3 )
-    {
-        fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso:  <iface> <target_ip>\n");
-        printf("      <iface>: Nombre de la interfaz Ethernet\n");
-        printf("      <target_ip>: Direccion ip para solicitar su MAC \n");
-        exit(-1);
-    }
-    
-    char* iface_name = argv[1];
-    eth_iface_t* iface_controller = eth_open(iface_name);
-    if(eth_open(iface_name) == NULL) //Checking if the interface is a valid one
-    {
-        fprintf(stderr, "%s\n", "Error con la interfaz\n");
-        exit(-1);
-    }
-
-    ipv4_addr_t target_ip;
-    if (ipv4_str_addr(argv[2], target_ip) == -1)
-    {
-        fprintf(stderr, "\nInvalid target IP Address");
-        exit(-1);
-    }
-    //A partir de aqui, los parametros pasados por linea de comandos estaran en el formato correcto
-    arp_resolve(iface_controller, target_ip, discovery_mac_addr); //mac_addr should be the thing to recover!!
-
-    eth_close(iface_controller); //Cerramos la interfaz al terminar, en el futuro nos quedaremos solo con arp_resolve(). 
-}

@@ -5,17 +5,13 @@
 
 int main(int argc, char* argv[]){
     
-    /*  
-        ipv4_addr_t subnet_addr; //198.162.1.0
-        ipv4_addr_t subnet_mask; //255.255.255.0 -> /24 [0,23]
-                        11111111 11111111 11111111 00000000
-    */
+    //crear una mascara & de dos iguales queda igual
     
     ipv4_addr_t ip1 = {100,100,100,100};
     ipv4_addr_t ip2 = {100,100,100,0};
     ipv4_addr_t comp = {0,0,0,0};
     for(int i = 0; i < 4; i++){
-        comp[i] = ip1[i] && ip2[i];
+        comp[i] = ip1[i] & ip2[i];
     }
     
     //int c = 102 & 01;    

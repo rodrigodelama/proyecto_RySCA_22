@@ -1,9 +1,9 @@
 #ifndef _IPv4_ROUTE_TABLE_H
 #define _IPv4_ROUTE_TABLE_H
 
-#include "ipv4.h"
-
 #include <stdio.h>
+
+#include "../ipv4/ipv4.h"
 
 /* Esta estructura almacena la información básica sobre la ruta a una subred. 
  * Incluye la dirección y máscara de la subred destino, el nombre del interfaz
