@@ -1,4 +1,4 @@
-#include "ipv4.h"
+#include "./ipv4.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,12 +7,14 @@
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
 /* Estructura del manejador del interfaz ivp4 */
+
+
 typedef struct ipv4_layer {
   eth_iface_t ∗ iface; /*Manejador de interfaz eth*/
   ipv4_addr_t addr; 
   ipv4_addr_t netmask; 
   ipv4_route_table_t ∗ routing_table;
-} ipv4_ layer_t ;
+} ipv4_layer_t ;
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *

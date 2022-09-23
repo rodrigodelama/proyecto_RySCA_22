@@ -1,6 +1,6 @@
 #include "arp.h"
 #include <stdio.h>
-
+#include <timerms.h>
 //extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
 
 struct arp_header
@@ -118,7 +118,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         //is_hardware_type = (ntohs(arp_header_recv->hardware_type) == HW_TYPE_ETH);
         //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
         is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
-        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr) == 0);
+        is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr,sizeof(ipv4_addr_t)) == 0);
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
     } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
