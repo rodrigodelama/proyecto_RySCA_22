@@ -74,8 +74,43 @@ ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* ifa
 int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
 {
   int prefix_length = -1;
-
-  /* TODO: Debe implementar este método */
+  ipv4_addr_t aux[4]; //aux de ipv4 X.X.X.X
+  for(int i=0;i<4;i++){ 
+    aux[i]=addr[i]&route->subnet_mask[i]; //Bit AND con addr y la mask. Se guarda en aux
+    }
+  if(memcmp(aux,subnet_addr,4)==0){ //comparo aux con subnet_addr, 4 bytes
+    prefix_length=0;
+    for(int i=0;i<4;i++){
+      switch (aux[i]){ //para cada caso, sumo los bytes correspondientes
+        case 255:
+          prefix_length += 8;
+          break;
+        case 254:
+          prefix_length += 7;
+          break;
+        case 252:
+          prefix_length += 6;
+          break;
+        case 248:
+          prefix_length += 5;
+          break;
+        case 240:
+          prefix_length += 4;
+          break;
+        case 224:
+          prefix_length += 3;
+          break;
+        case 192:
+          prefix_length += 2;
+          break;
+        case 128:
+          prefix_length += 1;
+          break;
+        default:
+          prefix_length +=0;
+          break;
+        }
+      }
 
   return prefix_length;
 }
