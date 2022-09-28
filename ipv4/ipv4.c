@@ -62,8 +62,8 @@ int ipv4_str_addr ( char* str, ipv4_addr_t addr )
   if (str != NULL) {
     unsigned int addr_int[IPv4_ADDR_SIZE];
     int len = sscanf(str, "%d.%d.%d.%d", 
-                     &addr_int[0], &addr_int[1], 
-                     &addr_int[2], &addr_int[3]);
+                    &addr_int[0], &addr_int[1], 
+                    &addr_int[2], &addr_int[3]);
 
     if (len == IPv4_ADDR_SIZE) {
       int i;
