@@ -64,6 +64,11 @@ int ipv4_str_addr ( char* str, ipv4_addr_t addr );
  *   El valor del checksum calculado.
  */
 uint16_t ipv4_checksum ( unsigned char * data, int len );
+//ipv4 open, parámetros de entrada son los txt de ipv4_route_table
+ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route); //Devuelve el manejador de ipv4. 
 
+int ipv4_send(ipv4_layer_t iface, ipv4_addr_t ip_addr_dest); //Devuelve nº de bytes enviados.
 
-#endif /* _IPv4_H */
+int ipv4_recv(ipv4_layer_t iface, ipv4_addr_t ip_addr_dest) //Devuelve nº bytes recibidos.
+
+#endif /*_IPv4_H */

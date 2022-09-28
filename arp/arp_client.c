@@ -38,6 +38,9 @@ int main(int argc, char* argv[])
     arp_resolve(iface_controller, target_ip, discovery_mac_addr); //mac_addr should be the thing to recover!!
     char discovery_mac_addr_str[MAC_STR_LENGTH];
     mac_addr_str ( discovery_mac_addr, discovery_mac_addr_str);
-    printf("¿Se rellena la mac adecuadamente? -> %s\n", discovery_mac_addr_str);
+    
+    // UNNECESSARY same as above
+    //printf("¿Se rellena la mac adecuadamente? -> %s\n", discovery_mac_addr_str);
+    
     eth_close(iface_controller); //Cerramos la interfaz al terminar, en el futuro nos quedaremos solo con arp_resolve(). 
 }

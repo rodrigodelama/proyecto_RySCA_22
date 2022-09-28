@@ -116,4 +116,26 @@ uint16_t ipv4_checksum ( unsigned char * data, int len )
   return (uint16_t) sum;
 }
 
+ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route){
+
+  /* 1. Crear layer -> routing_table */
+   ipv4_layer_t * ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t));
+  if (ipv4_layer == NULL) {
+    fprintf(stderr, "eth_open(): ERROR en malloc()\n");
+    return NULL;
+  }
+
+/* 2. Leer direcciones y subred de file_conf */
+  if (ipv4_config_read( file_conf, eth_getname( ipv4_layer->iface ), ipv4_layer->addr, ipv4_layer->netmask) != 0){
+    fprintf(stderr,"ERROR: file could not be opened correctly.\n");
+    exit(-1);
+  }
+  /*La función devuelve '0' si el fichero de configuración se ha leido
+    correctamente.*/
+/* 3. Leer tabla de reenvío IP de file_conf_route */
+/* 4. Inicializar capa Ethernet con eth_open() */
+  //Guardamos el manejador en el campo de "iface".
+
+}
+
 

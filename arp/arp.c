@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 #include <timerms.h>
-//extern mac_addr_t discovery_mac_addr; //FIXME: ASK about extern
+
+mac_addr_t ARP_BCAST_ADDR_zeros = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 //ARP request and reply handling
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -27,7 +28,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     eth_getaddr(iface, arp_header_t.src_MAC_addr);
     ipv4_str_addr("0.0.0.0", arp_header_t.src_IPv4_addr); //IP por defecto segun el pdf
     memcpy(arp_header_t.dest_IPv4_addr, ip_addr, 4); //Tamaño dirs IP -> 4 bytes
-    memcpy(arp_header_t.dest_MAC_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE);
+    memcpy(arp_header_t.dest_MAC_addr, ARP_BCAST_ADDR_zeros, MAC_ADDR_SIZE);
 
     char * name = eth_getname(iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
     
