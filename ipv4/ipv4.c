@@ -1,11 +1,10 @@
-#include "./ipv4.h"
+#include "ipv4.h"
+#include "../ipv4_route_table/ipv4_config.h"
+#include "../ipv4_route_table/ipv4_route_table.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../eth/eth.h"
-#include "../ipv4_route_table/ipv4_route_table.h"
-#include "../ipv4_route_table/ipv4_config.h"
 
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };

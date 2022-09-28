@@ -1,6 +1,4 @@
 #include "eth.h"
-//#include "../arp/arp.h"
-//extern discovery_mac_addr; //test funtionality of extern
 
 #include <rawnet.h>
 #include <timerms.h>
