@@ -1,0 +1,29 @@
+Pseudo-codigo S05
+
+ipv4_send(eth_iface_t * iface, ipv4_addr_t ip_addr_dest)
+
+- abir intefaz ipv4
+- comprobar si la IP dest esta en mi subred o no con ipv4_route_looku
+    - si esta en mi subred:
+        arp_resolve y guardamos la MAC devuelta
+        montamos el paquete con todos sus campos
+        mandamos el paquete a la IP destino
+    - si NO esta en mi subred
+        miraremos nuestra tabla de rutas para identificar el gateway
+        arp_resolve con el gateway
+        montamos el paquete con todos sus campos
+        mandamos el paquete a la IP destino
+        con el primer paso siendo mandar el paquete a la MAC del gateway
+- cerrar intefaz ipv4
+
+
+ipv4_recv(eth_iface_t * iface, ipv4_addr_t ip_addr_dest)
+
+- abir intefaz ipv4
+- recibimos el paquete (24byte long header)
+- desmontamos el paquete
+- verificar version, donde deberia haber un 4 (IPv4)
+- verificar IP de destino (¿es para nosotros?)
+- verificar IP de orígen (¿es de quien esperamos?)
+- aceptaremos el paquete, y lo guardaremos en disco para su interpretacion
+...
