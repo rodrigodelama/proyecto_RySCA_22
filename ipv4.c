@@ -4,23 +4,36 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#define UDP_PROTOCOL 17
+#define VERSION_AND_LENGTH 0x45
+#define ID 0x8397
 
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
 /* Estructura del manejador del interfaz ivp4 */
 
-//typedef struct ipv4_layer {
-  //eth_iface_t * iface; /*Manejador de interfaz eth*/
-  //ipv4_addr_t addr; 
-  //ipv4_addr_t netmask; 
-  //ipv4_route_table_t * routing_table;
-//} ipv4_layer_t ;
+/* Estructura de la capa de ipv4 */
+struct ipv4_layer {
+    eth_iface_t * iface; /*Manejador de interfaz eth*/
+    ipv4_addr_t addr; 
+    ipv4_addr_t netmask; 
+    ipv4_route_table_t * routing_table;
+};
 
-  
-
-  
+struct ipv4_header {
+  uint8_t version_and_length;//Default value = VERSION_AND_LENGTH -> 0x45
+  uint8_t service_type;//This field to zeros.
+  uint16_t total_length;//total payload that is being used.
+  uint16_t identification;//Set to a number by default that we like.
+  uint16_t frag_flags;//Set to 0 as we don't fragmentate.
+  uint8_t TTL; //Set to 64
+  uint8_t protocol; //UDP 
+  uint8_t checksum;//returned value from checksum() function.
+  ipv4_addr_t src_ip;
+  ipv4_addr_t dest_ip;
+  unsigned char payload[1480];
+};
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
@@ -119,7 +132,8 @@ uint16_t ipv4_checksum ( unsigned char * data, int len )
   return (uint16_t) sum;
 }
 
-ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route){
+ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
+{
 
   /* 1. Crear layer -> routing_table */
    ipv4_layer_t * ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t));
@@ -127,26 +141,67 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route){
     fprintf(stderr, "eth_open(): ERROR en malloc()\n");
     return NULL;
   }
-
 /* 2. Leer direcciones y subred de file_conf */
   char* ifname;
   if (ipv4_config_read( file_conf, ifname, ipv4_layer->addr, ipv4_layer->netmask) != 0){
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
-  ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller and  
   //we can use in this case "=" instead of memcpy().
   
   /*La función devuelve '0' si el fichero de configuración se ha leido
     correctamente.*/
 /* 3. Leer tabla de reenvío IP de file_conf_route */
-  if(ipv4_route_table_read(char* filename, int linenum, char * line) != 0){
+  if(ipv4_route_table_read (file_conf_route, ipv4_layer->routing_table) != 0)
+  {
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
 /* 4. Inicializar capa Ethernet con eth_open() */
+  ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller  
+  
+  return ipv4_layer;
+
   //Guardamos el manejador en el campo de "iface".
 
 }
 
+int ipv4_close ( ipv4_layer_t * iface_ipv4 )
+{
+  int err = -1;
 
+  if (iface_ipv4 != NULL)
+  {
+    err = eth_close(iface_ipv4->iface);
+    free(iface_ipv4);
+  }
+  return err;
+}
+
+//SEND 6 RECEIVE:
+int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned char * payload, int payload_len)
+{
+  /* Comprobar parámetros */
+  if (layer == NULL) {
+    fprintf(stderr, "ipv4_send(): ERROR: ipv4_layer == NULL\n");
+    return -1;
+  }
+  /* Crear el paquete IPv4 y rellenar todos los campos */
+  struct ipv4_header 
+
+  return 0;
+}
+
+//1º rellenamos, 2º miramos siguiente salto para saber la IP destino, y luego haremos arp_resolve para saber la MAC.
+int ipv4_recv(ipv4_layer_t * layer, uint8_t protocol,unsigned char buffer [], ipv4_addr_t sender, int buf_len,long int timeout)
+{
+  int payload_len;
+  /* Comprobar parámetros */
+  if (layer == NULL) {
+    fprintf(stderr, "eth_recv(): ERROR: iface == NULL\n");
+
+    return -1;
+  }
+
+  return 0;
+}

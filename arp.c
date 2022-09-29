@@ -34,8 +34,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     
     //Type de ARP = 0x0806
     //Envio ARP Request
-    eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));//0x0806 es el type code de ARP de capa superior.
-    
+    eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));//0x0806 es el type code de ARP de capa superior.
+                    //ARP and ETH MAC destination addresses dont match
     //Recibir el reply
     //variables para almacenar datos de eth_rcv
     mac_addr_t src_addr; 

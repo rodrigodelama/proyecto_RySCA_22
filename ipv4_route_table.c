@@ -74,14 +74,18 @@ ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* ifa
 int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
 {
   int prefix_length = -1;
-  ipv4_addr_t aux[4]; //aux de ipv4 X.X.X.X
-  for(int i=0;i<4;i++){ 
-    aux[i]=addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
-    }
-  if(memcmp(aux,route->subnet_addr,4)==0){ //comparo aux con subnet_addr, 4 bytes
+  ipv4_addr_t aux; //aux de ipv4 X.X.X.X
+  for (int i = 0; i < 4; i++)
+  { 
+    aux[i] = addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
+  }
+  if(memcmp(aux,route->subnet_addr,4)==0)
+  { //comparo aux con subnet_addr, 4 bytes
     prefix_length=0;
-    for(int i=0;i<4;i++){
-      switch (route->subnet_mask[i]){ //para cada caso, sumo los bytes correspondientes
+    for(int i=0;i<4;i++)
+    {
+      switch (route->subnet_mask[i])
+      { //para cada caso, sumo los bytes correspondientes
         case 255:
           prefix_length += 8;
           break;
@@ -109,9 +113,9 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
         default:
           prefix_length +=0;
           break;
-        }
       }
-
+    }
+  }
   return prefix_length;
 }
 
@@ -125,7 +129,8 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
  */
 void ipv4_route_print ( ipv4_route_t * route )
 {
-  if (route != NULL) {
+  if (route != NULL)
+  {
     char subnet_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(route->subnet_addr, subnet_str);
     char mask_str[IPv4_STR_MAX_LENGTH];

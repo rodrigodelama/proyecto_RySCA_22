@@ -26,7 +26,7 @@ int main ( int argc, char * argv[] )
   char * myself = basename(argv[0]);
   if (argc != 3) {
     printf("Uso: %s <iface> <tipo>\n", myself);
-    printf("       <iface>: Nombre de la interfaz Ethernet\n");
+    printf("        <iface>: Nombre de la interfaz Ethernet\n");
     printf("        <tipo>: Campo 'Tipo' de las tramas Ethernet\n");
     exit(-1);
   }
