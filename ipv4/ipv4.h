@@ -2,13 +2,20 @@
 #define _IPv4_H
 
 #include "../eth/eth.h"
-
+#include "../ipv4_route_table/ipv4_route_table.h"
 #include <stdint.h>
 
 #define IPv4_ADDR_SIZE 4
 #define IPv4_STR_MAX_LENGTH 16
 
 typedef unsigned char ipv4_addr_t [IPv4_ADDR_SIZE];
+
+typedef struct ipv4_layer {
+    eth_iface_t * iface; /*Manejador de interfaz eth*/
+    ipv4_addr_t addr; 
+    ipv4_addr_t netmask; 
+    ipv4_route_table_t * routing_table;
+} ipv4_layer_t ;
 
 /* Dirección IPv4 a cero "0.0.0.0" */
 extern ipv4_addr_t IPv4_ZERO_ADDR;

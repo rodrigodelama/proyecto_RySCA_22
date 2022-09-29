@@ -11,13 +11,16 @@ ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
 /* Estructura del manejador del interfaz ivp4 */
 
+//typedef struct ipv4_layer {
+  //eth_iface_t * iface; /*Manejador de interfaz eth*/
+  //ipv4_addr_t addr; 
+  //ipv4_addr_t netmask; 
+  //ipv4_route_table_t * routing_table;
+//} ipv4_layer_t ;
 
-typedef struct ipv4_layer {
-  eth_iface_t * iface; /*Manejador de interfaz eth*/
-  ipv4_addr_t addr; 
-  ipv4_addr_t netmask; 
-  ipv4_route_table_t * routing_table;
-} ipv4_layer_t ;
+  
+
+  
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
@@ -126,13 +129,21 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route){
   }
 
 /* 2. Leer direcciones y subred de file_conf */
-  if (ipv4_config_read( file_conf, eth_getname( ipv4_layer->iface ), ipv4_layer->addr, ipv4_layer->netmask) != 0){
+  char* ifname;
+  if (ipv4_config_read( file_conf, ifname, ipv4_layer->addr, ipv4_layer->netmask) != 0){
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+  ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller and  
+  //we can use in this case "=" instead of memcpy().
+  
   /*La función devuelve '0' si el fichero de configuración se ha leido
     correctamente.*/
 /* 3. Leer tabla de reenvío IP de file_conf_route */
+  if(ipv4_route_table_read(char* filename, int linenum, char * line) != 0){
+    fprintf(stderr,"ERROR: file could not be opened correctly.\n");
+    exit(-1);
+  }
 /* 4. Inicializar capa Ethernet con eth_open() */
   //Guardamos el manejador en el campo de "iface".
 
