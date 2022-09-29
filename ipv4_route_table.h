@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "../ipv4/ipv4.h"
+#include "ipv4.h"
 
 /* Esta estructura almacena la información básica sobre la ruta a una subred. 
  * Incluye la dirección y máscara de la subred destino, el nombre del interfaz

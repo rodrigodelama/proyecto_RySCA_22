@@ -1,5 +1,5 @@
-#include "../eth/eth.h"
-#include "../ipv4/ipv4.h"
+#include "eth.h"
+#include "ipv4.h"
 
 #include <stdint.h>
 #include <stdlib.h>    //Para funcion exit()

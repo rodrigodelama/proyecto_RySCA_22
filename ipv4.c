@@ -1,6 +1,6 @@
 #include "ipv4.h"
-#include "../ipv4_route_table/ipv4_config.h"
-#include "../ipv4_route_table/ipv4_route_table.h"
+#include "ipv4_config.h"
+#include "ipv4_route_table.h"
 
 #include <stdio.h>
 #include <stdlib.h>
