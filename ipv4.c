@@ -142,8 +142,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     return NULL;
   }
 /* 2. Leer direcciones y subred de file_conf */
-  char* ifname;
-  if (ipv4_config_read( file_conf, ifname, ipv4_layer->addr, ipv4_layer->netmask) != 0){
+  if (ipv4_config_read( file_conf, eth_getname( ipv4_layer->iface ), ipv4_layer->addr, ipv4_layer->netmask) != 0){
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
@@ -187,7 +186,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
     return -1;
   }
   /* Crear el paquete IPv4 y rellenar todos los campos */
-  struct ipv4_header 
+  struct ipv4_header; 
 
   return 0;
 }
