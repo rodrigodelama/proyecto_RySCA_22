@@ -1,0 +1,66 @@
+student@uc3m:~/lightning-shared-folder/proyecto_RySCA_22$ gcc -c arp_client.c arp.c eth.c ipv4.c eth.c ipv4_config.c ipv4_route_table.c
+student@uc3m:~/lightning-shared-folder/proyecto_RySCA_22$ gcc arp_client.o arp.o eth.o ipv4.o eth.o ipv4_config.o ipv4_route_table.o
+/usr/bin/ld: eth.o:(.data+0x0): multiple definition of `MAC_BCAST_ADDR'; eth.o:(.data+0x0): first defined here
+/usr/bin/ld: eth.o: in function `eth_open':
+eth.c:(.text+0x0): multiple definition of `eth_open'; eth.o:eth.c:(.text+0x0): first defined here
+/usr/bin/ld: eth.o: in function `eth_getname':
+eth.c:(.text+0xc0): multiple definition of `eth_getname'; eth.o:eth.c:(.text+0xc0): first defined here
+/usr/bin/ld: eth.o: in function `eth_getaddr':
+eth.c:(.text+0xf8): multiple definition of `eth_getaddr'; eth.o:eth.c:(.text+0xf8): first defined here
+/usr/bin/ld: eth.o: in function `eth_send':
+eth.c:(.text+0x132): multiple definition of `eth_send'; eth.o:eth.c:(.text+0x132): first defined here
+/usr/bin/ld: eth.o: in function `eth_recv':
+eth.c:(.text+0x2b0): multiple definition of `eth_recv'; eth.o:eth.c:(.text+0x2b0): first defined here
+/usr/bin/ld: eth.o: in function `eth_poll':
+eth.c:(.text+0x5a5): multiple definition of `eth_poll'; eth.o:eth.c:(.text+0x5a5): first defined here
+/usr/bin/ld: eth.o: in function `eth_close':
+eth.c:(.text+0x73d): multiple definition of `eth_close'; eth.o:eth.c:(.text+0x73d): first defined here
+/usr/bin/ld: eth.o: in function `mac_addr_str':
+eth.c:(.text+0x77e): multiple definition of `mac_addr_str'; eth.o:eth.c:(.text+0x77e): first defined here
+/usr/bin/ld: eth.o: in function `mac_str_addr':
+eth.c:(.text+0x80c): multiple definition of `mac_str_addr'; eth.o:eth.c:(.text+0x80c): first defined here
+/usr/bin/ld: eth.o: in function `print_pkt':
+eth.c:(.text+0x8e5): multiple definition of `print_pkt'; eth.o:eth.c:(.text+0x8e5): first defined here
+/usr/bin/ld: arp.o: in function `arp_resolve':
+arp.c:(.text+0x151): undefined reference to `timerms_reset'
+/usr/bin/ld: arp.c:(.text+0x16b): undefined reference to `timerms_left'
+/usr/bin/ld: eth.o: in function `eth_open':
+eth.c:(.text+0x57): undefined reference to `rawiface_open'
+/usr/bin/ld: eth.c:(.text+0x6c): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.c:(.text+0xb6): undefined reference to `rawiface_getaddr'
+/usr/bin/ld: eth.o: in function `eth_getname':
+eth.c:(.text+0xea): undefined reference to `rawiface_getname'
+/usr/bin/ld: eth.o: in function `eth_send':
+eth.c:(.text+0x24c): undefined reference to `rawnet_send'
+/usr/bin/ld: eth.c:(.text+0x265): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_recv':
+eth.c:(.text+0x352): undefined reference to `timerms_reset'
+/usr/bin/ld: eth.c:(.text+0x413): undefined reference to `timerms_left'
+/usr/bin/ld: eth.c:(.text+0x434): undefined reference to `rawnet_recv'
+/usr/bin/ld: eth.c:(.text+0x447): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_poll':
+eth.c:(.text+0x6d1): undefined reference to `rawnet_poll'
+/usr/bin/ld: eth.c:(.text+0x6e4): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_close':
+eth.c:(.text+0x766): undefined reference to `rawiface_close'
+/usr/bin/ld: eth.o: in function `eth_open':
+eth.c:(.text+0x57): undefined reference to `rawiface_open'
+/usr/bin/ld: eth.c:(.text+0x6c): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.c:(.text+0xb6): undefined reference to `rawiface_getaddr'
+/usr/bin/ld: eth.o: in function `eth_getname':
+eth.c:(.text+0xea): undefined reference to `rawiface_getname'
+/usr/bin/ld: eth.o: in function `eth_send':
+eth.c:(.text+0x24c): undefined reference to `rawnet_send'
+/usr/bin/ld: eth.c:(.text+0x265): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_recv':
+eth.c:(.text+0x352): undefined reference to `timerms_reset'
+/usr/bin/ld: eth.c:(.text+0x413): undefined reference to `timerms_left'
+/usr/bin/ld: eth.c:(.text+0x434): undefined reference to `rawnet_recv'
+/usr/bin/ld: eth.c:(.text+0x447): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_poll':
+eth.c:(.text+0x6d1): undefined reference to `rawnet_poll'
+/usr/bin/ld: eth.c:(.text+0x6e4): undefined reference to `rawnet_strerror'
+/usr/bin/ld: eth.o: in function `eth_close':
+eth.c:(.text+0x766): undefined reference to `rawiface_close'
+collect2: error: ld returned 1 exit status
+student@uc3m:~/lightning-shared-folder/proyecto_RySCA_22$ 
