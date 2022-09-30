@@ -74,7 +74,7 @@ ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* ifa
 int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
 {
   int prefix_length = -1;
-  ipv4_addr_t aux[4]; //aux de ipv4 X.X.X.X
+  ipv4_addr_t aux; //aux de ipv4 X.X.X.X
   for(int i=0;i<4;i++){ 
     aux[i]=addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
     }
@@ -111,7 +111,7 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
           break;
         }
       }
-
+  }
   return prefix_length;
 }
 
