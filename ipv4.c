@@ -157,7 +157,8 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     exit(-1);
   }
 /* 4. Inicializar capa Ethernet con eth_open() */
-  ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller  
+  //FIXME:
+  //ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller  
   
   return ipv4_layer;
 

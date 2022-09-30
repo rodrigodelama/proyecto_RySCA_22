@@ -81,8 +81,8 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
   }
   if(memcmp(aux,route->subnet_addr,4)==0)
   { //comparo aux con subnet_addr, 4 bytes
-    prefix_length=0;
-    for(int i=0;i<4;i++)
+    prefix_length = 0;
+    for(int i = 0; i < 4; i++)
     {
       switch (route->subnet_mask[i])
       { //para cada caso, sumo los bytes correspondientes
