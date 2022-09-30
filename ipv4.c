@@ -160,6 +160,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   //FIXME:
   //ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller  
   
+  
   return ipv4_layer;
 
   //Guardamos el manejador en el campo de "iface".
