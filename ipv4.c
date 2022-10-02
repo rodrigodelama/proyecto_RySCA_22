@@ -32,7 +32,7 @@ struct ipv4_header {
   uint8_t checksum;//returned value from checksum() function.
   ipv4_addr_t src_ip;
   ipv4_addr_t dest_ip;
-  unsigned char payload[1480];
+  unsigned char payload[1480];// 1500 ETH - 20 cab IP = 1480.
 };
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
