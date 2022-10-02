@@ -1,0 +1,27 @@
+Pseudo-código udp_open(), udp_close(), udp_send() y udp_recv():
+
+udp_open():
+    - como parametros tendremos los de la cabecera udp (nº puerto origen, ip origen, nº puerto destino, ip destino)
+    - declaramos la estructura del manejador udp que devolveremos.
+    - abrir interfaz ip.
+    - asiognar el controlador ip al controlador udp declarado anteriormente.
+    - devolvemos controlador udp
+udp_close():
+    - comprobar si el controlador pasado por parametro está vacio (como en ipv4_close()).
+    - declarar una variable que almacene el entero que devolverá ipv4_close() para después devolverla.
+    - llamar a ipv4_close().
+    - devolver el entero que devuelva el ipv4_close()
+    - devolver variable que almacena el entero que devuelve ipv4_close().
+udp_send():
+    - Comprobar si los argumentos son coherentes.
+    - llamar a udp_open().
+    - declarar una variable que será la cabecera udp que mandemos, no sin antes limpiar esa zona de memoria con un memset a 0.
+    - rellenamos cabecera udp.
+    - convertimos al orden de envio de bits de la red, al puerto .
+    - mandamos la cabecera convertida, llamando a ipv4_send().
+udp_recv():
+    - declaramos variable auxiliar para almacenar la cabecera udp que nos llegue (haciendo el consecuente casting para poder acceder a cada campod de la cabecera).
+    - llamamos a la funcion ipv4_rcv(), guardando el contenido del datagrama en la variable auxiliar y haciendo el casting.
+    - comprobamos los campos de la cabecera udp recibida.
+    - cerramos interfaz ipv4.
+    - devolvemos el numero de bytes de datos recividos.
