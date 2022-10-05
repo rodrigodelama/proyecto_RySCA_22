@@ -7,7 +7,7 @@
 
 #define IPv4_ADDR_SIZE 4
 #define IPv4_STR_MAX_LENGTH 16
-
+#define IPV4_HDR_LEN 20
 typedef unsigned char ipv4_addr_t [IPv4_ADDR_SIZE];
 
 /* Dirección IPv4 a cero "0.0.0.0" */

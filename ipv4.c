@@ -1,13 +1,15 @@
 #include "ipv4.h"
 #include "ipv4_config.h"
 #include "ipv4_route_table.h"
+#include "arp.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #define UDP_PROTOCOL 17
 #define VERSION_AND_LENGTH 0x45
 #define ID 0x8397
-
+#define TTL_DEF 64
+//Cuando capturemos ip, hacerlo en el que envía la trama, dado que en lightning descarta las tramas con el checksum mal.   
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
@@ -27,7 +29,7 @@ struct ipv4_header {
   uint16_t total_length;//total payload that is being used.
   uint16_t identification;//Set to a number by default that we like.
   uint16_t frag_flags;//Set to 0 as we don't fragmentate.
-  uint8_t TTL; //Set to 64
+  uint8_t ttl; //Set to 64
   uint8_t protocol; //UDP 
   uint8_t checksum;//returned value from checksum() function.
   ipv4_addr_t src_ip;
@@ -141,8 +143,9 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     fprintf(stderr, "eth_open(): ERROR en malloc()\n");
     return NULL;
   }
+  char iface_name[32];
 /* 2. Leer direcciones y subred de file_conf */
-  if (ipv4_config_read( file_conf, eth_getname( ipv4_layer->iface ), ipv4_layer->addr, ipv4_layer->netmask) != 0){
+  if (ipv4_config_read( file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0){
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
@@ -158,7 +161,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   }
 /* 4. Inicializar capa Ethernet con eth_open() */
   //FIXME:
-  //ipv4_layer->iface = eth_open(ifname); //Returns eth interface controller  
+  ipv4_layer->iface = eth_open(iface_name); //Returns eth interface controller  
   
   
   return ipv4_layer;
@@ -188,7 +191,26 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
     return -1;
   }
   /* Crear el paquete IPv4 y rellenar todos los campos */
-  struct ipv4_header; 
+  struct ipv4_header ipv4_header_t;
+  memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
+  ipv4_header_t.version_and_length= (uint8_t)VERSION_AND_LENGTH;
+  ipv4_header_t.service_type=0;
+  ipv4_header_t.total_length = (uint16_t) payload_len;
+  ipv4_header_t.identification= (uint16_t) ID;
+  ipv4_header_t.frag_flags= (uint16_t) 0;
+  ipv4_header_t.ttl= (uint8_t) TTL_DEF;
+  ipv4_header_t.protocol= (uint8_t)protocol;
+  ipv4_header_t.checksum= (uint8_t) 0;
+  memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t)); 
+  memcpy(ipv4_header_t.dest_ip,dst, sizeof(ipv4_addr_t) );
+  memcpy(ipv4_header_t.payload, payload, payload_len);
+  //Calculo de checksum:
+  ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); //defined in ipv4. 
+
+
+  // 1500 ETH - 20 cab IP = 1480
+
+
 
   return 0;
 }
