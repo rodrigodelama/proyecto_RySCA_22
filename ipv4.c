@@ -205,12 +205,23 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
   memcpy(ipv4_header_t.dest_ip,dst, sizeof(ipv4_addr_t) );
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
-  ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); //defined in ipv4. 
-
-
+  ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); // IPV4_HDR_LEN defined in ipv4.h 
   // 1500 ETH - 20 cab IP = 1480
+  //ipv4_open ya lo hace el cliente o el servidor.
+  //for knowing MAC address of dest, we call arp_resolve function from arp.c & arp.h
+  //2 cases: if dst is in my same subnet: 
+  //Usamos el parametro "layer" para ver nuestra tambla de rutas (se creara en el cliente y servidor respectivamente, pero no aqui).
+  //Case 1: dst is in my same subnet:
+  //MAYBE: I want to create an auxiliary route (mine) so we can put it as a parameter in "ipv4_route_lookup"
+  //if not, ¿why do we want "layer" as a parameter?
+  ipv4_addr_t mysubnet = {0,0,0,0};//empty ipv4 subnet direction.
+  for(int i = 0; i < IPv4_ADDR_SIZE; i++  ){
+    mysubnet[i] = ipv4_header_t.src_ip[i] & dst[i];
+  }
+  ipv4_route_t * myroute = ipv4_route_create( ipv4_addr_t subnet, layer-> netmask, layer->iface, ipv4_header_t.src_ip);
 
 
+  
 
   return 0;
 }
