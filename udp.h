@@ -10,8 +10,10 @@
  *   ipv4, a x puerto.
  *
  * PARÁMETROS:
- *   'dest': IPv4 address provided to send datagram to.
- *   'port': Target port of the IPv4 add where to send the datagram to.
+ *         'src': Local IPv4 address
+ *        'dest': IPv4 address provided to send datagram to
+ *    'src_port': Source port (local machine), of where we send the datagram from
+ *   'dest_port': Target port (target), to where we send the datagram to
  *
  * VALOR DEVUELTO:
  *   Devuelve 0 si la conexion de UDP se ha abierto correctamente.
@@ -19,7 +21,8 @@
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_open(ipv4_addr_t dest, int port);
+int udp_open(ipv4_addr_t src, ipv4_addr_t dest, int src_port, int dest_port);
+
 
 /* int udp_close(socket);
  * 
