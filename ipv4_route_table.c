@@ -47,7 +47,6 @@ ipv4_route_t * ipv4_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* ifa
   return route;
 }
 
-
 /* int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr );
  *
  * DESCRIPCIÓN:
@@ -75,11 +74,11 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
 {
   int prefix_length = -1;
   ipv4_addr_t aux; //aux de ipv4 X.X.X.X
-  for (int i = 0; i < 4; i++)
-  { 
+  for(int i = 0; i < 4; i++)
+  { 6
     aux[i] = addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
   }
-  if(memcmp(aux,route->subnet_addr,4)==0)
+  if( memcmp(aux, route->subnet_addr, 4) == 0 )
   { //comparo aux con subnet_addr, 4 bytes
     prefix_length = 0;
     for(int i = 0; i < 4; i++)

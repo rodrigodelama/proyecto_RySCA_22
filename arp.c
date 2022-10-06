@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <timerms.h>
 
-mac_addr_t ARP_BCAST_ADDR_zeros = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+mac_addr_t ARP_BCAST_ADDR = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 //ARP request and reply handling
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
@@ -28,14 +28,15 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     eth_getaddr(iface, arp_header_t.src_MAC_addr);
     ipv4_str_addr("0.0.0.0", arp_header_t.src_IPv4_addr); //IP por defecto segun el pdf
     memcpy(arp_header_t.dest_IPv4_addr, ip_addr, 4); //Tamaño dirs IP -> 4 bytes
-    memcpy(arp_header_t.dest_MAC_addr, ARP_BCAST_ADDR_zeros, MAC_ADDR_SIZE);
+    memcpy(arp_header_t.dest_MAC_addr, ARP_BCAST_ADDR, MAC_ADDR_SIZE);
 
     char * name = eth_getname(iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
     
     //Type de ARP = 0x0806
     //Envio ARP Request
-    eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));//0x0806 es el type code de ARP de capa superior.
-                    //ARP and ETH MAC destination addresses dont match
+    eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+                    //0x0806 es el type code de ARP de capa superior.
+                    //ARP and ETH MAC destination addresses dont match (ARP_BCAST_ADDR vs MAC_BCAST_ADDR)
     //Recibir el reply
     //variables para almacenar datos de eth_rcv
     mac_addr_t src_addr; 
@@ -45,6 +46,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     int eth_buf_len = ETH_HEADER_SIZE + buf_len;
     unsigned char eth_buffer[eth_buf_len];
     */
+
     long int timeout = 2000;
     timerms_t timer;
     timerms_reset(&timer, timeout);

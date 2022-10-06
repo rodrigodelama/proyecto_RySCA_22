@@ -24,17 +24,17 @@ struct ipv4_layer {
 };
 
 struct ipv4_header {
-  uint8_t version_and_length;//Default value = VERSION_AND_LENGTH -> 0x45
-  uint8_t service_type;//This field to zeros.
-  uint16_t total_length;//total payload that is being used.
-  uint16_t identification;//Set to a number by default that we like.
-  uint16_t frag_flags;//Set to 0 as we don't fragmentate.
+  uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
+  uint8_t service_type; //This field to zeros.
+  uint16_t total_length; //total payload that is being used.
+  uint16_t identification; //Set to a number by default that we like.
+  uint16_t frag_flags; //Set to 0 as we don't fragmentate.
   uint8_t ttl; //Set to 64
   uint8_t protocol; //UDP 
-  uint8_t checksum;//returned value from checksum() function.
+  uint8_t checksum; //returned value from checksum() function.
   ipv4_addr_t src_ip;
   ipv4_addr_t dest_ip;
-  unsigned char payload[1480];// 1500 ETH - 20 cab IP = 1480.
+  unsigned char payload[1480]; // 1500 ETH - 20 cab IP = 1480.
 };
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
@@ -50,12 +50,12 @@ struct ipv4_header {
  */
 void ipv4_addr_str ( ipv4_addr_t addr, char* str )
 {
-  if (str != NULL) {
+  if (str != NULL)
+  {
     sprintf(str, "%d.%d.%d.%d",
             addr[0], addr[1], addr[2], addr[3]);
   }
 }
-
 
 /* int ipv4_str_addr ( char* str, ipv4_addr_t addr );
  *
@@ -77,15 +77,18 @@ int ipv4_str_addr ( char* str, ipv4_addr_t addr )
 {
   int err = -1;
 
-  if (str != NULL) {
+  if (str != NULL)
+  {
     unsigned int addr_int[IPv4_ADDR_SIZE];
     int len = sscanf(str, "%d.%d.%d.%d", 
                     &addr_int[0], &addr_int[1], 
                     &addr_int[2], &addr_int[3]);
 
-    if (len == IPv4_ADDR_SIZE) {
+    if (len == IPv4_ADDR_SIZE)
+    {
       int i;
-      for (i=0; i<IPv4_ADDR_SIZE; i++) {
+      for (i = 0; i < IPv4_ADDR_SIZE; i++)
+      {
         addr[i] = (unsigned char) addr_int[i];
       }
       
@@ -95,7 +98,6 @@ int ipv4_str_addr ( char* str, ipv4_addr_t addr )
   
   return err;
 }
-
 
 /*
  * uint16_t ipv4_checksum ( unsigned char * data, int len )
