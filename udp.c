@@ -14,10 +14,10 @@ struct udp_header {
 checksum = 0;
 
 //open connection
-int udp_open(ipv4_addr_t dest, int port)
+int udp_open(ipv4_addr_t src, ipv4_addr_t dest, int src_port, int dest_port)
 {
-    // Creamos nuestro Socket 
-            
+    // Creamos nuestro 'socket'
+
 
 
     // debemos hacer nuestro propio socket
