@@ -398,8 +398,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
 }
 
 
-/* ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, 
- *                                          ipv4_addr_t addr );
+/* ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table,ipv4_addr_t addr );
  * 
  * DESCRIPCIÓN:
  *   Esta función devuelve la mejor ruta almacenada en la tabla de rutas para

@@ -214,14 +214,31 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
   //Case 1: dst is in my same subnet:
   //MAYBE: I want to create an auxiliary route (mine) so we can put it as a parameter in "ipv4_route_lookup"
   //if not, ¿why do we want "layer" as a parameter?
+  ipv4_route_t * route_to_dst =  ipv4_route_table_lookup ( layer->routing_table, dst);
+  if(route_to_dst == NULL){
+    printf("Error: Ruta no accesible.");
+  }
+
+
+
+  /*
   ipv4_addr_t mysubnet = {0,0,0,0};//empty ipv4 subnet direction.
   for(int i = 0; i < IPv4_ADDR_SIZE; i++  ){
-    mysubnet[i] = ipv4_header_t.src_ip[i] & dst[i];
+    mysubnet[i] = ipv4_header_t.src_ip[i] & dst[i];//Create subnet
   }
-  ipv4_route_t * myroute = ipv4_route_create( ipv4_addr_t subnet, layer-> netmask, layer->iface, ipv4_header_t.src_ip);
-
-
+  ipv4_route_t * my_route = ipv4_route_create( mysubnet, layer-> netmask, layer->iface, ipv4_header_t.src_ip);
+  //Now that we have a route, we will call 
   
+  if(ipv4_route_lookup ( my_route, dst) >= 0){
+    char* my_subnet_str = (char*) malloc(sizeof(ipv4_addr_t));
+    ipv4_addr_str( mysubnet, my_subnet_str);
+    char* dest_ipv4_str = (char*) malloc(sizeof(ipv4_addr_t));
+    ipv4_addr_str( dst, dest_ipv4_str);
+    printf("dest_ip : %s is inside sender subnet, with address: %s and prefix_length: %d",my_subnet_str,dest_ipv4_str, prefix_length);
+    free(my_subnet_str);
+    free(dest_ipv4_str);
+  }
+  */
 
   return 0;
 }
