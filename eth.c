@@ -184,8 +184,7 @@ int eth_send
   int eth_frame_len = ETH_HEADER_SIZE + payload_len;
 
   /* Imprimir trama Ethernet - LOGS
-  //
-
+  
   char* iface_name = eth_getname(iface);
   char mac_str[MAC_STR_LENGTH];
   mac_addr_str(dst, mac_str);
