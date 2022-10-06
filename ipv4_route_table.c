@@ -75,7 +75,7 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
   int prefix_length = -1;
   ipv4_addr_t aux; //aux de ipv4 X.X.X.X
   for(int i = 0; i < 4; i++)
-  { 6
+  {
     aux[i] = addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
   }
   if( memcmp(aux, route->subnet_addr, 4) == 0 )
@@ -418,7 +418,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
  *   IPv4 indicada.
  *
  * ERRORES:
- *   Esta función devuelve 'NULL' si no no existe ninguna ruta para alcanzar
+ *   Esta función devuelve 'NULL' si no  existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
 ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t addr )

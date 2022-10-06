@@ -31,7 +31,7 @@ struct ipv4_header {
   uint16_t frag_flags; //Set to 0 as we don't fragmentate.
   uint8_t ttl; //Set to 64
   uint8_t protocol; //UDP 
-  uint8_t checksum; //returned value from checksum() function.
+  uint16_t checksum; //returned value from checksum() function.
   ipv4_addr_t src_ip;
   ipv4_addr_t dest_ip;
   unsigned char payload[1480]; // 1500 ETH - 20 cab IP = 1480.
@@ -184,14 +184,18 @@ int ipv4_close ( ipv4_layer_t * iface_ipv4 )
   return err;
 }
 
-//SEND 6 RECEIVE:
-int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned char * payload, int payload_len)
+
+int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned char * payload, int payload_len)
 {
   /* Comprobar parámetros */
   if (layer == NULL) {
     fprintf(stderr, "ipv4_send(): ERROR: ipv4_layer == NULL\n");
     return -1;
   }
+  if(){
+
+  }
+
   /* Crear el paquete IPv4 y rellenar todos los campos */
   struct ipv4_header ipv4_header_t;
   memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
@@ -201,10 +205,10 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
   ipv4_header_t.identification= (uint16_t) ID;
   ipv4_header_t.frag_flags= (uint16_t) 0;
   ipv4_header_t.ttl= (uint8_t) TTL_DEF;
-  ipv4_header_t.protocol= (uint8_t)protocol;
+  ipv4_header_t.protocol= (uint8_t) protocol;//passed as parameter.
   ipv4_header_t.checksum= (uint8_t) 0;
   memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t)); 
-  memcpy(ipv4_header_t.dest_ip,dst, sizeof(ipv4_addr_t) );
+  memcpy(ipv4_header_t.dest_ip, dst, sizeof(ipv4_addr_t) );
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
   ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); // IPV4_HDR_LEN defined in ipv4.h 
@@ -219,31 +223,52 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol,unsigned 
   ipv4_route_t * route_to_dst =  ipv4_route_table_lookup ( layer->routing_table, dst);
   if(route_to_dst == NULL){
     printf("Error: Ruta no accesible.");
+    return -1;
+  }
+  //verificamos si está o no la ip destino en nuestra subred.
+
+  mac_addr_t mac_gateway;//mac de ip_dest si misma subred, sino mac de gateway_addr.
+  eth_iface_t* sender_iface = eth_open ( route_to_dst -> iface);
+  int bytes_sent = 0;
+  int err_arp = 0;
+  if(route_to_dst -> gateway_addr == 0){
+        //Está en nuestra subred.
+        err_arp = arp_resolve(sender_iface, dst, mac_gateway);
+        if(err_arp == 0 ){//we call arp_resolve for both cases.
+          printf("");
+        }else{
+          printf("Error: function arp_resolve not working...");
+          return -1;
+        }
+        printf("Sendig inside our subnet....");
+        bytes_sent = eth_send ( sender_iface, dst, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+        if(bytes_sent == -1){
+          printf("Error sending eth frame....");
+          return -1;
+        }
+
+  }else{//Fuera de nuestra subred, pedimos mac a la ip_gateway
+          //Está en nuestra subred.
+        err_arp = arp_resolve(sender_iface, route_to_dst -> gateway_addr, mac_gateway);
+        if(err_arp == 0 ){//we call arp_resolve for both cases.
+          printf("");
+        }else{
+          printf("Error: function arp_resolve not working...");
+          return -1;
+        }
+        printf("Sendig outside our subnet....");
+        bytes_sent = eth_send ( sender_iface, dst, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+        if(bytes_sent == -1){
+          printf("Error sending eth frame....");
+          return -1;
+        }
   }
 
-
-
-  /*
-  ipv4_addr_t mysubnet = {0,0,0,0};//empty ipv4 subnet direction.
-  for(int i = 0; i < IPv4_ADDR_SIZE; i++  ){
-    mysubnet[i] = ipv4_header_t.src_ip[i] & dst[i];//Create subnet
-  }
-  ipv4_route_t * my_route = ipv4_route_create( mysubnet, layer-> netmask, layer->iface, ipv4_header_t.src_ip);
-  //Now that we have a route, we will call 
-  
-  if(ipv4_route_lookup ( my_route, dst) >= 0){
-    char* my_subnet_str = (char*) malloc(sizeof(ipv4_addr_t));
-    ipv4_addr_str( mysubnet, my_subnet_str);
-    char* dest_ipv4_str = (char*) malloc(sizeof(ipv4_addr_t));
-    ipv4_addr_str( dst, dest_ipv4_str);
-    printf("dest_ip : %s is inside sender subnet, with address: %s and prefix_length: %d",my_subnet_str,dest_ipv4_str, prefix_length);
-    free(my_subnet_str);
-    free(dest_ipv4_str);
-  }
-  */
-
-  return 0;
+  return (bytes_sent - 20 - IPV4_HDR_LEN);//eth header size inside eth.c, not included.
+  //IPV4_HDR_LEN inside eth.h.  
 }
+
+
 
 //1º rellenamos, 2º miramos siguiente salto para saber la IP destino, y luego haremos arp_resolve para saber la MAC.
 int ipv4_recv(ipv4_layer_t * layer, uint8_t protocol,unsigned char buffer [], ipv4_addr_t sender, int buf_len,long int timeout)
@@ -251,10 +276,60 @@ int ipv4_recv(ipv4_layer_t * layer, uint8_t protocol,unsigned char buffer [], ip
   int payload_len;
   /* Comprobar parámetros */
   if (layer == NULL) {
-    fprintf(stderr, "eth_recv(): ERROR: iface == NULL\n");
-
+    fprintf(stderr, "ipv4_recv(): ERROR: layer == NULL\n");
     return -1;
   }
+  /* Inicializar temporizador para mantener timeout si se reciben tramas con
+     tipo incorrecto. */
+  timerms_t timer;
+  timerms_reset(&timer, timeout);
 
-  return 0;
+  int packet_len;
+  int packet_buf_len = IPV4_HDR_LEN + buf_len;
+  unsigned char ipv4_buffer[packet_buf_len];
+  struct ipv4_header * ipv4_packet_ptr = NULL;
+  int is_target_type;
+  int is_my_ip;
+  mac_addr_t mac_src;
+  int checksum;
+
+  do {
+    long int time_left = timerms_left(&timer);
+
+    /* Recibir trama del interfaz Ethernet y procesar errores */
+    packet_len = eth_recv (layer->iface,mac_src,PROT_TYPE_IPV4, ipv4_buffer, ipv4_buf_len,time_left);
+    if (packet_len < 0) {
+      fprintf(stderr, "ipv4_recv(): ERROR en eth_recv()");
+      return -1;
+    } else if (packet_len == 0) {
+      /* Timeout! */
+      return 0;
+    } else if (packet_len < IPv4_ADDR_LEN) {
+      fprintf(stderr, "ipv4_recv(): Trama de tamaño invalido: %d bytes\n",
+              packet_len);
+      continue;
+    }
+
+    /* Comprobar si es el paquete que estamos buscando */
+    ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
+    is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, 
+                        layer->addr, IPv4_ADDR_SIZE) == 0);
+    is_target_type = (ntohs(ipv4_packet_ptr->protocol) == protocol;
+
+    checksum = ipv4_packet_ptr -> checksum;
+    ipv4_packet_ptr -> checksum = 0;
+    uint16t my_checksum = ipv4_checksum ( (unsigned char *) data, int len );
+  } while ( ! (is_my_ip && is_target_type) );
+  
+  /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
+  memcpy(sender, ipv4_packet_ptr->src_ip, IPv4_ADDR_SIZE);
+  payload_len = packet_len - IPv4_ADDR_LEN;
+  if (buf_len > payload_len) {
+    buf_len = payload_len;
+  }
+  memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
+
+  
+
+  return payload_len;
 }
