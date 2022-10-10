@@ -7,6 +7,7 @@
 #include "ipv4.h"
 
 #define UDP_PROTOCOL_TYPE 17
+#define UDP_HEADER_SIZE 8 //bytes
 
 typedef struct udp_layer udp_layer_t;
 
@@ -77,6 +78,6 @@ int udp_send(udp_layer_t *my_udp_layer, ipv4_addr_t dest, uint16_t dest_port, un
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, uint16_t dest_port, unsigned char buffer[], int buf_len, long int timeout);
+int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, unsigned char buffer[], int buf_len, long int timeout);
 
 #endif /*_UDP_H */

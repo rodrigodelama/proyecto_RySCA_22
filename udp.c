@@ -2,6 +2,7 @@
 
 #include "udp.h"
 
+#define PORT_NUM_SIZE 4
 struct udp_layer //our "socket"
 {
     ipv4_layer_t* local_ip_stack;
@@ -18,7 +19,7 @@ struct udp_header
     //pseudocabecera ciertos parametros para calcular el checksum en basea a eso, mirar rfc
     //por default lo pondremos en 0
     //no comprobamos checksum en salida ni entrada
-    unsigned char payload[1472]; // 1472 bytes (1480bytes-8bytes from ip field)
+    unsigned char payload[1452]; // MTU 1500 - 2Ocap eth - 20cap IP - 8cap UDP -> 1452.
 };
 
 //open connection
@@ -74,12 +75,13 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     return 0; //if all is well
 }
 
-int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, uint16_t dest_port, unsigned char buffer[], int buf_len, long int timeout)
+int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, unsigned char buffer[], int buf_len, long int timeout)
 {
-    int payload_len;
+  int payload_len;
 
   /* Comprobar parámetros */
-  if (my_udp_layer == NULL) {
+  if (my_udp_layer == NULL)
+  {
     fprintf(stderr, "udp_recv(): ERROR: my_udp_layer == NULL\n");
     return -1;
   }
@@ -100,15 +102,15 @@ int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, uint1
     long int time_left = timerms_left(&timer);
 
     /* Recibir trama del interfaz Ethernet y procesar errores */
-    datagram_len = ipv4_recv (my_udp_layer->local_ip_stack,protocol, udp_buffer,src, udp_buf_len,
-                            time_left);
-    if (datagram_len < 0) {
+    datagram_len = ipv4_recv (my_udp_layer->local_ip_stack, UDP_PROTOCOL_TYPE, udp_buffer, src, udp_buf_len, time_left);
+    if (datagram_len < 0)
+    {
       printf("udp_recv(): ERROR en ipv4_recv()");
       return -1;
     } else if (datagram_len == 0) {
       /* Timeout! */
       return 0;
-    } else if (datagram_len < ETH_HEADER_SIZE) {
+    } else if (datagram_len < 20) {
       fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",
               datagram_len);
       continue;
@@ -116,19 +118,18 @@ int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, uint1
 
     /* Comprobar si es la trama que estamos buscando */
     udp_datagram_ptr = (struct udp_header *) udp_buffer;
-    is_dest_port = (memcmp(udp_datagram_ptr->dest_port, 
-                        my_udp_layer->local_port, MAC_ADDR_SIZE) == 0);
+    is_dest_port = (udp_datagram_ptr->dest_port == my_udp_layer->local_port);
 
-  } while ( ! (is_dest_port) );
+  } while ( !is_dest_port );
   
   /* Trama recibida con 'tipo' indicado. Copiar datos y dirección MAC origen */
-  memcpy(src, udp_datagram_ptr->src_addr, MAC_ADDR_SIZE);
-  payload_len = datagram_len - ETH_HEADER_SIZE;
-  if (buf_len > payload_len) {
+  
+  payload_len = datagram_len - 20;
+  if (buf_len > payload_len)
+  {
     buf_len = payload_len;
   }
   memcpy(buffer, udp_datagram_ptr->payload, buf_len);
 
   return payload_len;
-    return 0;
 }

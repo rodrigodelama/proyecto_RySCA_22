@@ -190,7 +190,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   //Case 1: dst is in my same subnet:
   //MAYBE: I want to create an auxiliary route (mine) so we can put it as a parameter in "ipv4_route_lookup"
   //if not, ¿why do we want "layer" as a parameter?
-  ipv4_route_t * route_to_dst =  ipv4_route_table_lookup (layer->routing_table, dst); //returns most efficient route
+  ipv4_route_t *route_to_dst =  ipv4_route_table_lookup (layer->routing_table, dst); //returns most efficient route
   if(route_to_dst == NULL)
   {
     printf("Error: Ruta no accesible o no ha sido posible realizar la búsqueda.\n");
