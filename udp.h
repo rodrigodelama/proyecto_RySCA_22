@@ -3,6 +3,10 @@
 
 #include "ipv4.h"
 
+#define UDP_PROTOCOL_TYPE 17
+
+typedef struct udp_layer udp_layer_t;
+
 /* int udp_open(ipv4_addr_t dest, int port);
  * 
  * DESCRIPCIÓN:
@@ -11,9 +15,7 @@
  *
  * PARÁMETROS:
  *         'src': Local IPv4 address
- *        'dest': IPv4 address provided to send datagram to
  *    'src_port': Source port (local machine), of where we send the datagram from
- *   'dest_port': Target port (target), to where we send the datagram to
  *
  * VALOR DEVUELTO:
  *   Devuelve 0 si la conexion de UDP se ha abierto correctamente.
@@ -21,8 +23,7 @@
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_open(ipv4_addr_t src, ipv4_addr_t dest, int src_port, int dest_port);
-
+udp_layer_t* udp_open(ipv4_addr_t src, int src_port, char *file_conf, char *file_conf_route);
 
 /* int udp_close(socket);
  * 
@@ -38,7 +39,7 @@ int udp_open(ipv4_addr_t src, ipv4_addr_t dest, int src_port, int dest_port);
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_close(socket);
+int udp_close(udp_layer_t* my_udp_iface);
 
 /* int udp_send (ipv4_addr_t dst, unsigned char * payload, int payload_len);
  * 
@@ -57,7 +58,7 @@ int udp_close(socket);
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_send(ipv4_addr_t dest, unsigned char * payload, int payload_len);
+int udp_send(udp_layer_t *my_udp_layer, ipv4_addr_t dest, uint16_t dest_port, unsigned char *payload, int payload_len);
 
 /* int udp_recv(datagram);
  * 
@@ -73,6 +74,6 @@ int udp_send(ipv4_addr_t dest, unsigned char * payload, int payload_len);
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int udp_recv(datagram);
+int udp_rcv(udp_layer_t *my_udp_layer, ipv4_addr_t src, uint16_t src_port, uint16_t dest_port, unsigned char *payload, int payload_len, int buf_len, long int timeout);
 
 #endif /*_UDP_H */

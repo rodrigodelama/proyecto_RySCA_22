@@ -1,6 +1,5 @@
 #include "ipv4.h"
 #include "ipv4_config.h"
-#include "ipv4_route_table.h"
 #include "arp.h"
 #include <timerms.h>
 
@@ -14,17 +13,10 @@
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
-/* Estructura del manejador del interfaz ivp4 */
 
-/* Estructura de la capa de ipv4 */
-struct ipv4_layer {
-    eth_iface_t * iface; /*Manejador de interfaz eth*/
-    ipv4_addr_t addr; //my address
-    ipv4_addr_t netmask; //the networks netmask
-    ipv4_route_table_t * routing_table; //my routing table
-};
-
-struct ipv4_header {
+/* Estructura de la cabecera de ipv4 */
+struct ipv4_header
+{
   uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
   uint8_t service_type; //This field to zeros.
   uint16_t total_length; //total payload that is being used.
@@ -146,12 +138,12 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   ipv4_layer_t * ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t)); //allocate memory
   if (ipv4_layer == NULL)
   {
-    fprintf(stderr, "eth_open(): ERROR en malloc()\n");
+    fprintf(stderr, "ipv4_open(): ERROR en malloc()\n");
     return NULL;
   }
   char iface_name[32]; //eth hard limit on iface length
   /* 2. Leer direcciones y subred de file_conf */
-  if (ipv4_config_read( file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0)
+  if (ipv4_config_read(file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0)
   {
                                 //contains "layer" as in iface, addr, and netmask
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
@@ -159,7 +151,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   }
     /*La función devuelve '0' si el fichero de configuración se ha leido correctamente.*/
   /* 3. Leer tabla de reenvío IP de file_conf_route */
-  if(ipv4_route_table_read (file_conf_route, ipv4_layer->routing_table) != 0)
+  if(ipv4_route_table_read(file_conf_route, ipv4_layer->routing_table) != 0)
   {
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
