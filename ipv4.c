@@ -1,6 +1,5 @@
 #include "global_dependencies.h"
 
-#include "ipv4_dependencies.h"
 #include "ipv4.h"
 #include "ipv4_config.h"
 #include "ipv4_route_table.h"

@@ -1,7 +1,6 @@
-#include "ipv4.h"
-
 #include "global_dependencies.h"
-#include "ipv4_dependencies.h"
+
+#include "ipv4.h"
 
 int main(int argc, char* argv[])
 {
@@ -33,8 +32,7 @@ int main(int argc, char* argv[])
         exit(-1);
     }
     
-    
-    unsigned char fake_payload[1460] = 0;
+    unsigned char fake_payload[1460];
 
     struct ipv4_header ipv4_header_t;
     memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
