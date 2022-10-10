@@ -20,8 +20,8 @@
 typedef struct ipv4_route {
   ipv4_addr_t subnet_addr;
   ipv4_addr_t subnet_mask;
-  char iface[IFACE_NAME_MAX_LENGTH];//Interfaz por la que mandaremos
-  ipv4_addr_t gateway_addr;//siguiente salto, si esta en mi subred, este campo es 0.
+  char iface[IFACE_NAME_MAX_LENGTH]; //Interfaz por la que mandaremos
+  ipv4_addr_t gateway_addr; //siguiente salto, si esta en mi subred, este campo es 0.
 } ipv4_route_t;
 
 
