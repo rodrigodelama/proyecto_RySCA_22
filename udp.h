@@ -1,6 +1,9 @@
 #ifndef _UDP_H
 #define _UDP_H
 
+#include <string.h>
+#include <stdlib.h>
+
 #include "ipv4.h"
 
 #define UDP_PROTOCOL_TYPE 17

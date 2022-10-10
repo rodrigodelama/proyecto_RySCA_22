@@ -17,10 +17,11 @@
  * encaminamiento sea necesario añadir más campos a esta estructura, así como
  * modificar las funciones asociadas.
  */
+
 typedef struct ipv4_route {
   ipv4_addr_t subnet_addr;
   ipv4_addr_t subnet_mask;
-  char iface[IFACE_NAME_MAX_LENGTH]; //Interfaz por la que mandaremos
+  char iface[32]; //Interfaz por la que mandaremos
   ipv4_addr_t gateway_addr; //siguiente salto, si esta en mi subred, este campo es 0.
 } ipv4_route_t;
 
@@ -109,6 +110,9 @@ void ipv4_route_free ( ipv4_route_t * route );
 /* Número de entradas máximo de la tabla de rutas IPv4 */
 #define IPv4_ROUTE_TABLE_SIZE 256
 
+typedef struct ipv4_route_table {
+  ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
+} ipv4_route_table_t;
 
 /* Definción de la estructura opaca que modela una tabla de rutas IPv4.
  * Las entradas de la tabla de rutas están indexadas, y dicho índice puede
@@ -134,7 +138,7 @@ void ipv4_route_free ( ipv4_route_t * route );
  * respectivamente, leer/escribir la tabla de rutas de/a un fichero, e
  * imprimirla por la salida estándar.
  */
-typedef struct ipv4_route_table ipv4_route_table_t;
+
 
 
 /* ipv4_route_table_t * ipv4_route_table_create();
@@ -228,8 +232,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
  *   Esta función devuelve 'NULL' si no no existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
-ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, 
-                                         ipv4_addr_t addr );
+ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t addr );
 
 
 /* ipv4_route_t * ipv4_route_table_get ( ipv4_route_table_t * table, int index );

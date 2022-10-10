@@ -287,9 +287,7 @@ int ipv4_route_output ( ipv4_route_t * route, int header, FILE * out )
   return 0;
 }
 
-struct ipv4_route_table {
-  ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
-};
+
 
 /* ipv4_route_table_t * ipv4_route_table_create();
  * 

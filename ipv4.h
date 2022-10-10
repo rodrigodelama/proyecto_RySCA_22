@@ -10,6 +10,10 @@
 #define IPv4_STR_MAX_LENGTH 16
 #define IPV4_HDR_LEN 20
 
+/* Logitud máxmima del nombre de un interfaz de red */
+#define IFACE_NAME_MAX_LENGTH 32
+
+typedef unsigned char ipv4_addr_t[IPv4_ADDR_SIZE];
 /* Estructura del manejador de la interfaz ivp4 */
 typedef struct ipv4_layer
 {
@@ -19,13 +23,12 @@ typedef struct ipv4_layer
     ipv4_route_table_t * routing_table; //my routing table
 } ipv4_layer_t;
 
-typedef unsigned char ipv4_addr_t [IPv4_ADDR_SIZE];
+
 
 /* Dirección IPv4 a cero "0.0.0.0" */
 extern ipv4_addr_t IPv4_ZERO_ADDR;
 
-/* Logitud máxmima del nombre de un interfaz de red */
-#define IFACE_NAME_MAX_LENGTH 32
+
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
