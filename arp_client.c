@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     ipv4_addr_t target_ip;
     if (ipv4_str_addr(argv[2], target_ip) == -1)
     {
-        fprintf(stderr, "\nInvalid target IP Address");
+        fprintf(stderr, "\nDireccion IP no valida");
         exit(-1);
     }
     //A partir de aqui, los parametros pasados por linea de comandos estaran en el formato correcto

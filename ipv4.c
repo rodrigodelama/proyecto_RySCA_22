@@ -1,33 +1,14 @@
 #include "global_dependencies.h"
 
+#include "ipv4_dependencies.h"
 #include "ipv4.h"
 #include "ipv4_config.h"
 #include "ipv4_route_table.h"
 #include "arp.h"
 
-#define UDP_PROTOCOL 17
-#define VERSION_AND_LENGTH 0x45
-#define ID 0x8397
-#define TTL_DEF 64
 //Cuando capturemos ip, hacerlo en el que envía la trama, dado que en lightning descarta las tramas con el checksum mal.   
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
-
-/* Estructura de la cabecera de ipv4 */
-struct ipv4_header
-{
-  uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
-  uint8_t service_type; //This field to zeros.
-  uint16_t total_length; //total payload that is being used.
-  uint16_t identification; //Set to a number by default that we like.
-  uint16_t frag_flags; //Set to 0 as we don't fragmentate.
-  uint8_t ttl; //Set to 64
-  uint8_t protocol; //UDP 
-  uint16_t checksum; //returned value from checksum() function.
-  ipv4_addr_t src_ip;
-  ipv4_addr_t dest_ip;
-  unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
-};
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *

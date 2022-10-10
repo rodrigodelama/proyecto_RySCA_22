@@ -7,6 +7,11 @@
 /* Logitud máxmima del nombre de un interfaz de red */
 #define IFACE_NAME_MAX_LENGTH 32
 
+#define UDP_PROTOCOL 17
+#define VERSION_AND_LENGTH 0x45
+#define ID 0x8397
+#define TTL_DEF 64
+
 typedef unsigned char ipv4_addr_t[IPv4_ADDR_SIZE];
 
 /*ipv4_route_table---------------------------------------------------------------------------*/
@@ -35,5 +40,19 @@ typedef struct ipv4_layer
     ipv4_route_table_t * routing_table; //my routing table
 } ipv4_layer_t;
 
-
+/* Estructura de la cabecera de ipv4 */
+struct ipv4_header
+{
+  uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
+  uint8_t service_type; //This field to zeros.
+  uint16_t total_length; //total payload that is being used.
+  uint16_t identification; //Set to a number by default that we like.
+  uint16_t frag_flags; //Set to 0 as we don't fragmentate.
+  uint8_t ttl; //Set to 64
+  uint8_t protocol; //UDP 
+  uint16_t checksum; //returned value from checksum() function.
+  ipv4_addr_t src_ip;
+  ipv4_addr_t dest_ip;
+  unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
+};
 /*--------------------------------------------------------------------------------------------*/
