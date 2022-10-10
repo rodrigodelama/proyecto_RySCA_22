@@ -1,10 +1,9 @@
+#include "global_dependencies.h"
+
 #include "ipv4.h"
 #include "ipv4_config.h"
+#include "ipv4_route_table.h"
 #include "arp.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <timerms.h>
 
 #define UDP_PROTOCOL 17
 #define VERSION_AND_LENGTH 0x45
@@ -13,7 +12,6 @@
 //Cuando capturemos ip, hacerlo en el que envía la trama, dado que en lightning descarta las tramas con el checksum mal.   
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
-
 
 /* Estructura de la cabecera de ipv4 */
 struct ipv4_header
@@ -28,7 +26,7 @@ struct ipv4_header
   uint16_t checksum; //returned value from checksum() function.
   ipv4_addr_t src_ip;
   ipv4_addr_t dest_ip;
-  unsigned char payload[1480]; // 1500 ETH - 20 cab IP = 1480.
+  unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
 };
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
@@ -233,7 +231,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
       return -1;
     }
     printf("Sendig inside our subnet....\n");
-    bytes_sent = eth_send (sender_iface, dst, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
     if(bytes_sent == -1)
     {
       printf("Error sending eth frame....");
@@ -247,7 +245,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
       return -1;
     }
     printf("Sendig outside our subnet....\n");
-    bytes_sent = eth_send (sender_iface, dst, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
     if(bytes_sent == -1)
     {
       printf("Error sending eth frame....\n");

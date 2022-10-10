@@ -1,3 +1,5 @@
+#include "global_dependencies.h"
+
 #include "udp.h"
 
 struct udp_layer //our "socket"

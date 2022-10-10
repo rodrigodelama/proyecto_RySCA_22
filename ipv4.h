@@ -2,33 +2,9 @@
 #define _IPv4_H
 
 #include "eth.h"
-#include "ipv4_route_table.h"
+#include "ipv4_dependencies.h"
 
 #include <stdint.h>
-
-#define IPv4_ADDR_SIZE 4
-#define IPv4_STR_MAX_LENGTH 16
-#define IPV4_HDR_LEN 20
-
-/* Logitud máxmima del nombre de un interfaz de red */
-#define IFACE_NAME_MAX_LENGTH 32
-
-typedef unsigned char ipv4_addr_t[IPv4_ADDR_SIZE];
-/* Estructura del manejador de la interfaz ivp4 */
-typedef struct ipv4_layer
-{
-    eth_iface_t * iface; /*Manejador de interfaz eth*/
-    ipv4_addr_t addr; //my address
-    ipv4_addr_t netmask; //the networks netmask
-    ipv4_route_table_t * routing_table; //my routing table
-} ipv4_layer_t;
-
-
-
-/* Dirección IPv4 a cero "0.0.0.0" */
-extern ipv4_addr_t IPv4_ZERO_ADDR;
-
-
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
@@ -77,11 +53,14 @@ int ipv4_str_addr ( char *str, ipv4_addr_t addr );
  *   El valor del checksum calculado.
  */
 uint16_t ipv4_checksum ( unsigned char *data, int len );
+
 //ipv4 open, parámetros de entrada son los txt de ipv4_route_table
 ipv4_layer_t* ipv4_open(char *file_conf, char *file_conf_route); //Devuelve el manejador de ipv4. 
+
 int ipv4_close(ipv4_layer_t *iface);
 
 int ipv4_send(ipv4_layer_t *layer, ipv4_addr_t dst, uint8_t protocol, unsigned char *payload, int payload_len);
+
 int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer [], ipv4_addr_t sender, int buf_len,long int timeout);
 
 #endif /*_IPv4_H */

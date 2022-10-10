@@ -1,9 +1,9 @@
 #ifndef _IPv4_ROUTE_TABLE_H
 #define _IPv4_ROUTE_TABLE_H
 
-#include "ipv4.h"
-
 #include <stdio.h>
+
+#include "ipv4.h"
 
 /* Esta estructura almacena la información básica sobre la ruta a una subred. 
  * Incluye la dirección y máscara de la subred destino, el nombre del interfaz
@@ -17,14 +17,8 @@
  * encaminamiento sea necesario añadir más campos a esta estructura, así como
  * modificar las funciones asociadas.
  */
-
-typedef struct ipv4_route {
-  ipv4_addr_t subnet_addr;
-  ipv4_addr_t subnet_mask;
-  char iface[32]; //Interfaz por la que mandaremos
-  ipv4_addr_t gateway_addr; //siguiente salto, si esta en mi subred, este campo es 0.
-} ipv4_route_t;
-
+//we shant redeclare these
+//typedef unsigned char ipv4_addr_t[];
 
 /* ipv4_route_t * ipv4_route_create
  * ( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw );
@@ -105,14 +99,6 @@ void ipv4_route_print ( ipv4_route_t * route );
  */
 void ipv4_route_free ( ipv4_route_t * route );
 
-
-
-/* Número de entradas máximo de la tabla de rutas IPv4 */
-#define IPv4_ROUTE_TABLE_SIZE 256
-
-typedef struct ipv4_route_table {
-  ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
-} ipv4_route_table_t;
 
 /* Definción de la estructura opaca que modela una tabla de rutas IPv4.
  * Las entradas de la tabla de rutas están indexadas, y dicho índice puede

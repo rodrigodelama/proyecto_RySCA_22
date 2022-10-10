@@ -1,10 +1,10 @@
 #include <stdio.h> // I/O
 
-#include <stdlib.h> //memcpy, memcmp, y malloc.
+#include <stdlib.h> // malloc y memset.
 
 #include <unistd.h> //
 
-#include <string.h> // strings
+#include <string.h> // memecpy, memcpm
 
 #include <timerms.h> // for our timers
 

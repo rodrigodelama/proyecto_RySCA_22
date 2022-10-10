@@ -14,6 +14,7 @@
 #define PROT_SIZE_IP_ADDR 4  //4 bytes las dir IP
 #define OPCODE_REQUEST 1
 #define OPCODE_REPLY 2
+
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr);
 
 struct arp_header
