@@ -115,7 +115,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
 
   /* 1. Crear layer -> routing_table */
   ipv4_layer_t *ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t)); //allocate memory
-  memset(&ipv4_layer, 0, sizeof(ipv4_layer_t));
+  //memset(&ipv4_layer, 0, sizeof(ipv4_layer_t));
   if (ipv4_layer == NULL)
   {
     fprintf(stderr, "ipv4_open(): ERROR en malloc()\n");
