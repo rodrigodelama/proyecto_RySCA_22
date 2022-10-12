@@ -31,8 +31,12 @@ int main(int argc, char* argv[])
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
     }
-    
-    ipv4_recv(my_ip_iface, 17, unsigned char buffer[], ipv4_addr_t sender, int buf_len, long int timeout)
+    unsigned char buffer[1460];
+    ipv4_addr_t sender;
+    ipv4_convert("192.100.100.0",sender);
+    long int timeout = 5;
+
+    ipv4_recv(my_ip_iface, 17,buffer, sender, 1460, timeout);
     unsigned char fake_payload[1460];
 
     struct ipv4_header ipv4_header_t;
