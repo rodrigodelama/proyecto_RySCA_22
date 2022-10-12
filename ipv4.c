@@ -240,9 +240,11 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 }
 
 //1º rellenamos, 2º miramos siguiente salto para saber la IP destino, y luego haremos arp_resolve para saber la MAC.
+//input: layer, protocol, buf_len, timeout
+// output: buffer, sender 
 int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv4_addr_t sender, int buf_len, long int timeout)
 {
-  int payload_len;
+  int payload_len; 
   /* Comprobar parámetros */
   if(layer == NULL)
   {
