@@ -115,6 +115,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
 
   /* 1. Crear layer -> routing_table */
   ipv4_layer_t * ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t)); //allocate memory
+  memset(&ipv4_layer, 0, sizeof(struct ipv4_layer));
   if (ipv4_layer == NULL)
   {
     fprintf(stderr, "ipv4_open(): ERROR en malloc()\n");
@@ -171,8 +172,8 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   /* Rellenamos sus campos */
   ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
   ipv4_header_t.service_type = 0;
-  ipv4_header_t.total_length = (uint16_t) payload_len;
-  ipv4_header_t.identification = (uint16_t) ID;
+  ipv4_header_t.total_length = htons((uint16_t) payload_len);
+  ipv4_header_t.identification = htons((uint16_t) ID);
   ipv4_header_t.frag_flags = (uint16_t) 0;
   ipv4_header_t.ttl = (uint8_t) TTL_DEF;
   ipv4_header_t.protocol = (uint8_t) protocol; //passed as parameter.
@@ -181,7 +182,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   memcpy(ipv4_header_t.dest_ip, dst, sizeof(ipv4_addr_t));
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
-  ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); // IPV4_HDR_LEN defined in ipv4.h 
+  ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
   // 1500 ETH - 20 cab IP = 1480
   //ipv4_open ya lo hace el cliente o el servidor.
   //for knowing MAC address of dest, we call arp_resolve function from arp.c & arp.h
@@ -285,7 +286,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults in a 1 if true
     is_target_type = (ntohs(ipv4_packet_ptr->protocol) == protocol);
 
-    original_checksum = ipv4_packet_ptr->checksum;
+    original_checksum = ntohs(ipv4_packet_ptr->checksum);
     ipv4_packet_ptr->checksum = 0;
     uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer, packet_buf_len);
     if (original_checksum == calculated_checksum)
