@@ -61,10 +61,10 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     //rellenar datagrama
     struct udp_header udp_header_t;
       memset(&udp_header_t, 0, sizeof(struct udp_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
-    udp_header_t.src_port = my_udp_iface->local_port;
-    udp_header_t.dest_port = dest_port;
+    udp_header_t.src_port = htons(my_udp_iface->local_port);
+    udp_header_t.dest_port = htons(dest_port);
     memcpy(payload, udp_header_t.payload, payload_len); //copying char arrays
-    udp_header_t.datagram_length = payload_len;
+    udp_header_t.datagram_length = htons(payload_len);
     udp_header_t.checksum = 0; //initially 0, maybe a later improvement
     int bytes_sent = ipv4_send(my_udp_iface->local_ip_stack, dest, UDP_PROTOCOL_TYPE, payload, (payload_len + 8));
     if(bytes_sent == -1)
@@ -96,7 +96,8 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
   int udp_buf_len = UDP_HEADER_SIZE + buf_len;
   unsigned char udp_buffer[udp_buf_len];
   struct udp_header * udp_datagram_ptr = NULL;
-  int is_dest_port;
+  int is_dest_port;//To check if the dest port of  the recieved datagram is my local port.
+  int is_src_port;//To check if the src port of  the recieved datagram is dest port (as parameter).
 
   do {
     long int time_left = timerms_left(&timer);
@@ -118,9 +119,9 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
 
     /* Comprobar si es la trama que estamos buscando */
     udp_datagram_ptr = (struct udp_header *) udp_buffer;
-    is_dest_port = (udp_datagram_ptr->dest_port == my_udp_layer->local_port);
-    is_dest_port = (ntohs(udp_datagram_ptr->dest_port) == dest_port);
-  } while ( !is_dest_port );
+    is_dest_port = (ntohs(udp_datagram_ptr->dest_port) == my_udp_layer->local_port);
+    is_src_port = (ntohs(udp_datagram_ptr->src_port) == dest_port);
+  } while ( !(is_dest_port && is_src_port) );
   
   /* Trama recibida con 'tipo' indicado. Copiar datos y dirección MAC origen */
   
