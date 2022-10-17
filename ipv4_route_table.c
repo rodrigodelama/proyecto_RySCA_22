@@ -425,9 +425,11 @@ ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t
   int best_route_prefix = -1;
 
   if (table != NULL) {
+    printf("hola\n");
     int i;
     for (i=0; i<IPv4_ROUTE_TABLE_SIZE; i++) {
       ipv4_route_t * route_i = table->routes[i];
+      ipv4_route_print(route_i);
       if (route_i != NULL) {
         int route_i_lookup = ipv4_route_lookup(route_i, addr);
         if (route_i_lookup > best_route_prefix) {

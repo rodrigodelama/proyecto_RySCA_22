@@ -26,17 +26,16 @@ int main(int argc, char* argv[])
     IPv4Address 192.168.1.100
     SubnetMask 255.255.255.0
     */
-    ipv4_layer_t* my_ip_iface = ipv4_open("ipv4_config_client.txt", "ipv4_route_table_client.txt");
+    ipv4_layer_t* my_ip_iface = ipv4_open("/tmp/ipv4_config_client.txt", "/tmp/ipv4_route_table_client.txt");
     if(my_ip_iface == NULL){
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
     }
     
-    unsigned char fake_payload[1460];
+    unsigned char fake_payload[1200];
 
     struct ipv4_header ipv4_header_t;
     memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
-    
     /* Rellenamos sus campos */
     ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
     ipv4_header_t.service_type = 0;
@@ -48,11 +47,11 @@ int main(int argc, char* argv[])
     ipv4_header_t.checksum = (uint8_t) 0; //initally at 0
     memcpy(ipv4_header_t.src_ip, my_ip_iface->addr, sizeof(ipv4_addr_t)); 
     memcpy(ipv4_header_t.dest_ip, dest_ip, sizeof(ipv4_addr_t));
-    memcpy(ipv4_header_t.payload, fake_payload, sizeof(fake_payload));
+    memcpy(ipv4_header_t.payload, fake_payload, sizeof(char)*1200);
     //Calculo de checksum:
     ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
                                                             // 1500 ETH - 20 cab IP = 1480
-    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, ipv4_header_t.total_length);
+    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, sizeof(char)*1200);
     
     
     return 0;

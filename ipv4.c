@@ -115,14 +115,16 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
 
   /* 1. Crear layer -> routing_table */
   ipv4_layer_t *ipv4_layer = (ipv4_layer_t*) malloc(sizeof(ipv4_layer_t)); //allocate memory
-  memset(&ipv4_layer, 0, sizeof(ipv4_layer_t));
   if (ipv4_layer == NULL)
   {
     fprintf(stderr, "ipv4_open(): ERROR en malloc()\n");
     return NULL;
   }
-  
+  memset(ipv4_layer, 0, sizeof(ipv4_layer_t));
   char iface_name[32]; //eth hard limit on iface length
+  #ifdef DEBUG
+  printf("Lo que sea 3\n");
+  #endif
   /* 2. Leer direcciones y subred de file_conf */
   if (ipv4_config_read(file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0)
   {
@@ -130,16 +132,29 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+  #ifdef DEBUG
+  char debug[60];
+  ipv4_addr_str(ipv4_layer->addr, debug);
+  printf("%s\n", debug);
+ ipv4_addr_str(ipv4_layer->netmask, debug);
+  printf("%s\n", debug);
+  printf("Lo que sea 1549874\n");
+  #endif
     /*La función devuelve '0' si el fichero de configuración se ha leido correctamente.*/
   /* 3. Leer tabla de reenvío IP de file_conf_route */
-  if(ipv4_route_table_read(file_conf_route, ipv4_layer->routing_table) != 0)
+  ipv4_layer->routing_table = ipv4_route_table_create();
+  if(ipv4_route_table_read(file_conf_route, ipv4_layer->routing_table) <= 0)
   {
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+  #ifdef DEBUG
+  
+  ipv4_route_table_print(ipv4_layer->routing_table);
+  #endif
   /* 4. Inicializar capa Ethernet con eth_open() */
   //Guardamos el manejador en el campo de "iface".
-  ipv4_layer->iface = eth_open(iface_name); //Returns eth interface controller  
+  ipv4_layer->iface = eth_open(iface_name); //Returns eth interface controller
 
   return ipv4_layer;
 }
@@ -159,6 +174,9 @@ int ipv4_close ( ipv4_layer_t * iface_ipv4 )
                 //layer = manejador ipv4.
 int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned char * payload, int payload_len)
 {
+  #ifdef DEBUG
+  printf("debug: __ipv4_send__ \n");
+  #endif
   /* Comprobar parámetros */
   if (layer == NULL)
   {
@@ -179,8 +197,10 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   ipv4_header_t.ttl = (uint8_t) TTL_DEF;
   ipv4_header_t.protocol = (uint8_t) protocol; //passed as parameter.
   ipv4_header_t.checksum = (uint8_t) 0; //initally at 0
+
   memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t)); 
   memcpy(ipv4_header_t.dest_ip, dst, sizeof(ipv4_addr_t));
+  //memset de la payload con un valor distinto de 0.
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
   ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
