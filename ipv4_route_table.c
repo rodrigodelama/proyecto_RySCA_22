@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
+#include "log.h"
 #include "ipv4_route_table.h"
 
 /* ipv4_route_t * ipv4_route_create
@@ -138,7 +138,7 @@ void ipv4_route_print ( ipv4_route_t * route )
     char gw_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(route->gateway_addr, gw_str);
 
-    printf("%s/%s via %s dev %s", subnet_str, mask_str, gw_str, iface_str);
+    printf("%s/%s via %s dev %s \n", subnet_str, mask_str, gw_str, iface_str);
   }
 }
 
@@ -425,7 +425,7 @@ ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t
   int best_route_prefix = -1;
 
   if (table != NULL) {
-    printf("hola\n");
+    log_trace("Routing table pointer not NULL before filling it up\n");
     int i;
     for (i=0; i<IPv4_ROUTE_TABLE_SIZE; i++) {
       ipv4_route_t * route_i = table->routes[i];

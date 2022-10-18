@@ -122,9 +122,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   }
   memset(ipv4_layer, 0, sizeof(ipv4_layer_t));
   char iface_name[32]; //eth hard limit on iface length
-  #ifdef DEBUG
-  printf("Lo que sea 3\n");
-  #endif
+  log_debug("Memset of <ipv4_layer> done correctly\n");
   /* 2. Leer direcciones y subred de file_conf */
   if (ipv4_config_read(file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0)
   {
@@ -132,14 +130,23 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+
+//LOGS:
+  char debug[60];
+  ipv4_addr_str(ipv4_layer->addr, debug);
+  log_debug("My ip address -> %s\n", debug);
+  ipv4_addr_str(ipv4_layer->netmask, debug);
+  log_debug("My subnet mask -> %s\n", debug);
+  /*
   #ifdef DEBUG
   char debug[60];
   ipv4_addr_str(ipv4_layer->addr, debug);
   printf("%s\n", debug);
- ipv4_addr_str(ipv4_layer->netmask, debug);
+  ipv4_addr_str(ipv4_layer->netmask, debug);
   printf("%s\n", debug);
   printf("Lo que sea 1549874\n");
   #endif
+  */
     /*La función devuelve '0' si el fichero de configuración se ha leido correctamente.*/
   /* 3. Leer tabla de reenvío IP de file_conf_route */
   ipv4_layer->routing_table = ipv4_route_table_create();
@@ -148,8 +155,9 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+
+  log_trace("Printing route table from  -> %s \n", file_conf_route);
   #ifdef DEBUG
-  
   ipv4_route_table_print(ipv4_layer->routing_table);
   #endif
   /* 4. Inicializar capa Ethernet con eth_open() */
@@ -174,9 +182,8 @@ int ipv4_close ( ipv4_layer_t * iface_ipv4 )
                 //layer = manejador ipv4.
 int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned char * payload, int payload_len)
 {
-  #ifdef DEBUG
-  printf("debug: __ipv4_send__ \n");
-  #endif
+    log_trace("Inside __ipv4_send__\n");
+
   /* Comprobar parámetros */
   if (layer == NULL)
   {
@@ -192,18 +199,32 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
   ipv4_header_t.service_type = 0;
   ipv4_header_t.total_length = htons((uint16_t) payload_len);
+
+  log_debug("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
+  
   ipv4_header_t.identification = htons((uint16_t) ID);
   ipv4_header_t.frag_flags = (uint16_t) 0;
   ipv4_header_t.ttl = (uint8_t) TTL_DEF;
   ipv4_header_t.protocol = (uint8_t) protocol; //passed as parameter.
   ipv4_header_t.checksum = (uint8_t) 0; //initally at 0
 
-  memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t)); 
+  memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t));
+  
+  char debug1[60];
+  ipv4_addr_str(layer->addr, debug1);
+  log_debug("My ip address -> %s\n", debug1);
+  
   memcpy(ipv4_header_t.dest_ip, dst, sizeof(ipv4_addr_t));
+  
+  char debug2[60];
+  ipv4_addr_str(dst, debug2);
+  log_debug("Dest ip address -> %s\n", debug2);
+  
   //memset de la payload con un valor distinto de 0.
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
   ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
+  log_debug("Checksum made -> %u \n", (unsigned int)ipv4_header_t.checksum);
   // 1500 ETH - 20 cab IP = 1480
   //ipv4_open ya lo hace el cliente o el servidor.
   //for knowing MAC address of dest, we call arp_resolve function from arp.c & arp.h
@@ -213,6 +234,13 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   //MAYBE: I want to create an auxiliary route (mine) so we can put it as a parameter in "ipv4_route_lookup"
   //if not, ¿why do we want "layer" as a parameter?
   ipv4_route_t *route_to_dst =  ipv4_route_table_lookup (layer->routing_table, dst); //returns most efficient route
+  
+  log_trace("Best route to our destiny -> ");
+  #ifdef DEBUG
+    ipv4_route_print (route_to_dst);
+  #endif
+  
+
   if(route_to_dst == NULL)
   {
     printf("Error: Ruta no accesible o no ha sido posible realizar la búsqueda.\n");

@@ -4,13 +4,31 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2)
+    if(argc != 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip>\n");
-        printf("     <target_ip>: Direccion ip para solicitar su MAC \n");
+        printf("     <target_ip>: Direccion ip de destino \n");
+        printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
+
+    switch(argv[2][0])
+    {//todas las opciones empiezan por letra distinta, solo miro la primera
+
+		case 't': 
+
+			log_set_level(LOG_TRACE);
+			break;
+		case 'd':
+
+			log_set_level(LOG_DEBUG);
+			break;
+        default:
+
+			log_set_level(LOG_INFO);
+			break;
+	}
     ipv4_addr_t dest_ip;
 
     if (ipv4_str_addr(argv[1], dest_ip) == -1)
@@ -19,6 +37,8 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
+
+
     /*
     # ipv4_config_client.txt
     #
@@ -26,7 +46,7 @@ int main(int argc, char* argv[])
     IPv4Address 192.168.1.100
     SubnetMask 255.255.255.0
     */
-    ipv4_layer_t* my_ip_iface = ipv4_open("/tmp/ipv4_config_client.txt", "/tmp/ipv4_route_table_client.txt");
+    ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
     if(my_ip_iface == NULL){
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);

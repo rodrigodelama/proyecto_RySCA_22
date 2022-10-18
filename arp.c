@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <timerms.h>
-
+#include "log.h"
 mac_addr_t ARP_BCAST_ADDR = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 //ARP request and reply handling
@@ -34,7 +34,14 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     
     //Type de ARP = 0x0806
     //Envio ARP Request
+    //LOGS
+    char ip_str[60];
+    ipv4_addr_str(arp_header_t.src_IPv4_addr, ip_str);
+    char mac_str[60];
+    mac_addr_str ( arp_header_t.src_MAC_addr, mac_str );
+
     eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+    log_trace("ARP (REQUEST) packet sent from MAC -> %s  (Interface: %s) & IP -> %s as ip of origin\n", mac_str,name,ip_str);
                     //0x0806 es el type code de ARP de capa superior.
                     //ARP and ETH MAC destination addresses dont match (ARP_BCAST_ADDR vs MAC_BCAST_ADDR)
     //Recibir el reply
@@ -60,7 +67,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     do
     {
         long int time_left = timerms_left(&timer);
-
+        
         len = eth_recv(iface, src_addr, PROT_TYPE_ARP, buffer, ETH_MTU, time_left);
 
         if (len == -1)
@@ -79,7 +86,6 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
             timeout = 3000;
             //Reenviamos ARP_request
             eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
-
             len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout); //Esperamos a recibir el ARP_reply.
 
             if (len == -1)
@@ -118,7 +124,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     ipv4_addr_str(ip_addr, dest_ip_str);
     char* dest_mac_str = (char*) malloc(sizeof(mac_addr_t));
     mac_addr_str(mac_addr, dest_mac_str);
-
+    log_trace("At the end of arp_resolve();\n");
     printf("%s -> %s \n", dest_ip_str, dest_mac_str);
 
     //Necessary to clear memory after use (and to avoid warnings hehe)

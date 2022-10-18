@@ -4,13 +4,31 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2)
+    if(argc != 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip>\n");
-        printf("     <target_ip>: Direccion ip para solicitar su MAC \n");
+        printf("     <target_ip>: Direccion ip de destino \n");
+        printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
+
+    switch(argv[2][0])
+    {//todas las opciones empiezan por letra distinta, solo miro la primera
+
+		case 't': 
+
+			log_set_level(LOG_TRACE);
+			break;
+		case 'd':
+
+			log_set_level(LOG_DEBUG);
+			break;
+        default:
+
+			log_set_level(LOG_INFO);
+			break;
+	}
     ipv4_addr_t src_ip;
 
     if (ipv4_str_addr(argv[1], src_ip) == -1)
