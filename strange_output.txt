@@ -1,0 +1,30 @@
+student@uc3m:~/lightning-shared-folder/proyecto_RySCA_22$ ./ipv4_client 192.100.100.102 trace
+22:46:47 DEBUG ipv4.c:125: Memset of <ipv4_layer> done correctly
+
+22:46:47 DEBUG ipv4.c:137: My ip address -> 192.100.100.101
+
+22:46:47 DEBUG ipv4.c:139: My subnet mask -> 255.255.255.0
+
+22:46:47 TRACE ipv4.c:159: Printing route table from  -> /tmp/ipv4_route_table_client.txt 
+
+# SubnetAddr    SubnetMask      Iface   Gateway
+0.0.0.0         0.0.0.0         enp0s3  192.100.100.103
+192.100.100.0   255.255.255.0   enp0s3  0.0.0.0        
+22:46:47 TRACE ipv4.c:185: Inside __ipv4_send__
+
+22:46:47 DEBUG ipv4.c:203: Total length -> 45060
+
+22:46:47 DEBUG ipv4.c:215: My ip address -> 192.100.100.101
+
+22:46:47 DEBUG ipv4.c:221: Dest ip address -> 192.100.100.101
+
+22:46:47 DEBUG ipv4.c:227: Checksum made -> 4521 
+
+22:46:47 TRACE ipv4_route_table.c:428: Routing table pointer not NULL before filling it up
+
+22:46:47 TRACE ipv4.c:238: Best route to our destiny -> 
+22:46:47 TRACE arp.c:44: ARP (REQUEST) packet sent from MAC -> 08:00:27:31:B3:83  (Interface: enp0s3) & IP -> 0.0.0.0 as ip of origin
+
+enp0s3: ERROR: Temporizador de 2s agotado, no hay respuesta de la IP de destino
+enp0s3: ERROR: Temporizador de 3s agotado, cerrando conexion...
+0.0.0.0/0.0.0.0 via 192.100.100.103 dev enp0s3192.100.100.0/255.255.255.0 via 0.0.0.0 dev enp0s3192.100.100.0/255.255.255.0 via 0.0.0.0 dev enp0s3Error: function arp_resolve not working...
