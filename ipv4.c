@@ -331,7 +331,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     long int time_left = timerms_left(&timer);
 
     /* Recibir trama del interfaz Ethernet y procesar errores */
-    packet_len = eth_recv (layer->iface, mac_src, PROT_TYPE_IPV4, ipv4_buffer, packet_buf_len, time_left);
+    packet_len = eth_recv (layer->iface, mac_src, PROT_TYPE_IPV4, ipv4_buffer, (20 + packet_buf_len) , time_left);
     if(packet_len < 0)
     {
       fprintf(stderr, "ipv4_recv(): ERROR en eth_recv()");
@@ -346,6 +346,9 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
 
     /* Comprobar si es el paquete que estamos buscando */
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
+    #ifdef DEBUG
+      print_pkt(ipv4_packet_ptr,packet_len);
+    #endif
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults in a 1 if true
     is_target_type = (ntohs(ipv4_packet_ptr->protocol) == protocol);
 
