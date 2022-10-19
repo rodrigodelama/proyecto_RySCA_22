@@ -1,5 +1,0 @@
-arp_client
-rawnetcc /tmp/arp_client arp_client.c arp.c ipv4.c ipv4_config.c ipv4_route_table.c eth.c udp.c
-
-ipv4_client
-rawnetcc /tmp/ipv4_client ipv4_client.c arp.c ipv4.c ipv4_config.c ipv4_route_table.c eth.c udp.c
