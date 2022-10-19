@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
     //Calculo de checksum:
     ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
                                                             // 1500 ETH - 20 cab IP = 1480
-    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 20);//sizeof(char)*1200
+    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 0);//sizeof(char)*1200
     
     
     return 0;

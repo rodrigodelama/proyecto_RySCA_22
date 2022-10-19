@@ -198,7 +198,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   /* Rellenamos sus campos */
   ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
   ipv4_header_t.service_type = 0;
-  ipv4_header_t.total_length = htons((uint16_t) payload_len);
+  ipv4_header_t.total_length = htons((uint16_t) 20 + payload_len);//Sze datos (payload_len) + 20 (size cabecera ip sin datos)
 
   log_debug("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
   
@@ -266,13 +266,19 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
       return -1;
     }
     printf("Sendig inside our subnet....\n");
-    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+    // bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
+  
     if(bytes_sent == -1)
     {
       printf("Error sending eth frame....");
       return -1;
     }
   } else { //Fuera de nuestra subred, pedimos mac a la ip_gateway
+    char gateway_debug[60];
+    ipv4_addr_str(route_to_dst->gateway_addr, gateway_debug);
+    log_trace("Dest ip not in my subnet, Gateway -> %s\n",gateway_debug);
+
     err_arp = arp_resolve(sender_iface, route_to_dst->gateway_addr, mac_dest); //mac gateway
     if(err_arp != 0 )
     {
@@ -280,7 +286,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
       return -1;
     }
     printf("Sendig outside our subnet....\n");
-    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
+    bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, (20 + payload_len));
     if(bytes_sent == -1)
     {
       printf("Error sending eth frame....\n");
