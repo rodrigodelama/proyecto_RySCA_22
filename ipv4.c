@@ -288,6 +288,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     }
   }
   log_trace("ipv4_send() finished\n");
+  log_debug("Number of bytes sent -> %d\n",bytes_sent);
   //IPV4_HDR_LEN inside eth.h.  
   //bytes_sent is what eth sends, minus 20 of eth header - ipv4 hdr length
   return (bytes_sent - 20 - IPV4_HDR_LEN); //eth header size inside eth.c, not included.

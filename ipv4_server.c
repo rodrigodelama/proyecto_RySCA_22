@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     IPv4Address 192.168.1.200
     SubnetMask 255.255.255.0
     */
-    ipv4_layer_t* my_ip_iface = ipv4_open("ipv4_config_server.txt", "ipv4_route_table_server.txt");
+    ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
     if(my_ip_iface == NULL){
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);

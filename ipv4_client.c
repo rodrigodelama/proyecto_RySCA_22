@@ -64,6 +64,8 @@ int main(int argc, char* argv[])
     ipv4_header_t.frag_flags = (uint16_t) 0;
     ipv4_header_t.ttl = (uint8_t) TTL_DEF;
     ipv4_header_t.protocol = (uint8_t) 17; //UDP
+    //ipv4_header_t.protocol = (uint8_t) 1; //ICMP.
+
     ipv4_header_t.checksum = (uint8_t) 0; //initally at 0
     memcpy(ipv4_header_t.src_ip, my_ip_iface->addr, sizeof(ipv4_addr_t)); 
     memcpy(ipv4_header_t.dest_ip, dest_ip, sizeof(ipv4_addr_t));
@@ -71,7 +73,7 @@ int main(int argc, char* argv[])
     //Calculo de checksum:
     ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
                                                             // 1500 ETH - 20 cab IP = 1480
-    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, sizeof(char)*1200);
+    ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 20);//sizeof(char)*1200
     
     
     return 0;
