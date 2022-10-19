@@ -32,14 +32,14 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 
     char * name = eth_getname(iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
     
-    //Type de ARP = 0x0806
-    //Envio ARP Request
     //LOGS
     char ip_str[60];
     ipv4_addr_str(arp_header_t.src_IPv4_addr, ip_str);
     char mac_str[60];
-    mac_addr_str ( arp_header_t.src_MAC_addr, mac_str );
+    mac_addr_str(arp_header_t.src_MAC_addr, mac_str);
 
+    //Type de ARP = 0x0806
+    //Envio ARP Request
     eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
     log_trace("ARP (REQUEST) packet sent from MAC -> %s  (Interface: %s) & IP -> %s as ip of origin\n", mac_str,name,ip_str);
                     //0x0806 es el type code de ARP de capa superior.
@@ -67,16 +67,16 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     do
     {
         long int time_left = timerms_left(&timer);
-        
+
         len = eth_recv(iface, src_addr, PROT_TYPE_ARP, buffer, ETH_MTU, time_left);
 
-        if (len == -1)
+        if(len == -1)
         {
             //Si no hay datos
             fprintf(stderr, "ERROR: eth_recv() broke\n");
             return -1;
         }
-        else if (len == 0)
+        else if(len == 0)
         {
         //Parte Opcional 1:
             fprintf(stderr, "%s: ERROR: Temporizador de 2s agotado, no hay respuesta de la IP de destino\n", name);
@@ -101,11 +101,8 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
                 return -1;
             }
 
-        }/*else if(frame_len < ETH_HEADER_SIZE){
-            fprintf(stderr, "eth_recv(): Trama de tamaño invalido: %d bytes\n",frame_len);
-            continue;
         }
-        */
+
         /* Comprobar si es la trama que estamos buscando */
         arp_header_recv = (struct arp_header*) buffer;
         //is_my_mac = (memcmp(arp_header_recv->dest_MAC_addr,iface->mac_address, MAC_ADDR_SIZE) == 0);
@@ -116,7 +113,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr, sizeof(ipv4_addr_t)) == 0);
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
-    } while(!(is_my_dest_ip && is_request));//nos importa solo la ip de dest del sender y el opcode para que sea "request"
+    } while(!(is_my_dest_ip && is_request)); //nos importa solo la ip de dest del sender y el opcode para que sea "request"
     memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t)); //whats the point?
 
     //To print out the found out data:
@@ -133,4 +130,3 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 
     return 0;
 }
-

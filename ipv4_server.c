@@ -14,24 +14,20 @@ int main(int argc, char* argv[])
     }
 
     switch(argv[2][0])
-    {//todas las opciones empiezan por letra distinta, solo miro la primera
-
-		case 't': 
-
+    { //todas las opciones empiezan por letra distinta, solo miro la primera
+		case 't':
 			log_set_level(LOG_TRACE);
 			break;
 		case 'd':
-
 			log_set_level(LOG_DEBUG);
 			break;
         default:
-
 			log_set_level(LOG_INFO);
 			break;
 	}
     ipv4_addr_t src_ip;
 
-    if (ipv4_str_addr(argv[1], src_ip) == -1)
+    if(ipv4_str_addr(argv[1], src_ip) == -1)
     {
         fprintf(stderr, "%s\n", "IP pasada como parámetro no válida\n");
         exit(-1);
@@ -59,8 +55,8 @@ int main(int argc, char* argv[])
 
     struct ipv4_header ipv4_header_t;
     memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
-    
-    /* Rellenamos sus campos */
+/*  MAYBE WE MUST SEND SOMETHING BACK FROM THE SERVER TO THE CLIENT ??  
+    // Rellenamos sus campos
     ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
     ipv4_header_t.service_type = 0;
     ipv4_header_t.total_length = (uint16_t) IPV4_HDR_LEN + sizeof(fake_payload); //total length is hdr + data
@@ -76,7 +72,7 @@ int main(int argc, char* argv[])
     ipv4_header_t.checksum = ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN); // IPV4_HDR_LEN defined in ipv4.h 
                                                             // 1500 ETH - 20 cab IP = 1480
     ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, ipv4_header_t.total_length);
-    
+*/
     
     return 0;
 }

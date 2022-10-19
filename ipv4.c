@@ -130,6 +130,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     fprintf(stderr,"ERROR: file could not be opened correctly.\n");
     exit(-1);
   }
+    /*La función devuelve '0' si el fichero de configuración se ha leido correctamente.*/
 
 //LOGS:
   char debug[60];
@@ -137,17 +138,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   log_debug("My ip address -> %s\n", debug);
   ipv4_addr_str(ipv4_layer->netmask, debug);
   log_debug("My subnet mask -> %s\n", debug);
-  /*
-  #ifdef DEBUG
-  char debug[60];
-  ipv4_addr_str(ipv4_layer->addr, debug);
-  printf("%s\n", debug);
-  ipv4_addr_str(ipv4_layer->netmask, debug);
-  printf("%s\n", debug);
-  printf("Lo que sea 1549874\n");
-  #endif
-  */
-    /*La función devuelve '0' si el fichero de configuración se ha leido correctamente.*/
+
   /* 3. Leer tabla de reenvío IP de file_conf_route */
   ipv4_layer->routing_table = ipv4_route_table_create();
   if(ipv4_route_table_read(file_conf_route, ipv4_layer->routing_table) <= 0)
@@ -160,6 +151,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
   #ifdef DEBUG
   ipv4_route_table_print(ipv4_layer->routing_table);
   #endif
+
   /* 4. Inicializar capa Ethernet con eth_open() */
   //Guardamos el manejador en el campo de "iface".
   ipv4_layer->iface = eth_open(iface_name); //Returns eth interface controller
@@ -201,15 +193,14 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   ipv4_header_t.total_length = htons((uint16_t) 20 + payload_len);//Sze datos (payload_len) + 20 (size cabecera ip sin datos)
 
   log_debug("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
-  
+
   ipv4_header_t.identification = htons((uint16_t) ID);
   ipv4_header_t.frag_flags = (uint16_t) 0;
   ipv4_header_t.ttl = (uint8_t) TTL_DEF;
   ipv4_header_t.protocol = (uint8_t) protocol; //passed as parameter.
   ipv4_header_t.checksum = (uint8_t) 0; //initally at 0
-
   memcpy(ipv4_header_t.src_ip, layer->addr, sizeof(ipv4_addr_t));
-  
+
   char debug1[60];
   ipv4_addr_str(layer->addr, debug1);
   log_debug("My ip address -> %s\n", debug1);
@@ -223,7 +214,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   //memset de la payload con un valor distinto de 0.
   memcpy(ipv4_header_t.payload, payload, payload_len);
   //Calculo de checksum:
-  ipv4_header_t.checksum = htons(ipv4_checksum( (unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
+  ipv4_header_t.checksum = htons(ipv4_checksum((unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h
   log_debug("Checksum made -> %u \n", (unsigned int)ipv4_header_t.checksum);
   // 1500 ETH - 20 cab IP = 1480
   //ipv4_open ya lo hace el cliente o el servidor.
@@ -234,12 +225,11 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   //MAYBE: I want to create an auxiliary route (mine) so we can put it as a parameter in "ipv4_route_lookup"
   //if not, ¿why do we want "layer" as a parameter?
   ipv4_route_t *route_to_dst =  ipv4_route_table_lookup (layer->routing_table, dst); //returns most efficient route
-  
+
   log_trace("Best route to our destiny -> ");
   #ifdef DEBUG
     ipv4_route_print (route_to_dst);
   #endif
-  
 
   if(route_to_dst == NULL)
   {
@@ -305,7 +295,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 // output: buffer, sender 
 int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv4_addr_t sender, int buf_len, long int timeout)
 {
-  int payload_len; 
+  int payload_len;
   /* Comprobar parámetros */
   if(layer == NULL)
   {
@@ -331,7 +321,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     long int time_left = timerms_left(&timer);
 
     /* Recibir trama del interfaz Ethernet y procesar errores */
-    packet_len = eth_recv (layer->iface, mac_src, PROT_TYPE_IPV4, ipv4_buffer, (20 + packet_buf_len) , time_left);
+    packet_len = eth_recv(layer->iface, mac_src, PROT_TYPE_IPV4, ipv4_buffer, (20 + packet_buf_len) , time_left);
     if(packet_len < 0)
     {
       fprintf(stderr, "ipv4_recv(): ERROR en eth_recv()");
