@@ -328,6 +328,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       return -1;
     } else if (packet_len == 0) {
       /* Timeout! */
+      fprintf(stderr, "ipv4_recv(): Temporizador de %lu segundos agotado.\n",(unsigned long) timeout);
       return 0;
     } else if (packet_len < IPV4_HDR_LEN) {//Minimum packet length = ipv4_header (20 bytes) + 0 bytes payload.
       fprintf(stderr, "ipv4_recv(): cabecera incorrecta, paquete incompleto: %d bytes\n", packet_len);
@@ -336,7 +337,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
 
     /* Comprobar si es el paquete que estamos buscando */
     #ifdef DEBUG
-      print_pkt(ipv4_buffer, packet_len, -1);
+      print_pkt(ipv4_buffer, (packet_buf_len + 20), -1);
     #endif
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
 
@@ -361,5 +362,5 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
   }
   memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
 
-  return payload_len;
+  return (payload_len + 20);
 }

@@ -25,37 +25,30 @@ int main(int argc, char* argv[])
 			log_set_level(LOG_INFO);
 			break;
 	}
-    ipv4_addr_t src_ip;
+    ipv4_addr_t sender_ip;
 
-    if(ipv4_str_addr(argv[1], src_ip) == -1)
+    if(ipv4_str_addr(argv[1], sender_ip) == -1)
     {
         fprintf(stderr, "%s\n", "IP pasada como parámetro no válida\n");
         exit(-1);
     }
 
-    /*
-    # ipv4_config_server.txt
-    #
-    Interface eth0
-    IPv4Address 192.168.1.200
-    SubnetMask 255.255.255.0
-    */
     ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
     if(my_ip_iface == NULL){
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
     }
     unsigned char buffer[1460];
-    ipv4_addr_t sender;
-    ipv4_convert("192.100.100.0",sender);
-    long int timeout = 5;
+    long int timeout = 5000;
+    int bytes_rcvd = 0;
+    bytes_rcvd = ipv4_recv(my_ip_iface, 17,buffer, sender_ip, 0, timeout);
+    log_trace("Bytes received -> %d\n",bytes_rcvd);
 
-    ipv4_recv(my_ip_iface, 17,buffer, sender, 1460, timeout);
+/*  MAYBE WE MUST SEND SOMETHING BACK FROM THE SERVER TO THE CLIENT ??  
     unsigned char fake_payload[1460];
 
     struct ipv4_header ipv4_header_t;
     memset(&ipv4_header_t, 0, sizeof(struct ipv4_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
-/*  MAYBE WE MUST SEND SOMETHING BACK FROM THE SERVER TO THE CLIENT ??  
     // Rellenamos sus campos
     ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
     ipv4_header_t.service_type = 0;

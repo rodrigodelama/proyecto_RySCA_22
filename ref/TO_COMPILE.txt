@@ -8,7 +8,7 @@ NEW METHOD
 
 modify bin/bash to add compile.sh file
 
-chmod
+chmod +x compile.sh
 
 to compile:
 ./compile.sh ./DIRECTORY_TO_SAVE_TO
