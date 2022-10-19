@@ -85,7 +85,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
             //Cambiamos el limite de tiempo.
             timeout = 3000;
             //Reenviamos ARP_request
-            eth_send(iface, arp_header_t.dest_MAC_addr, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
+            eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
             len = eth_recv(iface, src_addr, 0x0806, buffer, ETH_MTU, timeout); //Esperamos a recibir el ARP_reply.
 
             if (len == -1)

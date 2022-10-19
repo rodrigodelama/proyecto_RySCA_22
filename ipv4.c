@@ -252,8 +252,13 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 
   int bytes_sent = 0;
   int err_arp = 0;
-  if(route_to_dst->gateway_addr == 0) //El destino está en nuestra subred.
+
+  ipv4_addr_t zeros_ip_address;
+  ipv4_str_addr("0.0.0.0", zeros_ip_address); //IP por defecto segun el pdf
+  //Estabamos comparando la 0.0.0.0 del gateway con 0 y no con la ip vacia 0.0.0.0 (no tenemos constante definida para esta ip de ceros, sí para ethernet).
+  if(memcmp(route_to_dst->gateway_addr, zeros_ip_address, sizeof(ipv4_addr_t)) == 0) //El destino está en nuestra subred.
   {
+    log_trace("Gateway addr = 0.0.0.0\n");
     err_arp = arp_resolve(sender_iface, dst, mac_dest); //mac destino
     if(err_arp != 0)
     {
@@ -282,7 +287,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
       return -1;
     }
   }
-
+  log_trace("ipv4_send() finished\n");
   //IPV4_HDR_LEN inside eth.h.  
   //bytes_sent is what eth sends, minus 20 of eth header - ipv4 hdr length
   return (bytes_sent - 20 - IPV4_HDR_LEN); //eth header size inside eth.c, not included.

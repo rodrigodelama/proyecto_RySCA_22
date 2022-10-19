@@ -53,6 +53,6 @@ struct ipv4_header
   uint16_t checksum; //returned value from checksum() function.
   ipv4_addr_t src_ip;
   ipv4_addr_t dest_ip;
-  unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
+  unsigned char payload[1200]; // 1500 MTU - 20cab eth - 20cab IP = 1460
 };
 /*--------------------------------------------------------------------------------------------*/

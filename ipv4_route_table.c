@@ -115,6 +115,7 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr )
       }
     }
   }
+  log_debug("Prefix_length -> %d",prefix_length);
   return prefix_length;
 }
 
