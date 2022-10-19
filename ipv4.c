@@ -335,10 +335,11 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     } 
 
     /* Comprobar si es el paquete que estamos buscando */
-    ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
     #ifdef DEBUG
-      print_pkt(ipv4_packet_ptr,packet_len);
+      print_pkt(ipv4_buffer, packet_len, -1);
     #endif
+    ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
+
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults in a 1 if true
     is_target_type = (ntohs(ipv4_packet_ptr->protocol) == protocol);
 
