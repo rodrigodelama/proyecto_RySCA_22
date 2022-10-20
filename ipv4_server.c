@@ -7,9 +7,9 @@ int main(int argc, char* argv[])
     if(argc != 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso: <target_ip>\n");
-        printf("     <target_ip>: Direccion ip de destino \n");
-        printf("     <log_level>: Nivel superior de logs a usar \n");
+        printf("Uso: <origin_ip>\n");
+        printf("     <origin_ip>: Direccion ip de origen \n");
+        printf("     <log_level>: Nivel superior de logs a usar\n");
         exit(-1);
     }
 
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     unsigned char buffer[1460];
     long int timeout = 5000;
     int bytes_rcvd = 0;
-    bytes_rcvd = ipv4_recv(my_ip_iface, 17,buffer, sender_ip, 0, timeout);
+    bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, sender_ip, 0, timeout);
     log_trace("Bytes received -> %d\n",bytes_rcvd);
 
 /*  MAYBE WE MUST SEND SOMETHING BACK FROM THE SERVER TO THE CLIENT ??  

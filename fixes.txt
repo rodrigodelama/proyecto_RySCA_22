@@ -18,9 +18,18 @@ ipv4_client.c
             ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 0);
 
 ipv4_server.c
+    lines 14 and 16:
+            ipv4_addr_t sender_ip;
+            if(ipv4_str_addr(argv[1], sender_ip) == -1)
     line 29:
             ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
-    MAYBE ECHO A PACKET ??
+    lines 35 and 36: (DELETE BOTH FOR THIS)
+            int bytes_rcvd = 0;
+    line 37:
+            long int timeout = 5000;
+    line 39:
+            bytes_rcvd = ipv4_recv(my_ip_iface, 17,buffer, sender_ip, 0, timeout);
+        MAYBE ECHO A PACKET ??
 
 ipv4.c
     line 122 (INSERT BEHIND): ipv4_open()
