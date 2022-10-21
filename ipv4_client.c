@@ -63,7 +63,17 @@ int main(int argc, char* argv[])
     ipv4_header_t.checksum = htons(ipv4_checksum((unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h 
                                                             // 1500 ETH - 20 cab IP = 1480
     ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 0); //sizeof(char)*1200
-    
+    unsigned char buffer[1460];
+    ipv4_addr_t received_ip;
+    long timeout = 6000;
+    int bytes_rcvd; 
+    bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, received_ip, 0, timeout);
+    log_debug("Bytes received -> %d\n",bytes_rcvd);
+    if(bytes_rcvd == 0){
+        log_trace("Reception timeout reached...\n\n");
+    }else{
+        log_trace("ECHO Packet received!!\n");
+    }
     ipv4_close(my_ip_iface);
     return 0;
 }

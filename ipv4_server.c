@@ -4,16 +4,16 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc != 3)
+    if(argc != 2)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <origin_ip>\n");
-        printf("     <origin_ip>: Direccion ip de origen \n");
+        //printf("     <origin_ip>: Direccion ip de origen \n");
         printf("     <log_level>: Nivel superior de logs a usar\n");
         exit(-1);
     }
 
-    switch(argv[2][0])
+    switch(argv[1][0])
     { //todas las opciones empiezan por letra distinta, solo miro la primera
 		case 't':
 			log_set_level(LOG_TRACE);
@@ -25,13 +25,6 @@ int main(int argc, char* argv[])
 			log_set_level(LOG_INFO);
 			break;
 	}
-    ipv4_addr_t sender_ip;
-
-    if(ipv4_str_addr(argv[1], sender_ip) == -1)
-    {
-        fprintf(stderr, "%s\n", "IP pasada como parámetro no válida\n");
-        exit(-1);
-    }
 
     ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
     if(my_ip_iface == NULL){
@@ -39,10 +32,18 @@ int main(int argc, char* argv[])
         exit(-1);
     }
     unsigned char buffer[1460];
-    long int timeout = 5000;
+    long int timeout = -1;//Numero negativo, temporizador infinito. (si hacemos esto, quitamos el if, porque bytes_crvd sera positivo siempre (si ha habido un error sera negativo.))
     int bytes_rcvd = 0;
-    bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, sender_ip, 0, timeout);
-    log_trace("Bytes received -> %d\n",bytes_rcvd);
+    while(1){
+        bytes_rcvd = 0;
+        ipv4_addr_t received_ip;
+        bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, received_ip, 0, timeout);
+        log_debug("Bytes received -> %d\n",bytes_rcvd);
+        if(bytes_rcvd > 0){//Si he recibido un paquete sin que haya habido un error ni se haya agotado el temporizador.
+            ipv4_send(my_ip_iface, received_ip, 17, buffer,(bytes_rcvd - 20));
+            break;//Salimos del bucle.
+        }
+    }
 
 /*  MAYBE WE MUST SEND SOMETHING BACK FROM THE SERVER TO THE CLIENT ??  
     unsigned char fake_payload[1460];

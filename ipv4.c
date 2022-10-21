@@ -295,6 +295,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 // output: buffer, sender 
 int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv4_addr_t sender, int buf_len, long int timeout)
 {
+  //Ip de "sender" es mas parametro de salida que otra cosa, y si quiero recibir de alguien, hago un bucle para esperar a recibir de quien quiero (si queremos hacer eso)
   int payload_len;
   /* Comprobar parámetros */
   if(layer == NULL)
@@ -341,9 +342,9 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     #endif
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
 
-    is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults in a 1 if true
-    is_target_type = (ntohs(ipv4_packet_ptr->protocol) == protocol);
-
+    is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
+    is_target_type = (ipv4_packet_ptr->protocol == protocol);
+    log_debug("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
     original_checksum = ntohs(ipv4_packet_ptr->checksum);
     ipv4_packet_ptr->checksum = 0;
     uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer, packet_buf_len);
@@ -351,6 +352,10 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     {
       is_my_checksum = 1; //is true
     } //by default, has value 1 (False).
+    log_debug("is_my_checksum -> %d\n",is_my_checksum);
+    log_debug("is_my_ip -> %d\n",is_my_ip);
+    log_debug("is_my_target_type -> %d\n",is_target_type);
+
   } while ( !(is_my_ip && is_target_type && is_my_checksum)); //if all is 1, !1 = 0, therefore the do-while will end
   
   /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
@@ -361,6 +366,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     buf_len = payload_len; //we adjust the size if buffer is bigger
   }
   memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
-
-  return (payload_len + 20);
+  payload_len = payload_len + 20;
+  log_debug("Bytes received (client) -> %d\n", payload_len);
+  return payload_len;
 }

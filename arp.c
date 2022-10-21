@@ -41,7 +41,6 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, i
 
     //Type de ARP = 0x0806
     //Envio ARP Request
-    log_debug("Destiny MAC adrress -> %s");
     eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
     log_trace("ARP (REQUEST) packet sent from MAC -> %s  (Interface: %s) & IP -> %s as source IP.\n", mac_str,name,my_ip_str);
                     //0x0806 es el type code de ARP de capa superior.

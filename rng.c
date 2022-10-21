@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-
+#include "ipv4.h"
+#include "ipv4_dependencies.h"
 int main(int argc, char* argv[])
 {
+    
     int nums = atoi(argv[1]);
 
     /* Inicializar semilla para rand() */
@@ -18,4 +20,5 @@ int main(int argc, char* argv[])
         dice = 1 + (int) (10.0 * dice / (RAND_MAX + 1.0));
         printf("%i\n", dice);
     }
+
 }
