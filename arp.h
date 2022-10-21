@@ -15,7 +15,7 @@
 #define OPCODE_REQUEST 1
 #define OPCODE_REPLY 2
 
-int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr);
+int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, ipv4_addr_t my_ip_addr);
 
 struct arp_header
 {

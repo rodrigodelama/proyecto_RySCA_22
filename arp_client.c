@@ -34,8 +34,10 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\nDireccion IP no valida");
         exit(-1);
     }
+    ipv4_addr_t my_ip;
+    ipv4_str_addr("0.0.0.0", my_ip); //IP por defecto segun el pdf
     //A partir de aqui, los parametros pasados por linea de comandos estaran en el formato correcto
-    arp_resolve(iface_controller, target_ip, discovery_mac_addr); //mac_addr should be the thing to recover!!
+    arp_resolve(iface_controller, target_ip, discovery_mac_addr, my_ip); //mac_addr should be the thing to recover!!
     char discovery_mac_addr_str[MAC_STR_LENGTH];
     mac_addr_str ( discovery_mac_addr, discovery_mac_addr_str);
     

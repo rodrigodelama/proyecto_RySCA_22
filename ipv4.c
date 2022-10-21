@@ -249,7 +249,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   if(memcmp(route_to_dst->gateway_addr, zeros_ip_address, sizeof(ipv4_addr_t)) == 0) //El destino está en nuestra subred.
   {
     log_trace("Gateway addr = 0.0.0.0\n");
-    err_arp = arp_resolve(sender_iface, dst, mac_dest); //mac destino
+    err_arp = arp_resolve(sender_iface, dst, mac_dest, layer->addr); //mac destino
     if(err_arp != 0)
     {
       printf("Error: function arp_resolve not working...\n");
@@ -269,7 +269,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     ipv4_addr_str(route_to_dst->gateway_addr, gateway_debug);
     log_trace("Dest ip not in my subnet, Gateway -> %s\n",gateway_debug);
 
-    err_arp = arp_resolve(sender_iface, route_to_dst->gateway_addr, mac_dest); //mac gateway
+    err_arp = arp_resolve(sender_iface, route_to_dst->gateway_addr, mac_dest, layer->addr); //mac gateway
     if(err_arp != 0 )
     {
       printf("Error: function arp_resolve not working...\n");

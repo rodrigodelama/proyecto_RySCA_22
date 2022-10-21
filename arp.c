@@ -6,7 +6,7 @@
 mac_addr_t ARP_BCAST_ADDR = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 //ARP request and reply handling
-int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
+int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, ipv4_addr_t my_ip_addr)
 {
     //Proveniente del "main" tenemos la interfaz y direccion IP convertidas a sus respectivos tipos
 
@@ -26,22 +26,24 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
 
     //"Montamos" el resto paquete a mandar
     eth_getaddr(iface, arp_header_t.src_MAC_addr);
-    ipv4_str_addr("0.0.0.0", arp_header_t.src_IPv4_addr); //IP por defecto segun el pdf
+    //ipv4_str_addr("0.0.0.0", arp_header_t.src_IPv4_addr); //IP por defecto segun el pdf
+    memcpy(arp_header_t.src_IPv4_addr, my_ip_addr, 4); //Tamaño dirs IP -> 4 bytes
     memcpy(arp_header_t.dest_IPv4_addr, ip_addr, 4); //Tamaño dirs IP -> 4 bytes
     memcpy(arp_header_t.dest_MAC_addr, ARP_BCAST_ADDR, MAC_ADDR_SIZE);
 
     char * name = eth_getname(iface); //Obtengo el nombre del manejador (dado por parámetro de la función)
     
     //LOGS
-    char ip_str[60];
-    ipv4_addr_str(arp_header_t.src_IPv4_addr, ip_str);
+    char my_ip_str[60];
+    ipv4_addr_str(arp_header_t.src_IPv4_addr, my_ip_str);
     char mac_str[60];
     mac_addr_str(arp_header_t.src_MAC_addr, mac_str);
 
     //Type de ARP = 0x0806
     //Envio ARP Request
+    log_debug("Destiny MAC adrress -> %s");
     eth_send(iface, MAC_BCAST_ADDR, 0x0806, (unsigned char *) &arp_header_t, sizeof(struct arp_header));
-    log_trace("ARP (REQUEST) packet sent from MAC -> %s  (Interface: %s) & IP -> %s as ip of origin\n", mac_str,name,ip_str);
+    log_trace("ARP (REQUEST) packet sent from MAC -> %s  (Interface: %s) & IP -> %s as source IP.\n", mac_str,name,my_ip_str);
                     //0x0806 es el type code de ARP de capa superior.
                     //ARP and ETH MAC destination addresses dont match (ARP_BCAST_ADDR vs MAC_BCAST_ADDR)
     //Recibir el reply
@@ -62,6 +64,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
     //int is_protocol_type;
     //int is_my_ip;//checckea si es para mi ip y no es broadcast.
     int is_my_dest_ip;//checkea si es la ip de destino pasada como argumento de esta función.
+    int is_my_src_ip;//checkea si es la ip de origen pasada como argumento de esta función.
     int is_request;
     int len;
     do
@@ -111,11 +114,11 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr)
         //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
         is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
         is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr, sizeof(ipv4_addr_t)) == 0);
+        is_my_src_ip = (memcmp(arp_header_recv ->dest_IPv4_addr, my_ip_addr, sizeof(ipv4_addr_t)) == 0);
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
-    } while(!(is_my_dest_ip && is_request)); //nos importa solo la ip de dest del sender y el opcode para que sea "request"
-    memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t)); //whats the point?
-
+    } while(!(is_my_dest_ip && is_request && is_my_src_ip)); //nos importa solo la ip de dest del sender y el opcode para que sea "request"
+    memcpy(mac_addr, arp_header_recv -> src_MAC_addr, sizeof(mac_addr_t)); //whats the point? -> Exit parameter.
     //To print out the found out data:
     char* dest_ip_str = (char*) malloc(sizeof(ipv4_addr_t));
     ipv4_addr_str(ip_addr, dest_ip_str);

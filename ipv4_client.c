@@ -64,5 +64,6 @@ int main(int argc, char* argv[])
                                                             // 1500 ETH - 20 cab IP = 1480
     ipv4_send(my_ip_iface, ipv4_header_t.dest_ip, ipv4_header_t.protocol, ipv4_header_t.payload, 0); //sizeof(char)*1200
     
+    ipv4_close(my_ip_iface);
     return 0;
 }
