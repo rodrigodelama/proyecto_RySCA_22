@@ -10,7 +10,7 @@ struct udp_layer //our "socket"
 };
 
 //UDP datagram
-struct udp_header
+typedef struct udp_header
 {
     uint16_t src_port; //16 bits for Source Port Number.
     uint16_t dest_port; //16 bits for Destination Port Number.
@@ -20,10 +20,10 @@ struct udp_header
     //por default lo pondremos en 0
     //no comprobamos checksum en salida ni entrada
     unsigned char payload[1452]; // MTU 1500 - 2Ocap eth - 20cap IP - 8cap UDP -> 1452.
-};
+}udp_header_t;
 
 //open connection
-udp_layer_t* udp_open(ipv4_addr_t src, int src_port, char *file_conf, char *file_conf_route)
+udp_layer_t* udp_open(int src_port, char *file_conf, char *file_conf_route)
 {
     // Creamos nuestro 'socket'
     udp_layer_t* my_udp_iface = (udp_layer_t*) malloc(sizeof(udp_layer_t));
@@ -59,20 +59,23 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
         return -1;
     }
     //rellenar datagrama
-    struct udp_header udp_header_t;
-      memset(&udp_header_t, 0, sizeof(struct udp_header)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
+    udp_header_t udp_header_t;
+    memset(&udp_header_t, 0, sizeof(udp_header_t)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
     udp_header_t.src_port = htons(my_udp_iface->local_port);
     udp_header_t.dest_port = htons(dest_port);
     memcpy(payload, udp_header_t.payload, payload_len); //copying char arrays
     udp_header_t.datagram_length = htons(payload_len);
     udp_header_t.checksum = 0; //initially 0, maybe a later improvement
     int bytes_sent = ipv4_send(my_udp_iface->local_ip_stack, dest, UDP_PROTOCOL_TYPE, payload, (payload_len + 8));
+    log_trace("UDP datagram sent.\n");
     if(bytes_sent == -1)
     {
         fprintf(stderr, "udp_send(): ERROR: ipv4_send failed\n");
         return -1;
     }
-    return 0; //if all is well
+    bytes_sent = bytes_sent - 8;//ipv4_send returns bytes sent inside ipv4 data (payload) field.
+    //Here, we will return the size of the data field from udp sent apart from the header (8bytes).
+    return bytes_sent; //if all is well
 }
 
 int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsigned char buffer[], int buf_len, long int timeout)
@@ -93,9 +96,9 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
 
   int datagram_len=0;
   //UDP HEADER_SIZE
-  int udp_buf_len = UDP_HEADER_SIZE + buf_len;
+  int udp_buf_len = UDP_HEADER_SIZE + buf_len;//ipv4_send(), sends hader (8bytes) + payload (buf_len).
   unsigned char udp_buffer[udp_buf_len];
-  struct udp_header * udp_datagram_ptr = NULL;
+  udp_header_t * udp_datagram_ptr = NULL;
   int is_dest_port;//To check if the dest port of  the recieved datagram is my local port.
   int is_src_port;//To check if the src port of  the recieved datagram is dest port (as parameter).
 
@@ -114,11 +117,11 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
     } else if (datagram_len < UDP_HEADER_SIZE) {
       fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",
               datagram_len);
-      continue;
+      continue;//Pq hay un "continue aqui??"
     }
 
     /* Comprobar si es la trama que estamos buscando */
-    udp_datagram_ptr = (struct udp_header *) udp_buffer;
+    udp_datagram_ptr = (udp_header_t *) udp_buffer;
     is_dest_port = (ntohs(udp_datagram_ptr->dest_port) == my_udp_layer->local_port);
     is_src_port = (ntohs(udp_datagram_ptr->src_port) == dest_port);
   } while ( !(is_dest_port && is_src_port) );
@@ -131,6 +134,24 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
     buf_len = payload_len;
   }
   memcpy(buffer, udp_datagram_ptr->payload, buf_len);
+  payload_len = payload_len + UDP_HEADER_SIZE;
+  log_debug("UDP bytes received -> %d\n", payload_len);
 
   return payload_len;
+}
+
+int random_port_generator(void){//Funcion de aula global.
+    /* Inicializar semilla para rand() */
+    unsigned int seed = time(NULL);
+    srand(seed);
+        /* Generar número aleatorio entre 0 y RAND_MAX */
+        int dice = rand();
+        /* Número entero aleatorio entre 1 y 10 */
+        dice = 1 + (int) (65535 * dice / (RAND_MAX + 0.0));
+        if(dice < 1024){
+          dice = dice + 1024;//Para que no sea un puerto reservado
+        }
+        log_debug("%i\n", dice);
+
+    return dice;
 }

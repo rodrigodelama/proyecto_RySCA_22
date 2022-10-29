@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
     if(argc != 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso: <target_ip>\n");
+        printf("Uso: <target_ip> <log_level>\n");
         printf("     <target_ip>: Direccion ip de destino \n");
         printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);

@@ -351,7 +351,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     if (original_checksum == calculated_checksum)
     {
       is_my_checksum = 1; //is true
-    } //by default, has value 1 (False).
+    } //by default, has value 0 (False).
     log_debug("is_my_checksum -> %d\n",is_my_checksum);
     log_debug("is_my_ip -> %d\n",is_my_ip);
     log_debug("is_my_target_type -> %d\n",is_target_type);
@@ -366,7 +366,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     buf_len = payload_len; //we adjust the size if buffer is bigger
   }
   memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
-  payload_len = payload_len + 20;
+  payload_len = payload_len + IPV4_HDR_LEN;
   log_debug("Bytes received (client) -> %d\n", payload_len);
   return payload_len;
 }

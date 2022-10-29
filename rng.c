@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include "ipv4.h"
-#include "ipv4_dependencies.h"
 int main(int argc, char* argv[])
 {
     
@@ -17,7 +15,10 @@ int main(int argc, char* argv[])
         /* Generar número aleatorio entre 0 y RAND_MAX */
         int dice = rand();
         /* Número entero aleatorio entre 1 y 10 */
-        dice = 1 + (int) (10.0 * dice / (RAND_MAX + 1.0));
+        dice = 1 + (long) (65535.0 * dice / (RAND_MAX + 0));
+        if(dice < 1024){
+            dice = dice + 1024;//Para que no sea un puerto reservado
+        }
         printf("%i\n", dice);
     }
 
