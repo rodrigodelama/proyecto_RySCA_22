@@ -47,7 +47,9 @@ int main ( int argc, char * argv[] )
         exit(-1);
     }
     unsigned char fake_payload[1200];
-    udp_send(my_udp_layer, dest_ip, destport, fake_payload, (8 + 1));//Solamente queremos que mande ahora mismo la cabecera udp.
+    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, fake_payload, 0);//Solamente queremos que mande ahora mismo la cabecera udp.
+    log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+    
     return 0;
 }
 
