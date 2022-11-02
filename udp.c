@@ -20,7 +20,7 @@ typedef struct udp_header
     //por default lo pondremos en 0
     //no comprobamos checksum en salida ni entrada
     unsigned char payload[1452]; // MTU 1500 - 2Ocap eth - 20cap IP - 8cap UDP -> 1452.
-}udp_header_t;
+} udp_header_t;
 
 //open connection
 udp_layer_t* udp_open(int src_port, char *file_conf, char *file_conf_route)
