@@ -50,8 +50,8 @@ int main ( int argc, char * argv[] )
     {
         bytes_rcvd = 0;
         ipv4_addr_t received_ip;
-        int received_port = 0;
-        bytes_rcvd = udp_rcv(my_udp_layer,received_ip, received_port, fake_payload, 0, timeout);
+        uint16_t received_port = 0;
+        bytes_rcvd = udp_rcv(my_udp_layer,received_ip, &received_port, fake_payload, 0, timeout);
         log_debug("Dest_port -> %d\n", received_port);
         log_debug("Bytes received -> %d\n", bytes_rcvd);
         if(bytes_rcvd > 0) //Si he recibido un paquete sin que haya habido un error ni se haya agotado el temporizador.

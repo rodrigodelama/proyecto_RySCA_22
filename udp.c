@@ -102,7 +102,7 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     return bytes_sent; //if all is well
 }
 
-int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsigned char buffer[], int buf_len, long int timeout)
+int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsigned char buffer[], int buf_len, long int timeout)
 {
   int payload_len;
 
@@ -157,8 +157,11 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t dest_port, unsig
     buf_len = payload_len;
   }
   memcpy(buffer, udp_datagram_ptr->payload, buf_len);
-  //memcpy(&dest_port, udp_datagram_ptr->src_port, sizeof(udp_datagram_ptr->dest_port));
-  dest_port = ntohs(udp_datagram_ptr->src_port);
+  // dest_port = ntohs(udp_datagram_ptr->src_port);
+  *(dest_port) = ntohs(udp_datagram_ptr->src_port);
+  // uint16_t* dest_port_returned;
+  // *(dest_port_returned) = ntohs(udp_datagram_ptr->src_port);
+  // memcpy(dest_port, dest_port_returned, sizeof(udp_datagram_ptr->dest_port));
   payload_len = payload_len + UDP_HEADER_SIZE;
   log_debug("UDP bytes received -> %d\n", payload_len);
 

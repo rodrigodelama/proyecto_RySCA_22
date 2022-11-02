@@ -329,7 +329,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       return -1;
     } else if (packet_len == 0) {
       /* Timeout! */
-      fprintf(stderr, "ipv4_recv(): Temporizador de %lu segundos agotado.\n",(unsigned long) timeout);
+      fprintf(stderr, "ipv4_recv(): Temporizador de %ld segundos agotado.\n",timeout);
       return 0;
     } else if (packet_len < IPV4_HDR_LEN) {//Minimum packet length = ipv4_header (20 bytes) + 0 bytes payload.
       fprintf(stderr, "ipv4_recv(): cabecera incorrecta, paquete incompleto: %d bytes\n", packet_len);
@@ -347,7 +347,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     log_debug("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
     original_checksum = ntohs(ipv4_packet_ptr->checksum);
     ipv4_packet_ptr->checksum = 0;
-    uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer, packet_buf_len);
+    uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer,IPV4_HDR_LEN);
     if (original_checksum == calculated_checksum)
     {
       is_my_checksum = 1; //is true
