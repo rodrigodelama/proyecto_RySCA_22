@@ -5,8 +5,7 @@
 
 int main ( int argc, char * argv[] )
 {   
-    
-    if(argc != 4)
+    if(argc > 4 || argc == 1 || argc < 3)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip> <target_port> <log_level>\n");
@@ -16,18 +15,24 @@ int main ( int argc, char * argv[] )
         exit(-1);
     }
 
-    switch(argv[3][0])
-    { //todas las opciones empiezan por letra distinta, solo miro la primera
-		case 't':
-			log_set_level(LOG_TRACE);
-			break;
-		case 'd':
-			log_set_level(LOG_DEBUG);
-			break;
-        default:
-			log_set_level(LOG_INFO);
-			break;
-	}
+    if(argc == 4)
+    {
+        switch(argv[3][0])
+        { //todas las opciones empiezan por letra distinta, solo miro la primera
+            case 't':
+                log_set_level(LOG_TRACE);
+                break;
+            case 'd':
+                log_set_level(LOG_DEBUG);
+                break;
+            default:
+                log_set_level(LOG_INFO);
+                break;
+        }
+    } else {
+        log_set_level(LOG_INFO);
+    }
+
     ipv4_addr_t dest_ip;
 
     if(ipv4_str_addr(argv[1], dest_ip) == -1)

@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc > 2 || argc == 1)
+    if(argc > 2)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <log_level>: Nivel superior de logs a usar\n");
@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
                 log_set_level(LOG_INFO);
                 break;
         }
+    } else {
+        log_set_level(LOG_INFO);
     }
 
     ipv4_layer_t* my_ip_iface = ipv4_open("./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
@@ -45,7 +47,7 @@ int main(int argc, char* argv[])
         if(bytes_rcvd > 0) //Si he recibido un paquete sin que haya habido un error ni se haya agotado el temporizador.
         {
             ipv4_send(my_ip_iface, received_ip, 17, buffer, (bytes_rcvd - 20));
-            break; //Salimos del bucle.
+            //FIXME:break; //Salimos del bucle.
         }
     }
     ipv4_close(my_ip_iface);

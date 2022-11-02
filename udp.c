@@ -118,7 +118,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
   timerms_t timer;
   timerms_reset(&timer, timeout);
 
-  int datagram_len=0;
+  int datagram_len = 0;
   //UDP HEADER_SIZE
   int udp_buf_len = UDP_HEADER_SIZE + buf_len;//ipv4_send(), sends hader (8bytes) + payload (buf_len).
   unsigned char udp_buffer[udp_buf_len];
@@ -129,7 +129,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
     long int time_left = timerms_left(&timer);
 
     /* Recibir trama del interfaz Ethernet y procesar errores */
-    datagram_len = ipv4_recv (my_udp_layer->local_ip_stack, UDP_PROTOCOL_TYPE, udp_buffer, src, udp_buf_len, time_left);
+    datagram_len = ipv4_recv(my_udp_layer->local_ip_stack, UDP_PROTOCOL_TYPE, udp_buffer, src, udp_buf_len, time_left);
     if (datagram_len < 0)
     {
       printf("udp_recv(): ERROR en ipv4_recv()");

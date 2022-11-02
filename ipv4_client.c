@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    if(argc != 3)
+    if(argc > 3 || argc == 1)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip> <log_level>\n");
@@ -12,19 +12,25 @@ int main(int argc, char* argv[])
         printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
+    
+    if(argc == 3)
+    {
+        switch(argv[2][0])
+        { //todas las opciones empiezan por letra distinta, solo miro la primera
+            case 't':
+                log_set_level(LOG_TRACE);
+                break;
+            case 'd':
+                log_set_level(LOG_DEBUG);
+                break;
+            default:
+                log_set_level(LOG_INFO);
+                break;
+        }
+    } else {
+        log_set_level(LOG_INFO);
+    }
 
-    switch(argv[2][0])
-    { //todas las opciones empiezan por letra distinta, solo miro la primera
-		case 't':
-			log_set_level(LOG_TRACE);
-			break;
-		case 'd':
-			log_set_level(LOG_DEBUG);
-			break;
-        default:
-			log_set_level(LOG_INFO);
-			break;
-	}
     ipv4_addr_t dest_ip;
 
     if(ipv4_str_addr(argv[1], dest_ip) == -1)
