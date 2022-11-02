@@ -176,11 +176,11 @@ int random_port_generator(void) //Funcion de aula global.
         /* Generar número aleatorio entre 0 y RAND_MAX */
         int dice = rand();
         /* Número entero aleatorio entre 1 y 10 */
-        dice = 1 + (int) (65535 * dice / (RAND_MAX + 0.0));
-        if(dice < 1024)
-        {
-          dice = dice + 1024;//Para que no sea un puerto reservado
-        }
+        dice = 1024 + (int) (65535.0 * dice / (RAND_MAX + 1.0));
+        // if(dice < 1025)
+        // {
+        //   dice = dice + 1025;//Para que no sea un puerto reservado
+        // }
         log_debug("%i\n", dice);
 
     return dice;

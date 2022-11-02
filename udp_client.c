@@ -40,7 +40,7 @@ int main ( int argc, char * argv[] )
         exit(-1);
     }
     uint16_t destport = (u_int16_t) atoi(argv[2]);
-    udp_layer_t * my_udp_layer = udp_open(60734, "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
+    udp_layer_t * my_udp_layer = udp_open(random_port_generator(), "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
     if(my_udp_layer == NULL)
     {
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
