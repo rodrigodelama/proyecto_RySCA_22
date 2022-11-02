@@ -5,8 +5,8 @@
 
 int main ( int argc, char * argv[] )
 {   
-    printf("argc = %d\n",argc);
-    if(argc > 3 || argc == 2)
+    //printf("argc = %d\n",argc);
+    if(argc > 3 || argc == 1)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <listening_port> <log_level>\n");
@@ -14,6 +14,7 @@ int main ( int argc, char * argv[] )
         printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
+    
     if (argc == 3)
     {
         switch(argv[2][0])
@@ -28,6 +29,8 @@ int main ( int argc, char * argv[] )
                 log_set_level(LOG_INFO);
                 break;
         }
+    } else {
+        log_set_level(LOG_INFO);
     }
     
     if(atoi(argv[1]) == 0 || atoi(argv[1]) < 0)
@@ -57,7 +60,7 @@ int main ( int argc, char * argv[] )
         if(bytes_rcvd > 0) //Si he recibido un paquete sin que haya habido un error ni se haya agotado el temporizador.
         {
             udp_send(my_udp_layer, received_ip, received_port, fake_payload, bytes_rcvd);
-            break; //Salimos del bucle.
+            //FIXME:break; //Salimos del bucle.
         }
     }
     //log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
