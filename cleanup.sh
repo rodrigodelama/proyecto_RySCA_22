@@ -9,3 +9,5 @@ sudo rm arp_client -rf
 sudo rm udp_client -rf
 #UDP server:
 sudo rm udp_server -rf
+#rng
+sudo rm rng -rf
