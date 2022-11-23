@@ -18,14 +18,14 @@ typedef unsigned char ipv4_addr_t[IPv4_ADDR_SIZE];
 /* Número de entradas máximo de la tabla de rutas IPv4 */
 #define IPv4_ROUTE_TABLE_SIZE 256
 
-typedef struct ipv4_route {
+typedef struct rip_route {
     ipv4_addr_t subnet_addr;
     ipv4_addr_t subnet_mask;
     char iface[32]; //Interfaz por la que mandaremos
     ipv4_addr_t gateway_addr; //siguiente salto, si esta en mi subred, este campo es 0.
-} ipv4_route_t;
+} rip_route_t;
 
-typedef struct ipv4_route_table {
+typedef struct rip_route_table {
   ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
 } ipv4_route_table_t;
 /*--------------------------------------------------------------------------------------------*/
