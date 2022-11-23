@@ -13,3 +13,4 @@ Imprime por pantalla los RTEs (vectores distancia) recibidos
 Probad primero contra los router
 
 */
+//no hace falta 
