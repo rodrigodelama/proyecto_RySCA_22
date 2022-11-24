@@ -2,20 +2,23 @@
 #define _RIPV2_H
 
 #include "udp.h"
+#include "global_dependencies.h"
 #define AF_INET 2 
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */
 
-typedef struct ipv4_route {
+typedef struct ripv2_route {
     ipv4_addr_t subnet_addr;
     ipv4_addr_t subnet_mask;
     char iface[32]; //Interfaz por la que mandaremos
     ipv4_addr_t gateway_addr; //siguiente salto, si esta en mi subred, este campo es 0.
-} ipv4_route_t;
+    uint32_t metric ;
+    timerms_t timer_ripv2;
+} ripv2_route_t;
 
-typedef struct ipv4_route_table {
-  ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
-} ipv4_route_table_t;
+typedef struct ripv2_route_table {
+  ripv2_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
+} ripv2_route_table_t;
 
 typedef struct entrada_rip//vectores distancia
 {

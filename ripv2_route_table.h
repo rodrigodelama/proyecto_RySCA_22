@@ -47,11 +47,11 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ipv4_route_t * ipv4_route_create
-( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw );
+ripv2_route_t * ripv2_route_create
+( ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw , uint32_t metric, timerms_t timer);
 
 
-/* int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr );
+/* int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
  *
  * DESCRIPCIÓN:
  *   Esta función indica si la dirección IPv4 especificada pertence a la
@@ -74,10 +74,10 @@ ipv4_route_t * ipv4_route_create
  *   La función devuelve '-1' si la dirección IPv4 no pertenece a la subred
  *   apuntada por la ruta especificada.
  */
-int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr );
+int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
 
 
-/* void ipv4_route_print ( ipv4_route_t * route );
+/* void ripv2_route_print ( ripv2_route_t * route );
  *
  * DESCRIPCIÓN:
  *   Esta función imprime la ruta especificada por la salida estándar.
@@ -85,19 +85,19 @@ int ipv4_route_lookup ( ipv4_route_t * route, ipv4_addr_t addr );
  * PARÁMETROS:
  *   'route': Ruta que se desea imprimir.
  */
-void rip_route_print ( ipv4_route_t * route );
+void ripv2_route_print ( ripv2_route_t * route );
 
 
-/* void ipv4_route_free ( ipv4_route_t * route );
+/* void ripv2_route_free ( ripv_route_t * route );
  *
  * DESCRIPCIÓN:
  *   Esta función libera la memoria reservada para la ruta especificada, que
- *   ha sido creada con 'ipv4_route_create()'.
+ *   ha sido creada con 'ripv2_route_create()'.
  *
  * PARÁMETROS:
  *   'route': Ruta cuya memoria se desea liberar.
  */
-void ipv4_route_free ( ipv4_route_t * route );
+void ripv2_route_free ( ripv2_route_t * route );
 
 
 /* Definción de la estructura opaca que modela una tabla de rutas IPv4.
@@ -142,7 +142,7 @@ void ipv4_route_free ( ipv4_route_t * route );
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la tabla de rutas.
  */
-ipv4_route_table_t * ipv4_route_table_create();
+ripv2_route_table_t * ripv2_route_table_create();
 
 
 /* int ipv4_route_table_add ( ipv4_route_table_t * table, 
@@ -163,7 +163,7 @@ ipv4_route_table_t * ipv4_route_table_create();
  *   La función devuelve '-1' si no ha sido posible añadir la ruta
  *   especificada.
  */
-int ipv4_route_table_add ( ipv4_route_table_t * table, ipv4_route_t * route );
+int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route );
 
 
 /* ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, 
@@ -190,7 +190,7 @@ int ipv4_route_table_add ( ipv4_route_table_t * table, ipv4_route_t * route );
  *   Esta función devuelve 'NULL' si la ruta no ha podido ser borrada, o no
  *   existía ninguna ruta en dicha posición.
  */
-ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index );
+ripv2_route_t * rip_route_table_remove ( ipv4_route_table_t * table, int index );
 
 
 /* ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, 
@@ -218,7 +218,7 @@ ipv4_route_t * ipv4_route_table_remove ( ipv4_route_table_t * table, int index )
  *   Esta función devuelve 'NULL' si no no existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
-ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t addr );
+ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_addr_t addr );
 
 
 /* ipv4_route_t * ipv4_route_table_get ( ipv4_route_table_t * table, int index );
@@ -239,8 +239,7 @@ ipv4_route_t * ipv4_route_table_lookup ( ipv4_route_table_t * table, ipv4_addr_t
  * ERRORES:
  *   Esta función devuelve 'NULL' no existe ninguna ruta en dicha posición, o
  *   si no ha sido posible consultar la tabla de rutas.
- */
-ipv4_route_t * ipv4_route_table_get ( ipv4_route_table_t * table, int index );
+ */ripv2_route_t * rip_route_table_get ( ripv2_route_table_t * table, int index );
 
 
 /* int ipv4_route_table_find ( ipv4_route_table_t * table, ipv4_addr_t subnet, 
@@ -263,8 +262,8 @@ ipv4_route_t * ipv4_route_table_get ( ipv4_route_table_t * table, int index );
  *   La función devuelve '-1' si no se ha encontrado la ruta especificada o
  *   '-2' si no ha sido posible realizar la búsqueda.
  */
-int ipv4_route_table_find
-( ipv4_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask );
+int ripv2_route_table_find
+( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask );
 
 
 /* void ipv4_route_table_free ( ipv4_route_table_t * table );
@@ -277,7 +276,7 @@ int ipv4_route_table_find
  * PARÁMETROS:
  *   'table': Tabla de rutas a borrar.
  */
-void ipv4_route_table_free ( ipv4_route_table_t * table );
+void ripv2_route_table_free ( ripv2_route_table_t * table );
 
 
 /* int ipv4_route_table_read ( char * filename, ipv4_route_table_t * table );
@@ -298,7 +297,7 @@ void ipv4_route_table_free ( ipv4_route_table_t * table );
  *   La función devuelve '-1' si se ha producido algún error al leer el
  *   fichero de rutas.
  */
-int ipv4_route_table_read ( char * filename, ipv4_route_table_t * table );
+int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table );
 
 
 /* void ipv4_route_table_print ( ipv4_route_table_t * table );
@@ -310,7 +309,7 @@ int ipv4_route_table_read ( char * filename, ipv4_route_table_t * table );
  * PARÁMETROS:
  *      'table': Tabla de rutas a imprimir.
  */
-void ipv4_route_table_print ( ipv4_route_table_t * table );
+void ripv2_route_table_print ( ripv2_route_table_t * table );
 
 
 /* int ipv4_route_table_write ( ipv4_route_table_t * table, char * filename );
@@ -332,7 +331,6 @@ void ipv4_route_table_print ( ipv4_route_table_t * table );
  *   La función devuelve '-1' si se ha producido algún error al escribir el
  *   fichero de rutas.
  */
-int ipv4_route_table_write ( ipv4_route_table_t * table, char * filename );
-
+int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename );
 
 #endif /* _IPv4_ROUTE_TABLE_H */
