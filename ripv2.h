@@ -3,7 +3,11 @@
 
 #include "udp.h"
 #include "global_dependencies.h"
-#define AF_INET 2 
+#define AF_INET 2
+
+#define RIPv2_ROUTE_TABLE_SIZE 256
+#define RECEPTION_TIMER 180000
+
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */
 
@@ -39,8 +43,6 @@ typedef struct ripv2_msg
     uint16_t dominio_encaminamiento; //todo a 0 
     entrada_rip_t vectores_distancia[25]; //(20 bytes) ??
 } ripv2_msg_t;
-
-
 
 
 /*--------------------------------------------------------------------------------------------*/

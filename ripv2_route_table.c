@@ -32,19 +32,19 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric, timerms_t* timer)
+ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
 {
   ripv2_route_t * route = (ripv2_route_t *) malloc(sizeof(struct ripv2_route));
 
   if ((route != NULL) && 
-      (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL) && (timer != NULL))  {
+      (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
     memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
     memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
     strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
     memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
     memcpy(route->gateway_addr, metric, IPv4_ADDR_SIZE);
-    memcpy(route->timer_ripv2, timer, sizeof(timer));
-    route
+    timerms_reset(&(route->timer_ripv2),180000);
+    //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
   }
   
   return route;
@@ -167,7 +167,7 @@ void ripv2_route_free ( ripv2_route_t * route )
 /* ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
  *
  * DESCRIPCIÓN:
- *   Esta función crea una ruta IPv4 a partir de la línea del fichero
+ *   Esta función crea una ruta RIPv2 a partir de la línea del fichero
  *   de la tabla de rutas especificada.
  *
  * PARÁMETROS:
@@ -182,7 +182,7 @@ void ripv2_route_free ( ripv2_route_t * route )
  *   La función imprime un mensaje de error y devuelve NULL si se ha
  *   producido algún error al leer la ruta.
  */
-ripv2_route_t* rip_route_read ( char* filename, int linenum, char * line )
+ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
 {
   ripv2_route_t* route = NULL;
 
@@ -244,7 +244,7 @@ ripv2_route_t* rip_route_read ( char* filename, int linenum, char * line )
 /* void ripv2_route_output ( ripv2_route_t * route, FILE * out );
  *
  * DESCRIPCIÓN:
- *   Esta función imprime por la salida indicada la ruta IPv4
+ *   Esta función imprime por la salida indicada la ruta RIPv2
  *   especificada.
  *
  * PARÁMETROS:
@@ -296,7 +296,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
 /* ripv2_route_table_t * ripv2_route_table_create();
  * 
  * DESCRIPCIÓN: 
- *   Esta función crea una tabla de rutas IPv4 vacía.
+ *   Esta función crea una tabla de rutas RIPv2 vacía.
  *
  *   Esta función reserva memoria para la tabla de rutas creada, para
  *   liberarla es necesario llamar a la función 'ripv2_route_table_free()'.
@@ -315,7 +315,7 @@ ripv2_route_table_t * rip_route_table_create()
   table = (ripv2_route_table_t *) malloc(sizeof(struct ripv2_route_table));
   if (table != NULL) {
     int i;
-    for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+    for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
       table->routes[i] = NULL;
     }
   }
@@ -324,8 +324,7 @@ ripv2_route_table_t * rip_route_table_create()
 }
 
 
-/* int ripv2_route_table_add ( ripv2_route_table_t * table, 
- *                            ripv2_route_t * route );
+/* int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route );
  * DESCRIPCIÓN: 
  *   Esta función añade la ruta especificada en la primera posición libre de
  *   la tabla de rutas.
@@ -335,7 +334,7 @@ ripv2_route_table_t * rip_route_table_create()
  *   'route': Ruta a añadir en la tabla de rutas.
  * 
  * VALOR DEVUELTO:
- *   La función devuelve el indice de la posición [0,ripv2_ROUTE_TABLE_SIZE-1]
+ *   La función devuelve el indice de la posición [0, ripv2_ROUTE_TABLE_SIZE-1]
  *   donde se ha añadido la ruta especificada.
  * 
  * ERRORES:
@@ -349,7 +348,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
   if (table != NULL) {
     /* Find an empty place in the route table */
     int i;
-    for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+    for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
       if (table->routes[i] == NULL) {
         table->routes[i] = route;
         route_index = i;
@@ -362,8 +361,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
 }
 
 
-/* ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, 
- *                                          int index );
+/* ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int index );
  *
  * DESCRIPCIÓN:
  *   Esta función borra la ruta almacenada en la posición de la tabla de rutas
@@ -376,7 +374,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
  * PARÁMETROS:
  *   'table': Tabla de rutas de la que se desea borrar una ruta.
  *   'index': Índice de la ruta a borrar. Debe tener un valor comprendido
- *            entre [0, ripv2_ROUTE_TABLE_SIZE-1].
+ *            entre [0, RIPv2_ROUTE_TABLE_SIZE-1].
  * 
  * VALOR DEVUELTO:
  *   Esta función devuelve la ruta que estaba almacenada en la posición
@@ -390,7 +388,7 @@ ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int inde
 {
   ripv2_route_t * removed_route = NULL;
   
-  if ((table != NULL) && (index >= 0) && (index < IPV4_ROUTE_TABLE_SIZE)) {
+  if ((table != NULL) && (index >= 0) && (index < RIPv2_ROUTE_TABLE_SIZE)) {
     removed_route = table->routes[index];
     table->routes[index] = NULL;
   }
@@ -431,7 +429,7 @@ ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_add
   if (table != NULL) {
     log_trace("Routing table pointer not NULL before filling it up\n");
     int i;
-    for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+    for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
       ripv2_route_t * route_i = table->routes[i];
       ripv2_route_print(route_i);
       if (route_i != NULL) {
@@ -457,7 +455,7 @@ ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_add
  * PARÁMETROS:
  *   'table': Tabla de rutas de la que se desea obtener una ruta.
  *   'index': Índice de la ruta consultada. Debe tener un valor comprendido
- *            entre [0, ripv2_ROUTE_TABLE_SIZE-1].
+ *            entre [0, RIPv2_ROUTE_TABLE_SIZE-1].
  * 
  * VALOR DEVUELTO:
  *   Esta función devuelve la ruta almacenada en la posición de la tabla de
@@ -471,7 +469,7 @@ ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index )
 {
   ripv2_route_t * route = NULL;
 
-  if ((table != NULL) && (index >= 0) && (index < ripv2_ROUTE_TABLE_SIZE)) {
+  if ((table != NULL) && (index >= 0) && (index < RIPv2_ROUTE_TABLE_SIZE)) {
     route = table->routes[index];
   }
   
@@ -479,8 +477,7 @@ ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index )
 }
 
 
-/* int ripv2_route_table_find ( ripv2_route_table_t * table, ipv4_addr_t subnet, 
- *                                                         ipv4_addr_t mask );
+/* int ripv2_route_table_find ( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask );
  *
  * DESCRIPCIÓN:
  *   Esta función devuelve el índice de la ruta para llegar a la subred
@@ -507,7 +504,7 @@ int ripv2_route_table_find
   if (table != NULL) {
     route_index = -1;
     int i;
-    for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+    for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
       ripv2_route_t * route_i = table->routes[i];
       if (route_i != NULL) {
         int same_subnet = 
@@ -541,7 +538,7 @@ void ripv2_route_table_free ( ripv2_route_table_t * table )
 {
   if (table != NULL) {
     int i;
-    for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+    for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
       ripv2_route_t * route_i = table->routes[i];
       if (route_i != NULL) {
         table->routes[i] = NULL;
@@ -556,7 +553,7 @@ void ripv2_route_table_free ( ripv2_route_table_t * table )
 /* int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table );
  *
  * DESCRIPCIÓN:
- *   Esta función lee el fichero especificado y añade las rutas IPv4
+ *   Esta función lee el fichero especificado y añade las rutas RIPv2
  *   estáticas leídas en la tabla de rutas indicada.
  *
  * PARÁMETROS:
@@ -633,7 +630,7 @@ int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table )
 /* void ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out );
  *
  * DESCRIPCIÓN:
- *   Esta función imprime por la salida indicada la tabla de rutas IPv4
+ *   Esta función imprime por la salida indicada la tabla de rutas RIPv2
  *   especificada.
  *
  * PARÁMETROS:
@@ -653,7 +650,7 @@ int ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out )
   int err;
 
   int i;
-  for (i=0; i<ripv2_ROUTE_TABLE_SIZE; i++) {
+  for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
     ripv2_route_t * route_i = ripv2_route_table_get(table, i);
     if (route_i != NULL) {
       err = ripv2_route_output(route_i, i, out);
@@ -670,7 +667,7 @@ int ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out )
 /* int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename );
  *
  * DESCRIPCIÓN:
- *   Esta función almacena en el fichero especificado la tabla de rutas IPv4
+ *   Esta función almacena en el fichero especificado la tabla de rutas RIPv2
  *   indicada.
  *
  * PARÁMETROS:
@@ -718,7 +715,7 @@ int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename )
 /* void ripv2_route_table_print ( ripv2_route_table_t * table );
  *
  * DESCRIPCIÓN:
- *   Esta función imprime por la salida estándar la tabla de rutas IPv4
+ *   Esta función imprime por la salida estándar la tabla de rutas RIPv2
  *   especificada.
  *
  * PARÁMETROS:
