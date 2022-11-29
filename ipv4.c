@@ -9,6 +9,9 @@
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
+//listen on this recieving address for messages
+ipv4_addr_t RIPv2_MULTICAST_ADDR = { 224, 0, 0, 9 };
+
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
  * DESCRIPCIÓN:
@@ -313,6 +316,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
   struct ipv4_header *ipv4_packet_ptr = NULL;
   int is_target_type;
   int is_my_ip;
+  int is_ripv2_ip;
   mac_addr_t mac_src;
   int original_checksum;
   int is_my_checksum = 0; //declared as false initially
@@ -343,11 +347,14 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
 
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
+    // we have to do all of multicast
+    // usar mascaras binarias
+      is_ripv2_ip = (memcmp(ipv4_packet_ptr->dest_ip, RIPv2_MULTICAST_ADDR, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
     is_target_type = (ipv4_packet_ptr->protocol == protocol);
     log_debug("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
     original_checksum = ntohs(ipv4_packet_ptr->checksum);
     ipv4_packet_ptr->checksum = 0;
-    uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer,IPV4_HDR_LEN);
+    uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer, IPV4_HDR_LEN);
     if (original_checksum == calculated_checksum)
     {
       is_my_checksum = 1; //is true
@@ -356,7 +363,13 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     log_debug("is_my_ip -> %d\n",is_my_ip);
     log_debug("is_my_target_type -> %d\n",is_target_type);
 
-  } while ( !(is_my_ip && is_target_type && is_my_checksum)); //if all is 1, !1 = 0, therefore the do-while will end
+    if (is_my_ip == 0) {
+      log_debug("Packet received to OUR IP -> %d\n", layer->addr);
+    } else if (is_ripv2_ip == 0) {
+      log_debug("Packet received to RIPv2 MULTICAST IP -> %d\n", RIPv2_MULTICAST_ADDR);
+    }
+
+  } while ( !((is_my_ip || is_ripv2_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
   
   /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
   memcpy(sender, ipv4_packet_ptr->src_ip, IPv4_ADDR_SIZE);

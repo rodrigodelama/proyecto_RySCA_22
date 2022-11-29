@@ -5,7 +5,7 @@
 #include "global_dependencies.h"
 #define AF_INET 2
 
-#define RIPv2_ROUTE_TABLE_SIZE 256
+#define RIPv2_ROUTE_TABLE_SIZE 25
 #define RECEPTION_TIMER 180000
 
 /* ripv2 ---------------------------------------------------------------------------------------*/

@@ -10,6 +10,8 @@
 
 /* Dirección MAC de difusión: FF:FF:FF:FF:FF:FF */
 mac_addr_t MAC_BCAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+// mulitcast uses the same mac address as broadcast
+// mac_addr_t MAC_MULTICAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 /* Estructura del manejador del interfaz ethernet */
 struct eth_iface {
@@ -249,9 +251,8 @@ int eth_send
  * ERRORES:
  *   La función devuelve '-1' si se ha producido algún error. 
  */
-int eth_recv 
-( eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char buffer[], 
-  int buf_len, long int timeout )
+int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char buffer[], 
+              int buf_len, long int timeout)
 {
   int payload_len;
 
@@ -294,8 +295,8 @@ int eth_recv
 
     /* Comprobar si es la trama que estamos buscando */
     eth_frame_ptr = (struct eth_frame *) eth_buffer;
-    is_my_mac = (memcmp(eth_frame_ptr->dest_addr, 
-                        iface->mac_address, MAC_ADDR_SIZE) == 0);
+    is_my_mac = (memcmp(eth_frame_ptr->dest_addr, iface->mac_address, MAC_ADDR_SIZE) == 0);
+    is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
     is_target_type = (ntohs(eth_frame_ptr->type) == type);
 
   } while ( ! (is_my_mac && is_target_type) );
@@ -367,6 +368,23 @@ int eth_poll
   return iface_index;
 }
 
+/*
+un temporizador por entrada
+
+do while
+recorrer tabla al principio o final para comporbar 
+
+tabla normal de rutas con una metrica y un timer
+
+luego guardamos el menor temporizador que tengamos para mandarselo a UDP recieve
+
+cuando añadimos, o reseteamos una ruta ponemos el timer a 180000
+
+la parte de enviar 
+es añadir el temporizador que haga que lo mande
+
+
+*/
 
 /* int eth_close ( eth_iface_t * iface );
  * 
