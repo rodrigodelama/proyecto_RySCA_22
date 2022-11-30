@@ -19,7 +19,7 @@ typedef struct udp_header
     //pseudocabecera ciertos parametros para calcular el checksum en basea a eso, mirar rfc
     //por default lo pondremos en 0
     //no comprobamos checksum en salida ni entrada
-    unsigned char payload[1452]; // MTU 1500 - 2Ocap eth - 20cap IP - 8cap UDP -> 1452.
+    unsigned char payload[1452]; // MTU 1500 - 2Ocab eth - 20cab IP - 8cab UDP -> 1452.
 } udp_header_t;
 
 //open connection

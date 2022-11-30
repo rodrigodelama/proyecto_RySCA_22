@@ -198,13 +198,13 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
   char metric_str[256] ;
 
   /* Parse line: Format "<subnet> <mask> <iface> <gw>\n" */
-  int params = sscanf(line, "%s %s %s %s %s %s\n", 
+  int params = sscanf(line, "%s %s %s %s %s\n", 
 	        subnet_str, mask_str, iface_name, gw_str, metric_str);
   if (params != 5) {
     fprintf(stderr, "%s:%d: Invalid IPv4 Route format: '%s' (%d params)\n",
 	    filename, linenum, line, params);
     fprintf(stderr, 
-	    "%s:%d: Format must be: <subnet> <mask> <iface> <gw>\n",
+	    "%s:%d: Format must be: <subnet> <mask> <iface> <gw> <metric>\n",
 	    filename, linenum);
     return NULL;
   }
@@ -235,9 +235,12 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
 	    filename, linenum, gw_str);
     return NULL;
   }
-  
+  /* Parse metric */
+  uint32_t metric;
+  metric=atoi(metric_str);
+
   /* Create new route with parsed parameters */
-  route = ripv2_route_create(subnet, mask, iface_name, gateway);
+  route = ripv2_route_create(subnet, mask, iface_name, gateway,metric );
   if (route == NULL) {
     fprintf(stderr, "%s:%d: Error creating the new route\n",
 	    filename, linenum);    
@@ -270,7 +273,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
   int err;
 
   if (header == 0) {
-    err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway\n");
+    err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway  \tMetric\n");
     if (err < 0) {
       return -1;
     }
@@ -280,15 +283,17 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
   char mask_str[IPv4_STR_MAX_LENGTH];
   char* ifname = NULL;
   char gw_str[IPv4_STR_MAX_LENGTH];
+  char metric_str[IPv4_STR_MAX_LENGTH];
+  
 
   if (route != NULL) {
       ipv4_addr_str(route->subnet_addr, subnet_str);
       ipv4_addr_str(route->subnet_mask, mask_str);
       ifname = route->iface;
       ipv4_addr_str(route->gateway_addr, gw_str);
+      sprintf(metric_str,"%d", route->metric);
 
-      err = fprintf(out, "%-15s\t%-15s\t%s\t%-15s\n",
-		    subnet_str, mask_str, ifname, gw_str);
+      err = fprintf(out, "%-15s\t%-15s\t%s\t%-15s\t%s\n",subnet_str, mask_str, ifname, gw_str,metric_str);
       if (err < 0) {
         return -1;
       }

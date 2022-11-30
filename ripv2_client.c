@@ -1,7 +1,7 @@
 #include "global_dependencies.h"
 #include "ripv2.h"
 
-
+ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 //only recieve operations to port 
 
 /*
@@ -72,10 +72,22 @@ int main ( int argc, char * argv[] )
     {
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
-    }
-    unsigned char ripv2_request[1200];
+    }    
+    ripv2_msg_t* request_message;
+    request_message->type = (uint8_t) 1;
+    request_message->version = (uint8_t) 2;
+    request_message->dominio_encaminamiento = (uint16_t) 0x0000;
+    
+    request_message->vectores_distancia[0].familia_dirs = (uint16_t) 0x0000;
+    request_message->vectores_distancia[0].etiqueta_ruta = (uint16_t) 0x0000;
+    memcpy(request_message->vectores_distancia[0].subred , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].next_hop, IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
+    request_message->vectores_distancia[0].metric = (uint32_t) 16;
+    
 
-    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, fake_payload, 0);//Solamente queremos que mande ahora mismo la cabecera udp.
+    unsigned char* ripv2_request_payload = (unsigned char*) request_message;
+    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, 0);//Solamente queremos que mande ahora mismo la cabecera udp.
     log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     unsigned char fake_payload_rcv[1200];
     int timeout = 6000;

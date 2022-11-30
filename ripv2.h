@@ -26,7 +26,7 @@ typedef struct ripv2_route_table {
 
 typedef struct entrada_rip//vectores distancia
 {
-    uint16_t familia_dirs;
+    uint16_t familia_dirs;//En RFC 2453, familia dirs debe ser 0, 
     uint16_t etiqueta_ruta;
     ipv4_addr_t subred;
     ipv4_addr_t subnet_mask;
