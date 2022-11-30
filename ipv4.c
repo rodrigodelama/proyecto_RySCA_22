@@ -316,10 +316,12 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
   struct ipv4_header *ipv4_packet_ptr = NULL;
   int is_target_type;
   int is_my_ip;
-  int is_ripv2_ip;
+  int is_other_ip;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
+                    //In our links the routers will send and recieve on 224.0.0.9
   mac_addr_t mac_src;
   int original_checksum;
   int is_my_checksum = 0; //declared as false initially
+  ipv4_addr_t other_ip;
 
   do
   {
@@ -349,7 +351,60 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
     // we have to do all of multicast
     // usar mascaras binarias
-      is_ripv2_ip = (memcmp(ipv4_packet_ptr->dest_ip, RIPv2_MULTICAST_ADDR, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
+    if (is_my_ip != 0)
+    {
+      // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
+      // 224.0.0.9 (todos los routers RIPv2 del enlace) 
+      // check that first 4 bits are 1110
+
+      int prefix_length = -1;
+      ipv4_addr_t aux; //aux de ipv4 X.X.X.X
+      for(int i = 0; i < 4; i++)
+      {
+        aux[i] = addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
+      }
+      // int prefix_length_analyzer ( ROUTE, ADDR )
+      // WE WOULD HAVE TO MAKE DIFFERENT INPUTS POSSIBLE (RIPv2 AND IPv4 ROUTES), AND AN IP ADDR
+      if( memcmp(aux, route->subnet_addr, 4) == 0 )
+      { //comparo aux con subnet_addr, 4 bytes
+        prefix_length = 0;
+        for(int i = 0; i < 4; i++)
+        {
+          switch (route->subnet_mask[i])
+          { //para cada caso, sumo los bytes correspondientes
+            case 255:
+              prefix_length += 8;
+              break;
+            case 254:
+              prefix_length += 7;
+              break;
+            case 252:
+              prefix_length += 6;
+              break;
+            case 248:
+              prefix_length += 5;
+              break;
+            case 240:
+              prefix_length += 4;
+              break;
+            case 224:
+              prefix_length += 3;
+              break;
+            case 192:
+              prefix_length += 2;
+              break;
+            case 128:
+              prefix_length += 1;
+              break;
+            default:
+              prefix_length +=0;
+              break;
+          }
+        }
+      }
+      log_debug("Prefix_length -> %d",prefix_length);
+    }
+
     is_target_type = (ipv4_packet_ptr->protocol == protocol);
     log_debug("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
     original_checksum = ntohs(ipv4_packet_ptr->checksum);

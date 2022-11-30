@@ -84,6 +84,8 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr )
   {
     aux[i] = addr[i] & (route->subnet_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
   }
+  // int prefix_length_analyzer ( ROUTE, ADDR )
+  // WE WOULD HAVE TO MAKE DIFFERENT INPUTS POSSIBLE (RIPv2 AND IPv4 ROUTES), AND AN IP ADDR
   if( memcmp(aux, route->subnet_addr, 4) == 0 )
   { //comparo aux con subnet_addr, 4 bytes
     prefix_length = 0;
