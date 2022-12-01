@@ -76,22 +76,29 @@ int main ( int argc, char * argv[] )
     ripv2_msg_t* request_message;
     request_message->type = (uint8_t) 1;
     request_message->version = (uint8_t) 2;
-    request_message->dominio_encaminamiento = (uint16_t) 0x0000;
+    request_message->dominio_encaminamiento = htons((uint16_t) 0x0000);
     
-    request_message->vectores_distancia[0].familia_dirs = (uint16_t) 0x0000;
-    request_message->vectores_distancia[0].etiqueta_ruta = (uint16_t) 0x0000;
-    memcpy(request_message->vectores_distancia[0].subred , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
-    memcpy(request_message->vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
-    memcpy(request_message->vectores_distancia[0].next_hop, IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
-    request_message->vectores_distancia[0].metric = (uint32_t) 16;
+    request_message->vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
+    request_message->vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
+    memcpy(request_message->vectores_distancia[0].subred , htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].subnet_mask , htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].next_hop, htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
+    request_message->vectores_distancia[0].metric = htonl((uint32_t) 16);
     
 
     unsigned char* ripv2_request_payload = (unsigned char*) request_message;
-    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, 0);//Solamente queremos que mande ahora mismo la cabecera udp.
+    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, sizeof(ripv2_msg_t));//Solamente queremos que mande ahora mismo la cabecera udp.
     log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     unsigned char fake_payload_rcv[1200];
     int timeout = 6000;
-    int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, 0, timeout);
+    int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, sizeof(ripv2_msg_t), timeout);
+    int numero_de_vectores_distancia = 0;
+    //numero_de_vectores_distancia = sizeof();
+
+
+    // no tenemos tabla en el cliente -> ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
+    printf("Received table -> \n");
+    ripv2_route_table_print ( ripv2_response->vectores_distancia);
     if(bytes_rcvd == 0){
         log_trace("Reception timeout reached...\n\n");
     }else{
@@ -99,5 +106,6 @@ int main ( int argc, char * argv[] )
     }
     udp_close(my_udp_layer);
     return 0;
+
 }
 //no hace falta 

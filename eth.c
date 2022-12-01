@@ -1,4 +1,5 @@
 #include "eth.h"
+#include "global_dependencies.h"
 
 #include <rawnet.h>
 #include <timerms.h>
@@ -10,8 +11,8 @@
 
 /* Dirección MAC de difusión: FF:FF:FF:FF:FF:FF */
 mac_addr_t MAC_BCAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-// mulitcast uses the same mac address as broadcast
-mac_addr_t MAC_MULTICAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+// mulitcast is a specific case of broadcast
+// mac_addr_t MAC_MULTICAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 /* Estructura del manejador del interfaz ethernet */
 struct eth_iface {
@@ -272,6 +273,7 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
   unsigned char eth_buffer[eth_buf_len];
   struct eth_frame * eth_frame_ptr = NULL;
   int is_target_type;
+
   int is_my_mac;
   int is_ripv2_mac; //FF:FF:FF:FF:FF:FF just like broadcast frames
 
@@ -296,15 +298,18 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
 
     /* Comprobar si es la trama que estamos buscando */
     eth_frame_ptr = (struct eth_frame *) eth_buffer;
+
     is_my_mac = (memcmp(eth_frame_ptr->dest_addr, iface->mac_address, MAC_ADDR_SIZE) == 0);
     if (is_my_mac == 0)
     {
-      log_debug("Packet received to OUR MAC -> %d\n", eth_iface->mac_address);
-    }
-    is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
-    if (is_ripv2_mac == 0)
-    {
-      log_debug("Packet received to BCAST MAC -> %d\n", eth_frame_ptr->dest_addr);
+      log_debug("Packet received to OUR MAC -> %d\n", iface->mac_address);
+    } else {
+      //comprobar si es broadcast: RIPv2 usa la dirección MAC de BROADCAST
+      is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
+        if (is_ripv2_mac == 0)
+        {
+          log_debug("Packet received to BCAST MAC -> %d\n", eth_frame_ptr->dest_addr);
+        }
     }
 
     is_target_type = (ntohs(eth_frame_ptr->type) == type);
