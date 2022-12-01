@@ -321,7 +321,6 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
   mac_addr_t mac_src;
   int original_checksum;
   int is_my_checksum = 0; //declared as false initially
-  ipv4_addr_t other_ip;
   ipv4_addr_t ripv2_mask = {240, 0, 0, 0};
 
   do
@@ -361,7 +360,6 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       // 224.0.0.9 (todos los routers RIPv2 del enlace) 
       // check that first 4 bits are 1110
 
-      int prefix_length = -1;
       ipv4_addr_t aux; //aux de ipv4 X.X.X.X
       
       for(int i = 0; i < 4; i++)
