@@ -87,18 +87,27 @@ int main ( int argc, char * argv[] )
     
 
     unsigned char* ripv2_request_payload = (unsigned char*) request_message;
-    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, sizeof(ripv2_msg_t));//Solamente queremos que mande ahora mismo la cabecera udp.
+    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, (RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1)));//Solamente queremos que mande ahora mismo la cabecera udp.
     log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     unsigned char fake_payload_rcv[1200];
     int timeout = 6000;
-    int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, sizeof(ripv2_msg_t), timeout);
-    int numero_de_vectores_distancia = 0;
-    //numero_de_vectores_distancia = sizeof();
+    int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, sizeof(ripv2_msg_t), timeout);//udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
+    log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
+    
+    int numero_de_vectores_distancia = (bytes_rcvd - 8) / 20 ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+    log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
 
 
+
+    ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
     // no tenemos tabla en el cliente -> ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
-    printf("Received table -> \n");
-    ripv2_route_table_print ( ripv2_response->vectores_distancia);
+    // no recibimos tabla, solamente array de entradas, por tanto, usamos bucle "for" y ripv2_route_print() para cada posición "i" del array.  
+    log_trace("Received table -> \n");
+    //ripv2_route_table_print ( ripv2_response->vectores_distancia);
+    for(int i = 0; i < numero_de_vectores_distancia; i++){
+        log_trace("Vector distancia, posicion (%d) -> ", i);
+        ripv2_route_print( ripv2_response->vectores_distancia[i]);
+    }
     if(bytes_rcvd == 0){
         log_trace("Reception timeout reached...\n\n");
     }else{

@@ -7,6 +7,8 @@
 
 #define RIPv2_ROUTE_TABLE_SIZE 25
 #define RECEPTION_TIMER 180000
+#define RIPv2_MESSAGE_HEADER_SIZE 8
+#define RIPv2_DISTANCE_VECTOR_ENTRY_SIZE 20
 
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */
@@ -41,7 +43,7 @@ typedef struct ripv2_msg
     uint8_t type; //1=request 2=response
     uint8_t version; //version 2 always 0x02
     uint16_t dominio_encaminamiento; //todo a 0 
-    entrada_rip_t vectores_distancia[25]; //(20 bytes) ??
+    entrada_rip_t vectores_distancia[25]; //(20 bytes) es el tamaño de cada "vector distancia", lo que son 25 el el número de entradas máximo en un datagrama.
 } ripv2_msg_t;
 
 

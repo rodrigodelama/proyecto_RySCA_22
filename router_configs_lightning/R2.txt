@@ -1,0 +1,26 @@
+# Router 2 Configuration
+
+conf t
+interface eth0.0
+no shutdown
+no ip address 192.168.0.1/24
+ip address 10.0.2.1/24
+exit
+interface eth0.1
+no shutdown
+no ip address 192.168.1.1/24
+ip address 10.0.0.2/30
+exit
+interface eth0.2
+no shutdown
+no ip address 192.168.2.1/24
+ip address 10.0.3.2/24
+exit
+router rip
+network eth0.0
+network eth0.1
+network eth0.2
+redistribute connected
+exit
+exit
+show ip route

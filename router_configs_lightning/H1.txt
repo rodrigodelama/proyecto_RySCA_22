@@ -1,0 +1,7 @@
+# Host 1 Configuration
+
+sudo ip addr del 192.100.100.1/24 dev eth1
+sudo ip addr add 10.0.1.2/24 dev eth1
+
+sudo ip ro add 10.0.0.0/30 via 10.0.1.1 dev eth1
+sudo ip ro add 10.0.3.0/24 via 10.0.1.1 dev eth1

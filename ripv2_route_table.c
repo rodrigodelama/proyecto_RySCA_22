@@ -147,8 +147,8 @@ void ripv2_route_print ( ripv2_route_t * route )
     char gw_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(route->gateway_addr, gw_str);
     uint32_t metrica=route->metric;
-    long timerms_left= timerms_left(&(route->timer_ripv2));
-    
+    long int time_left = timerms_left(&(route->timer_ripv2));
+
     printf("%s/%s via %s dev %s metric %lu timer %ld \n", subnet_str, mask_str, gw_str, iface_str,(unsigned long)metrica,timerms_left);
   }
 }
