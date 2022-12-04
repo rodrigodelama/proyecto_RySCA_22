@@ -80,9 +80,9 @@ int main ( int argc, char * argv[] )
     
     request_message->vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
     request_message->vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
-    memcpy(request_message->vectores_distancia[0].subred , htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
-    memcpy(request_message->vectores_distancia[0].subnet_mask , htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
-    memcpy(request_message->vectores_distancia[0].next_hop, htonl(IPv4_ZERO_ADDR), sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].subred , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
+    memcpy(request_message->vectores_distancia[0].next_hop, IPv4_ZERO_ADDR, sizeof(ipv4_addr_t));
     request_message->vectores_distancia[0].metric = htonl((uint32_t) 16);
     
 
@@ -97,8 +97,6 @@ int main ( int argc, char * argv[] )
     int numero_de_vectores_distancia = (bytes_rcvd - 8) / 20 ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
     log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
 
-
-
     ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
     // no tenemos tabla en el cliente -> ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
     // no recibimos tabla, solamente array de entradas, por tanto, usamos bucle "for" y ripv2_route_print() para cada posición "i" del array.  
@@ -106,7 +104,7 @@ int main ( int argc, char * argv[] )
     //ripv2_route_table_print ( ripv2_response->vectores_distancia);
     for(int i = 0; i < numero_de_vectores_distancia; i++){
         log_trace("Vector distancia, posicion (%d) -> ", i);
-        ripv2_route_print( ripv2_response->vectores_distancia[i]);
+        ripv2_vector_print( ripv2_response->vectores_distancia[i]);
     }
     if(bytes_rcvd == 0){
         log_trace("Reception timeout reached...\n\n");

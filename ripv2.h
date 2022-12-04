@@ -35,6 +35,7 @@ typedef struct entrada_rip//vectores distancia
     ipv4_addr_t next_hop;
     uint32_t metric; // (4bytes)
 } entrada_rip_t;
+
 //Si next hop == 0.0.0.0, el que lo reciba (si se guarda la ruta), pondrá como siguiente salto la dirección ip de origen
 
 /* Estructura del mensaje de la interfaz ripv2 */

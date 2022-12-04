@@ -32,25 +32,25 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
-{
+// ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
+// {
 
-  ripv2_route_t * route = (ripv2_route_t *) malloc(sizeof(struct ripv2_route));
+//   ripv2_route_t * route;
 
 
-  if ((route != NULL) && 
-      (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
-    memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
-    memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
-    strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
-    memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
-    memcpy(route->gateway_addr, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
-    timerms_reset(&(route->timer_ripv2),180000);
-    //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
-  }
+   if ((route != NULL) && 
+       (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
+     memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
+     memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
+     strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
+     memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
+     memcpy(route->gateway_addr, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
+     timerms_reset(&(route->timer_ripv2),180000);
+     //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
+   }
   
-  return route;
-}
+   return route;
+  }
 
 /* int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
  *
@@ -153,6 +153,21 @@ void ripv2_route_print ( ripv2_route_t * route )
   }
 }
 
+void ripv2_vector_print(entrada_rip_t * vector)
+{
+  if (vector != NULL)
+  {
+    char subred_str[IPv4_STR_MAX_LENGTH];
+    ipv4_addr_str(vector->subred, subred_str);
+    char mask_str[IPv4_STR_MAX_LENGTH];
+    ipv4_addr_str(vector->subnet_mask, mask_str);
+    char next_hop_str[IPv4_STR_MAX_LENGTH];
+    ipv4_addr_str(vector->next_hop, next_hop_str);
+    uint32_t metrica= vector->metric;
+
+    printf("%s/%s via %s dev %s metric %lu timer %ld \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
+  }
+}
 
 
 /* void ripv2_route_free ( ripv2_route_t * route );
