@@ -32,14 +32,14 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-// ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
-// {
+ ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
+{
 
-//   ripv2_route_t * route;
+  ripv2_route_t * route;
 
 
    if ((route != NULL) && 
-       (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
+  (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
      memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
      memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
      strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
