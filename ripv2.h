@@ -12,7 +12,7 @@
 
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */
-
+//extern ipv4_addr_t IPv4_ZERO_ADDR;
 typedef struct ripv2_route {
     ipv4_addr_t subnet_addr;
     ipv4_addr_t subnet_mask;

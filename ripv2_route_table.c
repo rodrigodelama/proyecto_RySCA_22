@@ -35,22 +35,23 @@
  ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
 {
 
-  ripv2_route_t * route;
+  ripv2_route_t * route = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
 
 
-   if ((route != NULL) && 
-  (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && (metric != NULL))  {
-     memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
-     memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
-     strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
-     memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
-     memcpy(route->gateway_addr, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
-     timerms_reset(&(route->timer_ripv2),180000);
+  if ((route != NULL) && (subnet != NULL) && (mask != NULL) && (iface != NULL) && (gw != NULL) && ((metric >= 0) && (metric < 16))) 
+  {
+    memcpy(route->subnet_addr, subnet, IPv4_ADDR_SIZE);
+    memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
+    strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
+    memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
+    //memcpy(route->metric, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
+    route->metric = (uint32_t) metric;
+    timerms_reset(&(route->timer_ripv2),180000);
      //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
-   }
-  
-   return route;
   }
+  
+  return route;
+}
 
 /* int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
  *
@@ -76,8 +77,7 @@
  *   apuntada por la ruta especificada.
  */
 
-int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr )
-{
+int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr ){
   int prefix_length = -1;
   ipv4_addr_t aux; //aux de ipv4 X.X.X.X
   for(int i = 0; i < 4; i++)
@@ -135,8 +135,7 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr )
  * PARÁMETROS:
  *   'route': Ruta que se desea imprimir.
  */
-void ripv2_route_print ( ripv2_route_t * route )
-{
+void ripv2_route_print ( ripv2_route_t * route ){
   if (route != NULL)
   {
     char subnet_str[IPv4_STR_MAX_LENGTH];
@@ -146,17 +145,15 @@ void ripv2_route_print ( ripv2_route_t * route )
     char* iface_str = route->iface;
     char gw_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(route->gateway_addr, gw_str);
-    uint32_t metrica=route->metric;
+    uint32_t metrica = route->metric;
     long int time_left = timerms_left(&(route->timer_ripv2));
 
-    printf("%s/%s via %s dev %s metric %lu timer %ld \n", subnet_str, mask_str, gw_str, iface_str,(unsigned long)metrica,timerms_left);
+    printf("%s/%s via %s dev %s metric %lu timer %ld \n", subnet_str, mask_str, gw_str, iface_str, (unsigned long) metrica, time_left);
   }
 }
 
-void ripv2_vector_print(entrada_rip_t * vector)
-{
-  if (vector != NULL)
-  {
+void ripv2_vector_print(entrada_rip_t * vector){//mejor no cambiar a por valor porque sino no podemos comparar con "NULL". (creo).
+  if (vector != NULL){
     char subred_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(vector->subred, subred_str);
     char mask_str[IPv4_STR_MAX_LENGTH];
@@ -165,7 +162,7 @@ void ripv2_vector_print(entrada_rip_t * vector)
     ipv4_addr_str(vector->next_hop, next_hop_str);
     uint32_t metrica= vector->metric;
 
-    printf("%s/%s via %s dev %s metric %lu timer %ld \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
+    printf("%s/%s via %s metric %lu \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
   }
 }
 
@@ -179,8 +176,7 @@ void ripv2_vector_print(entrada_rip_t * vector)
  * PARÁMETROS:
  *   'route': Ruta que se desea liberar.
  */
-void ripv2_route_free ( ripv2_route_t * route )
-{
+void ripv2_route_free ( ripv2_route_t * route ){
   if (route != NULL) {
     free(route);
   }
@@ -204,8 +200,7 @@ void ripv2_route_free ( ripv2_route_t * route )
  *   La función imprime un mensaje de error y devuelve NULL si se ha
  *   producido algún error al leer la ruta.
  */
-ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
-{
+ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line ){
   ripv2_route_t* route = NULL;
 
   char subnet_str[256];
@@ -285,8 +280,7 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
  *   La función devuelve '-1' si se ha producido algún error al escribir por
  *   la salida indicada.
  */
-int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
-{
+int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
   int err;
 
   if (header == 0) {
@@ -336,8 +330,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la tabla de rutas.
  */
-ripv2_route_table_t * rip_route_table_create()
-{
+ripv2_route_table_t * rip_route_table_create(){
   ripv2_route_table_t * table;
 
   table = (ripv2_route_table_t *) malloc(sizeof(struct ripv2_route_table));
@@ -369,8 +362,7 @@ ripv2_route_table_t * rip_route_table_create()
  *   La función devuelve '-1' si no ha sido posible añadir la ruta
  *   especificada.
  */
-int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
-{
+int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route ){
   int route_index = -1;
 
   if (table != NULL) {
@@ -412,8 +404,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
  *   Esta función devuelve 'NULL' si la ruta no ha podido ser borrada, o no
  *   existía ninguna ruta en dicha posición.
  */
-ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int index )
-{
+ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int index ){
   ripv2_route_t * removed_route = NULL;
   
   if ((table != NULL) && (index >= 0) && (index < RIPv2_ROUTE_TABLE_SIZE)) {
@@ -449,8 +440,7 @@ ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int inde
  *   Esta función devuelve 'NULL' si no  existe ninguna ruta para alcanzar
  *   la dirección indicada, o si no ha sido posible realizar la búsqueda.
  */
-ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_addr_t addr )
-{
+ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_addr_t addr ){
   ripv2_route_t * best_route = NULL;
   int best_route_prefix = -1;
 
@@ -493,8 +483,7 @@ ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_add
  *   Esta función devuelve 'NULL' si no ha sido posible consultar la tabla de
  *   rutas, o no existe ninguna ruta en dicha posición.
  */
-ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index )
-{
+ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index ){
   ripv2_route_t * route = NULL;
 
   if ((table != NULL) && (index >= 0) && (index < RIPv2_ROUTE_TABLE_SIZE)) {
@@ -524,9 +513,7 @@ ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index )
  *   La función devuelve '-1' si no se ha encontrado la ruta especificada o
  *   '-2' si no ha sido posible realizar la búsqueda.
  */
-int ripv2_route_table_find
-( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask )
-{
+int ripv2_route_table_find( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask ){
   int route_index = -2;
 
   if (table != NULL) {
