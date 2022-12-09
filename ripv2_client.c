@@ -68,7 +68,7 @@ int main ( int argc, char * argv[] )
     //REQUEST:-----------------------------------------------------------------------------------------------------------------------------
     uint16_t destport = 520;
     //! what do we do with config file? -> we will create a ripv2 file with just the route to our default gateway.
-    udp_layer_t * my_udp_layer = udp_open(random_port_generator(), "./ipv4_config_client.txt", "./ripv2_route_table_client.txt");
+    udp_layer_t * my_udp_layer = udp_open(random_port_generator(), "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");//para las rutas, seguiremos utilizando estáticas.
     if(my_udp_layer == NULL)
     {
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");

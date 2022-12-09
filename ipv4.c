@@ -193,7 +193,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   /* Rellenamos sus campos */
   ipv4_header_t.version_and_length = (uint8_t) VERSION_AND_LENGTH; //"dos campos de 4bytes" rellenado a mano en Hex
   ipv4_header_t.service_type = 0;
-  ipv4_header_t.total_length = htons((uint16_t) 20 + payload_len);//Sze datos (payload_len) + 20 (size cabecera ip sin datos)
+  ipv4_header_t.total_length = htons((uint16_t) 20 + payload_len);//Size datos (payload_len) + 20 (size cabecera ip sin datos)
 
   log_debug("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
 
@@ -241,7 +241,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   }
 
   mac_addr_t mac_dest; //mac de ip_dest si misma subred, sino mac de gateway_addr.
-  eth_iface_t* sender_iface = eth_open (route_to_dst -> iface);
+  eth_iface_t* sender_iface = eth_open (route_to_dst -> iface);//abrimos la interfaz ethernet (el nombre es parte de la estructura de la ruta)
 
   int bytes_sent = 0;
   int err_arp = 0;
