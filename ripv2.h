@@ -7,7 +7,7 @@
 
 #define RIPv2_ROUTE_TABLE_SIZE 25
 #define RECEPTION_TIMER 180000
-#define RIPv2_MESSAGE_HEADER_SIZE 8
+#define RIPv2_MESSAGE_HEADER_SIZE 4 // fam_dirs (1 byte) + uint8_t version (1 byte) + dominio_encaminamiento (2 bytes) = 4 bytes; 
 #define RIPv2_DISTANCE_VECTOR_ENTRY_SIZE 20
 
 /* ripv2 ---------------------------------------------------------------------------------------*/

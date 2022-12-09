@@ -207,7 +207,7 @@ int eth_send
   }
 
   /* Devolver el número de bytes de datos recibidos */
-  return (bytes_sent - ETH_HEADER_SIZE);
+  return (bytes_sent - ETH_HEADER_SIZE);//devuelve el tamaño de la payload
 }
 
 /* int eth_recv 
@@ -302,13 +302,17 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
     is_my_mac = (memcmp(eth_frame_ptr->dest_addr, iface->mac_address, MAC_ADDR_SIZE) == 0);
     if (is_my_mac == 0)
     {
-      log_debug("Packet received to OUR MAC -> %d\n", iface->mac_address);
+      char debug1[60];
+      mac_addr_str ( iface->mac_address, debug1);
+      log_debug("Packet received to OUR MAC -> %s\n",debug1);
     } else {
       //comprobar si es broadcast: RIPv2 usa la dirección MAC de BROADCAST
       is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
         if (is_ripv2_mac == 0)
         {
-          log_debug("Packet received to BCAST MAC -> %d\n", eth_frame_ptr->dest_addr);
+          char debug2[60];
+          mac_addr_str ( eth_frame_ptr->dest_addr, debug2);
+          log_debug("Packet received to BCAST MAC -> %s\n", debug2);
         }
     }
 

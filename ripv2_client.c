@@ -61,26 +61,32 @@ int main ( int argc, char * argv[] )
         fprintf(stderr, "%s\n", "IP pasada como parámetro no válida\n");
         exit(-1);
     }
+    /*
     if(atoi(argv[2]) == 0 || atoi(argv[2]) < 0){
         fprintf(stderr, "%s\n", "Puerto de destino pasado como parámetro no es válido\n");
         exit(-1);
     }
+    */
     //REQUEST:-----------------------------------------------------------------------------------------------------------------------------
     uint16_t destport = 520;
     //! what do we do with config file? -> we will create a ripv2 file with just the route to our default gateway.
     udp_layer_t * my_udp_layer = udp_open(random_port_generator(), "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");//para las rutas, seguiremos utilizando estáticas.
+    log_trace("udp_layer configuration DONE\n");
     if(my_udp_layer == NULL)
     {
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
-    }    
+    }
+    log_trace("Building (REQUEST) message\n");    
     ripv2_msg_t request_message;//Si no hago el malloc, me dice que la variable no esta inicializada ??
     memset(&request_message, 0, sizeof(ripv2_msg_t));
+    //Cabecera RIP:
     request_message.type = (uint8_t) 1;
     request_message.version = (uint8_t) 2;
     request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
-    
+    //Entrada 1, vector distancia:
     request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
+    log_debug("Familia_dirs");
     request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
     memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
@@ -88,15 +94,17 @@ int main ( int argc, char * argv[] )
     request_message.vectores_distancia[0].metric = htonl((uint32_t) 16);
     
 
-    unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
-    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, ripv2_request_payload, (RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1)));//Solamente queremos que mande ahora mismo la cabecera udp.
+    //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
+    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
+    log_debug("Length of request packet -> %d\n", length_request);
+    int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, (unsigned char*) &request_message, length_request);
     log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     unsigned char fake_payload_rcv[1200];
     int timeout = 6000;
     int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, sizeof(ripv2_msg_t), timeout);//udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
     log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
     
-    int numero_de_vectores_distancia = (bytes_rcvd - 8) / 20 ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+    int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
     log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
 
     ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;
@@ -111,7 +119,7 @@ int main ( int argc, char * argv[] )
     if(bytes_rcvd == 0){
         log_trace("Reception timeout reached...\n\n");
     }else{
-        log_trace("ECHO Packet received!!\n");
+        log_trace("RESPONSE Packet received!!\n");
     }
     udp_close(my_udp_layer);
     return 0;

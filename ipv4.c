@@ -290,7 +290,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
   log_debug("Number of bytes sent -> %d\n",bytes_sent);
   //IPV4_HDR_LEN inside eth.h.  
   //bytes_sent is what eth sends, minus 20 of eth header - ipv4 hdr length
-  return (bytes_sent - 20 - IPV4_HDR_LEN); //eth header size inside eth.c, not included.
+  return (bytes_sent - IPV4_HDR_LEN); //eth header size inside eth.c, not included.
 }
 
 //1º rellenamos, 2º miramos siguiente salto para saber la IP destino, y luego haremos arp_resolve para saber la MAC.
@@ -401,7 +401,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     buf_len = payload_len; //we adjust the size if buffer is bigger
   }
   memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
-  payload_len = payload_len + IPV4_HDR_LEN;
+  //payload_len = payload_len + IPV4_HDR_LEN;
   log_debug("Bytes received (client) -> %d\n", payload_len);
   return payload_len;
 }

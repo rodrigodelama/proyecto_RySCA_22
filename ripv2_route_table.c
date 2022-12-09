@@ -162,7 +162,7 @@ void ripv2_vector_print(entrada_rip_t * vector){//mejor no cambiar a por valor p
     ipv4_addr_str(vector->next_hop, next_hop_str);
     uint32_t metrica= vector->metric;
 
-    printf("%s/%s via %s metric %lu \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
+    printf("%s/%s via %s metric %ld \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
   }
 }
 

@@ -60,7 +60,7 @@ int udp_close(udp_layer_t* my_udp_iface)
 int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, unsigned char *payload, int payload_len)//payload_len -> tamaño campo de datos.
 {
   // Campo datagram_length es cabecera UDP (8 bytes) + Campo de Datos (payload_len)
-
+  log_debug("Payload_lenght passed as parameter -> %d\n", payload_len);
     if (my_udp_iface == NULL)
     {
         fprintf(stderr, "udp_send(): ERROR: udp_layer == NULL\n");
@@ -81,17 +81,17 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     udp_header_t.dest_port = htons(dest_port);
     log_debug("Dest port after htons -> %d \n",udp_header_t.dest_port);
 
-    memcpy(payload, udp_header_t.payload, payload_len); //copying char arrays
-    log_debug("Payload -> %s \n",udp_header_t.payload);
+    //memcpy(payload, udp_header_t.payload, payload_len); //copying char arrays (somos tonticos, copiabamos lo vacio en lo no-vacio)
 
-    
     udp_header_t.datagram_length = htons( 8 + payload_len);
     log_debug("Datagram_length before htons -> %d \n",ntohs(udp_header_t.datagram_length));
     log_debug("Payload_len after htons -> %d \n",udp_header_t.datagram_length);
     udp_header_t.checksum = 0; //initially 0, maybe a later improvement
     memcpy(udp_header_t.payload, payload, payload_len);
+    log_debug("Payload -> %s \n",udp_header_t.payload);
+    //log_debug("udp_header_t.payload -> %d\n", udp_header_t.payload);
     int bytes_sent = ipv4_send(my_udp_iface->local_ip_stack, dest, UDP_PROTOCOL_TYPE, (unsigned char *) &udp_header_t, (payload_len + 8)); //No estamos mandando el paquete UDP, estabamos mandando la payload de UDP.
-    log_trace("UDP datagram sent.\n");
+    log_trace("UDP datagram sent. Number of bytes sent -> %d\n", bytes_sent);
     if(bytes_sent == -1)
     {
         fprintf(stderr, "udp_send(): ERROR: ipv4_send failed\n");
@@ -162,7 +162,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
   // uint16_t* dest_port_returned;
   // *(dest_port_returned) = ntohs(udp_datagram_ptr->src_port);
   // memcpy(dest_port, dest_port_returned, sizeof(udp_datagram_ptr->dest_port));
-  payload_len = payload_len + UDP_HEADER_SIZE;
+  //payload_len = payload_len - UDP_HEADER_SIZE;//ya lo hacemos mas arriba, sino le restamos 16 en vez de 8 
   log_debug("UDP bytes received -> %d\n", payload_len);
 
   return payload_len;
@@ -181,7 +181,7 @@ int random_port_generator(void) //Funcion de aula global.
         // {
         //   dice = dice + 1025;//Para que no sea un puerto reservado
         // }
-        log_debug("%i\n", dice);
+        log_debug("Random port -> %i\n", dice);
 
     return dice;
 }
