@@ -160,9 +160,10 @@ void ripv2_vector_print(entrada_rip_t * vector){//mejor no cambiar a por valor p
     ipv4_addr_str(vector->subnet_mask, mask_str);
     char next_hop_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(vector->next_hop, next_hop_str);
-    uint32_t metrica= vector->metric;
-
-    printf("%s/%s via %s metric %ld \n", subred_str, mask_str, next_hop_str,(unsigned long)metrica);
+    //uint32_t metrica= (uint32_t) ntohs(vector->metric);
+    //uint32_t metrica= vector->metric;
+    uint32_t metrica= ntohl(vector->metric);
+    printf("%s/%s via %s metric %ld \n", subred_str, mask_str, next_hop_str,(long int) metrica);
   }
 }
 
