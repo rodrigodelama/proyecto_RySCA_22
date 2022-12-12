@@ -287,7 +287,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     }
   }
   log_trace("ipv4_send() finished\n");
-  log_debug("Number of bytes sent -> %d\n",bytes_sent);
+  log_debug("Number of data bytes sent -> %d\n",bytes_sent - IPV4_HDR_LEN);
   //IPV4_HDR_LEN inside eth.h.  
   //bytes_sent is what eth sends, minus 20 of eth header - ipv4 hdr length
   return (bytes_sent - IPV4_HDR_LEN); //eth header size inside eth.c, not included.
@@ -298,6 +298,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 // output: buffer, sender 
 int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv4_addr_t sender, int buf_len, long int timeout)
 {
+  log_trace("Inside ipv4_recv();\n");
   //Ip de "sender" es mas parametro de salida que otra cosa, y si quiero recibir de alguien, hago un bucle para esperar a recibir de quien quiero (si queremos hacer eso)
   int payload_len;
   /* Comprobar parámetros */
@@ -349,12 +350,23 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
 
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
+    
+
     if (is_my_ip == 0) {
-      log_debug("Packet received to OUR IP -> %d\n", layer->addr);
+      char debug3[60];
+      ipv4_addr_str ( layer->addr, debug3 );
+      log_debug("Packet received to OUR IP -> %s\n", debug3);
+      char debug4[60];
+      ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug4 );
+      log_debug("Packet received FROM IP -> %s\n", debug4);
+      is_my_ip = 1;
+    }else{
+      is_my_ip = 3;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
+      //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
     } 
     // we have to do all of multicast
     // usar mascaras binarias
-    if (is_my_ip != 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
+    if (is_my_ip == 3) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
     {
       // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
       // 224.0.0.9 (todos los routers RIPv2 del enlace) 
@@ -392,7 +404,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     log_debug("is_my_target_type -> %d\n",is_target_type);
 
   } while ( !((is_my_ip || is_ripv2_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
-  
+  log_trace("Paquete bien recibido (tipo, checksum e ip destino del paquete son los correctos)");//Los mios, al fin y al cabo.
   /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
   memcpy(sender, ipv4_packet_ptr->src_ip, IPv4_ADDR_SIZE);
   payload_len = packet_len - IPV4_HDR_LEN;

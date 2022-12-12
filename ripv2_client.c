@@ -86,7 +86,7 @@ int main ( int argc, char * argv[] )
     request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
     //Entrada 1, vector distancia:
     request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
-    log_debug("Familia_dirs");
+    //log_debug("Familia_dirs");
     request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
     memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
