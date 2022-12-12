@@ -1,4 +1,5 @@
 # Host 3 Configuration
+# IP 10.0.3.3
 
 sudo ip addr del 192.100.100.3/24 dev eth1
 sudo ip addr add 10.0.3.3/24 dev eth1

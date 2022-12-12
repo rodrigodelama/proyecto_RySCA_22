@@ -1,4 +1,7 @@
 # Router 2 Configuration
+# eth0.0 10.0.2.1
+# eht0.1 10.0.0.2
+# eth0.2 10.0.3.2
 
 conf t
 interface eth0.0
