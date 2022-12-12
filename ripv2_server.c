@@ -64,7 +64,7 @@ int main ( int argc, char * argv[] )
     }
     */
     ipv4_addr_t dest_ip;
-    uint16_t server_port = 520;
+    uint16_t server_port = RIPv2_PORT;
     uint16_t client_port;
     unsigned char buffer_rip[LEN_PAYLOAD_RIP]; //1472 de capacidad
     udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
