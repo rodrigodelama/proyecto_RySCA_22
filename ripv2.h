@@ -5,10 +5,13 @@
 #include "global_dependencies.h"
 //#define AF_INET 2  ya estaba definido
 
+#define RIPv2_PORT 520
 #define RIPv2_ROUTE_TABLE_SIZE 25
 #define RECEPTION_TIMER 180000
 #define RIPv2_MESSAGE_HEADER_SIZE 4 // fam_dirs (1 byte) + uint8_t version (1 byte) + dominio_encaminamiento (2 bytes) = 4 bytes; 
 #define RIPv2_DISTANCE_VECTOR_ENTRY_SIZE 20
+#define RIPv2_REQUEST 1
+#define RIPv2_RESPONSE 2
 
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */
