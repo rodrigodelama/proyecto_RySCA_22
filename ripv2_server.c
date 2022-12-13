@@ -1,8 +1,9 @@
 #include "global_dependencies.h"
+
 #include "ripv2.h"
 #include "ripv2_route_table.h"
-/*
 
+/*
 Generar el response (toda la tabla):
 Crear cabecera IPv4+UDP con:
 ipv4.destino = 10.0.1.1 (IPv4 del router del request)
@@ -19,7 +20,6 @@ ripv2.RTE[i].siguiente_salto = 0.0.0.0
 ripv2.RTE[i].métrica = 1
 
 32 bits métrica -> hacer htonl()
-
 */
 
 int main ( int argc, char * argv[] )
@@ -63,8 +63,11 @@ int main ( int argc, char * argv[] )
         exit(-1);
     }
     */
-    uint16_t server_port = 520;
-    udp_layer_t * my_udp_layer = udp_open(server_port,"./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
+    ipv4_addr_t dest_ip;
+    uint16_t server_port = RIPv2_PORT;
+    uint16_t client_port;
+    unsigned char buffer_rip[LEN_PAYLOAD_RIP]; //1472 de capacidad
+    udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
     log_trace("udp_layer configuration DONE\n");
     if(my_udp_layer == NULL)
     {
@@ -77,9 +80,18 @@ int main ( int argc, char * argv[] )
 
     while (1)
     {
+        int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout);//udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
+        log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
+        int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+        log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
+        ripv2_msg_t* ripv2_response = (ripv2_msg_t*) buffer_rip;
         
     }
     
+
+
+
+
 
 
 
