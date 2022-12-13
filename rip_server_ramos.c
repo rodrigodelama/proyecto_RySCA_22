@@ -24,7 +24,7 @@ int main(int argc, char ** argcv)
   int i = 0;
   int calc_sig_salto = 0;
   int index_ruta = 0;
-  int recieved_data = 0;
+  int received_data = 0;
   timerms_t timeout;
   int index_min;
   timerms_reset(&timeout, RECEPTION_TIMER); //esta a 180 segundos
@@ -47,9 +47,9 @@ int main(int argc, char ** argcv)
 
     //RECIBIMOS DURANTE EL MENOR TIEMPO DE LA TABLA
 
-    recieved_data = udp_rcv(my_udp_layer, &puerto_cliente, ip_router_que_recibimos, buffer_rip, LEN_PAYLOAD_RIP, time_rcv);
+    received_data = udp_rcv(my_udp_layer, &puerto_cliente, ip_router_que_recibimos, buffer_rip, LEN_PAYLOAD_RIP, time_rcv);
 
-    int entries_rcvd = (recieved_data - 4)/20;
+    int entries_rcvd = (received_data - 4)/20;
     struct ripv2_msg* ripv2_msg_rcvd = NULL;
     ripv2_msg_rcvd = (struct ripv2_msg *) buffer_rip;
     ripv2_route_t* ruta_actual = rip_route_table_get(tabla_rip,index_min);
@@ -57,17 +57,17 @@ int main(int argc, char ** argcv)
     ipv4_addr_str(ruta_actual->subnet_addr, subnet_str);
     long int tiempo_expiracion = timerms_left(&ruta_actual->timer_ripv2);
 
-    if(recieved_data < 0)
+    if(received_data < 0)
     {
       printf("Error en la trama udp recibida\n ");
       return(-1);
 
-    } else if(recieved_data == 0) {
+    } else if(received_data == 0) {
       printf("Ha vencido el temporizador, eliminamos la ruta %s\n",subnet_str);
       rip_route_table_remove(tabla_rip,index_min);
       rip_route_table_print(tabla_rip);
 
-    } else if(recieved_data > 0 && (tiempo_expiracion == 0)) { //Hemos recibido algo cuando el temporizador de la ruta ha acabado y voy a comprobar si es la que estaba venciendo
+    } else if(received_data > 0 && (tiempo_expiracion == 0)) { //Hemos recibido algo cuando el temporizador de la ruta ha acabado y voy a comprobar si es la que estaba venciendo
       for(i = 0; i < entries_rcvd; i++)
       {
         index_ruta = rip_route_table_find(tabla_rip, ripv2_msg_rcvd->vectores_distancia[i].subred, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask);
