@@ -114,6 +114,8 @@ int main ( int argc, char * argv[] )
     //ripv2_route_table_print ( ripv2_response->vectores_distancia);
     for(int i = 0; i < numero_de_vectores_distancia; i++){
         log_trace("Vector distancia, posicion (%d) -> ", i);
+        //uint32_t correct_metric = nthol(ripv2_response->vectores_distancia[i]);
+        ripv2_response->vectores_distancia[i].metric = ntohl(ripv2_response->vectores_distancia[i].metric);
         ripv2_vector_print(&(ripv2_response->vectores_distancia[i]));
     }
     if(bytes_rcvd == 0){

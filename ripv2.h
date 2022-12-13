@@ -26,7 +26,7 @@ typedef struct ripv2_route_table {
   ripv2_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
 } ripv2_route_table_t;
 
-typedef struct entrada_rip//vectores distancia
+typedef struct vector_distancia//vectores distancia
 {
     uint16_t familia_dirs;//En RFC 2453, familia dirs debe ser 0, 
     uint16_t etiqueta_ruta;
@@ -34,7 +34,7 @@ typedef struct entrada_rip//vectores distancia
     ipv4_addr_t subnet_mask;
     ipv4_addr_t next_hop;
     uint32_t metric; // (4bytes)
-} entrada_rip_t;
+} vector_distancia_t;
 
 //Si next hop == 0.0.0.0, el que lo reciba (si se guarda la ruta), pondrá como siguiente salto la dirección ip de origen
 
@@ -44,7 +44,7 @@ typedef struct ripv2_msg
     uint8_t type; //1=request 2=response
     uint8_t version; //version 2 always 0x02
     uint16_t dominio_encaminamiento; //todo a 0 
-    entrada_rip_t vectores_distancia[25]; //(20 bytes) es el tamaño de cada "vector distancia", lo que son 25 el el número de entradas máximo en un datagrama.
+    vector_distancia_t vectores_distancia[25]; //(20 bytes) es el tamaño de cada "vector distancia", lo que son 25 el el número de entradas máximo en un datagrama.
 } ripv2_msg_t;
 
 
