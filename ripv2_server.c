@@ -80,11 +80,20 @@ int main ( int argc, char * argv[] )
 
     while (1)
     {
-        
-        
         int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout);//udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
+        log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
+        int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ;//deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+        log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
+        ripv2_msg_t* ripv2_response = (ripv2_msg_t*) buffer_rip;
+        
     }
     
+
+
+
+
+
+
 
 
 
