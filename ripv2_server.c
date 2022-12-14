@@ -4,6 +4,7 @@
 #include "ripv2_route_table.h"
 
 ipv4_addr_t IPv4_ZERO_ADDR_3 = { 0, 0, 0, 0 };
+ipv4_addr_t RIPv2_ADDR_2 = { 224, 0, 0, 9 };
 
 long int least_time(ripv2_route_table_t * rip_table)
 {
@@ -128,7 +129,32 @@ int main ( int argc, char * argv[] )
     ipv4_addr_t next_hop;
     int calc_gateway;
     char rip_iface[10] = "eth1";
+
+    //TTL is part of IPv4 and to change it we would need a more profound overhaul than simply making the request
+
+    log_trace("Building (REQUEST) message\n");    
+    ripv2_msg_t request_message;//Si no hago el malloc, me dice que la variable no esta inicializada ??
+    memset(&request_message, 0, sizeof(ripv2_msg_t));
+    //Cabecera RIP:
+    request_message.type = (uint8_t) 1; //request
+    request_message.version = (uint8_t) 2; //response
+    request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
+    //Entrada 1, vector distancia:
+    request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
+    //log_debug("Familia_dirs");
+    request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
+    memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
+    memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
+    memcpy(request_message.vectores_distancia[0].next_hop, IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
+    request_message.vectores_distancia[0].metric = htonl((uint32_t) 16);
     
+
+    //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
+    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
+    log_debug("Length of request packet -> %d\n", length_request);
+    int bytes_sent = udp_send(my_udp_layer, RIPv2_ADDR_2, RIPv2_PORT, (unsigned char*) &request_message, length_request);
+    log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+
     while (1)
     {
         ripv2_route_table_print(rip_table);
