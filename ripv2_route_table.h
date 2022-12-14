@@ -189,7 +189,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
  *   Esta función devuelve 'NULL' si la ruta no ha podido ser borrada, o no
  *   existía ninguna ruta en dicha posición.
  */
-ripv2_route_t * rip_route_table_remove ( ipv4_route_table_t * table, int index );
+ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int index );
 
 
 /* ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ripv2_addr_t addr );

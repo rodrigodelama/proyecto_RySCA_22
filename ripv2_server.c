@@ -33,7 +33,7 @@ long int least_time(ripv2_route_table_t * rip_table)
 
     for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++)
     {
-        current_route = rip_route_table_get(rip_table, i);
+        current_route = ripv2_route_table_get(rip_table, i);
         if (current_route != NULL)
         {
             time_left = timerms_left(&current_route->timer_ripv2);
@@ -56,7 +56,7 @@ int index_least_time(ripv2_route_table_t * rip_table)
 
     for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++) //itera hasta ripv2routetablesize, cuanto es este valor?????
     {
-    current_route = rip_route_table_get(rip_table, i);
+    current_route = ripv2_route_table_get(rip_table, i);
         if(current_route != NULL)
         {
             time_left = timerms_left(&current_route->timer_ripv2);
@@ -189,7 +189,7 @@ int main ( int argc, char * argv[] )
             {
                 // int index_min;
                 route_index = 0;
-                route_index = ripv2_route_t_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
+                route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
                 //devuelve el índice de la ruta para llegar a la subred especificada.
                 if(index_min == route_index)
                 {
@@ -228,19 +228,19 @@ int main ( int argc, char * argv[] )
                     if(metric_rcvd < 16) //
                     {
 
-                        next_hop = ripv2_msg->vectores_distancia[i].next_hop;
+                        next_hop = &(ripv2_msg->vectores_distancia[i].next_hop);
                         calc_gateway = set_gateway(ripv2_msg->vectores_distancia[i].next_hop); //del campo next_hop del vector distancia, razonamos el gateway
                         //Si devuelve 0,la gateway ha de ser la IP de donde lo hemos recibido, sino, gateway = next_hop.
                         if(calc_gateway == 0)
                         {
-                            next_hop = source_ip; // addr recieved as next hop is different from 0.0.0.0, we will use the source ip
+                            next_hop = &source_ip; // addr recieved as next hop is different from 0.0.0.0, we will use the source ip
                         }
                         
                         ripv2_route_t * new_route;
                         new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd);
                         log_trace("Adding new route to our table.\n");
-                        rip_route_table_add(rip_table, new_route);
-                        rip_route_table_print(rip_table);
+                        ripv2_route_table_add(rip_table, new_route);
+                        ripv2_route_table_print(rip_table);
                     } else {
                         log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or less hops
                     }
@@ -267,7 +267,7 @@ int main ( int argc, char * argv[] )
                     {
                         if(ntohl(ripv2_msg->vectores_distancia[i].metric) + 1 >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
-                            rip_route_table_remove(rip_table,route_index);
+                            ripv2_route_table_remove(rip_table,route_index);
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             int new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
                             route_to_update->metric = new_metric; //update metric, whatever cost
@@ -290,7 +290,7 @@ int main ( int argc, char * argv[] )
                             //rip_route_table_remove(rip_table, route_index);
                             //rip_route_table_add(rip_table, route_to_update);
 
-                            rip_route_table_print(rip_table);
+                            ripv2_route_table_print(rip_table);
                         }
                     }
                 }
@@ -320,7 +320,11 @@ int main ( int argc, char * argv[] )
                 } //Si ruta es NULL
             }
             int total_len = (num_of_routes*20) + 4;
-            udp_send(my_udp_layer, client_port, source_ip, (unsigned char *) &ripv2_msg, total_len);
+
+            unsigned char * dest[IPv4_STR_MAX_LENGTH];
+            ipv4_addr_str(source_ip, dest);
+
+            udp_send(my_udp_layer, dest, client_port, (unsigned char *) &ripv2_msg, total_len);
         }
     }
     return 0;
