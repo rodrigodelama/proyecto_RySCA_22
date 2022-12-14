@@ -317,7 +317,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
   struct ipv4_header *ipv4_packet_ptr = NULL;
   int is_target_type;
   int is_my_ip;
-  int is_ripv2_ip;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
+  int is_ripv2_ip = 0;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
                     //In our links the routers will send and recieve on 224.0.0.9
   mac_addr_t mac_src;
   int original_checksum;
@@ -348,25 +348,39 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       print_pkt(ipv4_buffer, (packet_buf_len + 20), -1);
     #endif
     ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
+    log_trace("ANTES DE COMPARACION DE IP's\n");
+    char debug_dest_ip[60];
+    ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug_dest_ip);
+    log_debug("--------------->>>IP destino del paquete recibido -> %s\n", debug_dest_ip);
+    char debug_src_ip[60];
+    ipv4_addr_str ( ipv4_packet_ptr->dest_ip, debug_src_ip);
+    log_debug("--------------->>>IP origen del paquete recibido -> %s\n", debug_src_ip);
+
+    char debug_my_ip[60];
+    ipv4_addr_str ( layer->addr, debug_my_ip);
+    log_debug("--------------->>>MY IP ADRESS -> %s\n", debug_my_ip);
 
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
     
 
-    if (is_my_ip == 0) {
-      char debug3[60];
-      ipv4_addr_str ( layer->addr, debug3 );
-      log_debug("Packet received to OUR IP -> %s\n", debug3);
-      char debug4[60];
-      ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug4 );
-      log_debug("Packet received FROM IP -> %s\n", debug4);
-      is_my_ip = 1;
+    if (is_my_ip == 1) {
+      // char debug3[60];
+      // ipv4_addr_str ( layer->addr, debug3 );
+      // log_debug("Packet received to OUR IP -> %s\n", debug3);
+      // char debug4[60];
+      // ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug4 );
+      // log_debug("Packet received FROM IP -> %s\n", debug4);
+      //is_my_ip = 1;
     }else{
-      is_my_ip = 3;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
+      is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
+      char debug5[60];
+      ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug5 );
+      log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
       //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
     } 
     // we have to do all of multicast
     // usar mascaras binarias
-    if (is_my_ip == 3) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
+    if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
     {
       // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
       // 224.0.0.9 (todos los routers RIPv2 del enlace) 
@@ -383,7 +397,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       { 
         //do is RIPv2 IP
         is_ripv2_ip = (memcmp(ipv4_packet_ptr->dest_ip, RIPv2_ADDR, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
-        if (is_ripv2_ip == 0)
+        if (is_ripv2_ip == 1)
         {
           log_debug("Packet received to RIPv2 MULTICAST IP -> %d\n", RIPv2_ADDR);
         }
@@ -402,6 +416,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     log_debug("is_my_checksum -> %d\n",is_my_checksum);
     log_debug("is_my_ip -> %d\n",is_my_ip);
     log_debug("is_my_target_type -> %d\n",is_target_type);
+    log_debug("is_ripv2_ip -> %d\n", is_ripv2_ip);
 
   } while ( !((is_my_ip || is_ripv2_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
   log_trace("Paquete bien recibido (tipo, checksum e ip destino del paquete son los correctos)");//Los mios, al fin y al cabo.

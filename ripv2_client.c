@@ -68,7 +68,7 @@ int main ( int argc, char * argv[] )
     }
     */
     //REQUEST:-----------------------------------------------------------------------------------------------------------------------------
-    uint16_t destport = 520;
+    uint16_t destport = RIPv2_PORT;
     //! what do we do with config file? -> we will create a ripv2 file with just the route to our default gateway.
     udp_layer_t * my_udp_layer = udp_open(random_port_generator(), "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");//para las rutas, seguiremos utilizando estáticas.
     log_trace("udp_layer configuration DONE\n");
@@ -81,8 +81,8 @@ int main ( int argc, char * argv[] )
     ripv2_msg_t request_message;//Si no hago el malloc, me dice que la variable no esta inicializada ??
     memset(&request_message, 0, sizeof(ripv2_msg_t));
     //Cabecera RIP:
-    request_message.type = (uint8_t) 1;
-    request_message.version = (uint8_t) 2;
+    request_message.type = (uint8_t) 1; //request
+    request_message.version = (uint8_t) 2; //response
     request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
     //Entrada 1, vector distancia:
     request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);

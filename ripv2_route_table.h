@@ -47,7 +47,7 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
- ripv2_route_t* ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric);
+ripv2_route_t* ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric);
 //from .c
 //ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric, timerms_t* timer)
 
@@ -88,7 +88,7 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
 void ripv2_route_print ( ripv2_route_t * route );
 
 // printing distance vectors.
-void ripv2_vector_print(entrada_rip_t * vector);
+void ripv2_vector_print(vector_distancia_t * vector);
 
 /* void ripv2_route_free ( ripv_route_t * route );
  *
@@ -143,7 +143,7 @@ void ripv2_route_free ( ripv2_route_t * route );
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la tabla de rutas.
  */
-ripv2_route_table_t * ripv2_route_table_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric);
+ripv2_route_table_t * ripv2_route_table_create();
 
 
 /* int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route );
@@ -237,7 +237,7 @@ ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_add
  * ERRORES:
  *   Esta función devuelve 'NULL' no existe ninguna ruta en dicha posición, o
  *   si no ha sido posible consultar la tabla de rutas.
- */ripv2_route_t * rip_route_table_get ( ripv2_route_table_t * table, int index );
+ */ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index );
 
 
 /* _route_table_find ( ripv2_route_table_t * table, ripv2_addr_t subnet, ripv2_addr_t mask );

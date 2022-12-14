@@ -6,8 +6,9 @@
 //#define AF_INET 2  ya estaba definido
 
 #define RIPv2_PORT 520
-#define RIPv2_ROUTE_TABLE_SIZE 25
 #define RECEPTION_TIMER 180000
+#define RIPv2_ROUTE_TABLE_SIZE 25
+#define LEN_PAYLOAD_RIP 1400
 #define RIPv2_MESSAGE_HEADER_SIZE 4 // fam_dirs (1 byte) + uint8_t version (1 byte) + dominio_encaminamiento (2 bytes) = 4 bytes; 
 #define RIPv2_DISTANCE_VECTOR_ENTRY_SIZE 20
 #define RIPv2_REQUEST 1
@@ -26,10 +27,10 @@ typedef struct ripv2_route {
 } ripv2_route_t;
 
 typedef struct ripv2_route_table {
-  ripv2_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
+  ripv2_route_t * routes[IPv4_ROUTE_TABLE_SIZE]; //max is 256
 } ripv2_route_table_t;
 
-typedef struct vector_distancia//vectores distancia
+typedef struct vector_distancia //vectores distancia
 {
     uint16_t familia_dirs;//En RFC 2453, familia dirs debe ser 0, 
     uint16_t etiqueta_ruta;

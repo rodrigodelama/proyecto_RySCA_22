@@ -331,7 +331,8 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la tabla de rutas.
  */
-ripv2_route_table_t * rip_route_table_create(){
+ripv2_route_table_t * ripv2_route_table_create()
+{
   ripv2_route_table_t * table;
 
   table = (ripv2_route_table_t *) malloc(sizeof(struct ripv2_route_table));

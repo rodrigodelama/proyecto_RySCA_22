@@ -34,16 +34,16 @@ int main(int argc, char ** argcv)
   unsigned char buffer_rip[LEN_PAYLOAD_RIP]; //1472 de capacidad
   uint16_t puerto_cliente;
   ipv4_addr_t ip_router_que_recibimos;
-  ripv2_route_table_t * tabla_rip = rip_route_table_create(); //Creamos la tabla de rutas
-  rip_route_table_read (fichero_rip, tabla_rip ); //Rellenamos tabla read
-  rip_route_table_print(tabla_rip);
+  ripv2_route_table_t * rip_table = rip_route_table_create(); //Creamos la tabla de rutas
+  rip_route_table_read (fichero_rip, rip_table ); //Rellenamos tabla read
+  rip_route_table_print(rip_table);
   int comprobacion_ruta; //Lo usamos para ponerlo a 1 si nos envian la ruta que queríamos borrar
 
   while(1)
   {
-    long int time_rcv = calcular_menor_temporizador(tabla_rip); //Le metemos la tabla y nos devuelve el menor tiempo y el indice de la ruta de menor tiempo
+    long int time_rcv = calcular_menor_temporizador(rip_table); //Le metemos la tabla y nos devuelve el menor tiempo y el indice de la ruta de menor tiempo
     printf("El menor tiempo es %ld\n", time_rcv);
-    index_min = calcular_indice_menor_temporizador(tabla_rip);
+    index_min = calcular_indice_menor_temporizador(rip_table);
 
     //RECIBIMOS DURANTE EL MENOR TIEMPO DE LA TABLA
 
@@ -52,10 +52,15 @@ int main(int argc, char ** argcv)
     int entries_rcvd = (received_data - 4)/20;
     struct ripv2_msg* ripv2_msg_rcvd = NULL;
     ripv2_msg_rcvd = (struct ripv2_msg *) buffer_rip;
-    ripv2_route_t* ruta_actual = rip_route_table_get(tabla_rip,index_min);
+
+    //coge la ruta con menor temporizador
+    ripv2_route_t* ruta_actual = ripv2_route_table_get(rip_table, index_min);
+    //noseporq convierte addr a string
     char subnet_str[IPv4_STR_MAX_LENGTH];
     ipv4_addr_str(ruta_actual->subnet_addr, subnet_str);
+    //coge 
     long int tiempo_expiracion = timerms_left(&ruta_actual->timer_ripv2);
+
 
     if(received_data < 0)
     {
@@ -64,13 +69,13 @@ int main(int argc, char ** argcv)
 
     } else if(received_data == 0) {
       printf("Ha vencido el temporizador, eliminamos la ruta %s\n",subnet_str);
-      rip_route_table_remove(tabla_rip,index_min);
-      rip_route_table_print(tabla_rip);
+      rip_route_table_remove(rip_table, index_min);
+      rip_route_table_print(rip_table);
 
     } else if(received_data > 0 && (tiempo_expiracion == 0)) { //Hemos recibido algo cuando el temporizador de la ruta ha acabado y voy a comprobar si es la que estaba venciendo
       for(i = 0; i < entries_rcvd; i++)
       {
-        index_ruta = rip_route_table_find(tabla_rip, ripv2_msg_rcvd->vectores_distancia[i].subred, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask);
+        index_ruta = rip_route_table_find(rip_table, ripv2_msg_rcvd->vectores_distancia[i].subred, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask);
         if(index_min == index_ruta)
         {
           comprobacion_ruta=1;
@@ -81,8 +86,8 @@ int main(int argc, char ** argcv)
       {
         printf("Eliminamos la ruta %s\n",subnet_str);
         comprobacion_ruta = 0;
-        rip_route_table_remove(tabla_rip,index_min);
-        rip_route_table_print(tabla_rip);
+        rip_route_table_remove(rip_table,index_min);
+        rip_route_table_print(rip_table);
       }
     }
 
@@ -96,9 +101,9 @@ int main(int argc, char ** argcv)
       {
         ipv4_addr_str(ripv2_msg_rcvd->vectores_distancia[i].subred, ruta_str);
         printf("La ruta %d es %s\n ",i,ruta_str);
-        index_ruta = rip_route_table_find(tabla_rip, ripv2_msg_rcvd->vectores_distancia[i].subred, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask);
+        index_ruta = rip_route_table_find(rip_table, ripv2_msg_rcvd->vectores_distancia[i].subred, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask);
 
-      //                 -------------- NO TENEMOS LA RUTA -----------------------------------------
+      //-------------- NO TENEMOS LA RUTA -----------------------------------------
 
       if(index_ruta==-1)
       {
@@ -110,7 +115,7 @@ int main(int argc, char ** argcv)
           entrada_rip_t * ruta_nueva = (entrada_rip_t *) malloc(sizeof(struct entrada_rip));
           memcpy(ruta_nueva->subred, ripv2_msg_rcvd->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
           memcpy(ruta_nueva->subnet_mask, ripv2_msg_rcvd->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
-          calc_sig_salto = calcular_siguiente_salto(ripv2_msg_rcvd->vectores_distancia[i].next_hop);
+          calc_sig_salto = set_next_hop(ripv2_msg_rcvd->vectores_distancia[i].next_hop);
           
           if(calc_sig_salto == 0)
           {
@@ -122,8 +127,8 @@ int main(int argc, char ** argcv)
           ruta_nueva->metric = metrica_recibida;
           ruta_nueva->timer = timeout; //El tiempo lo ponemos a 180
 
-          rip_route_table_add(tabla_rip, ruta_nueva);
-          rip_route_table_print(tabla_rip);
+          rip_route_table_add(rip_table, ruta_nueva);
+          rip_route_table_print(rip_table);
         } else {
           printf("No incluimos la ruta que nos ha llegado porque es inacesible para nosostros\n");
         }
@@ -134,13 +139,13 @@ int main(int argc, char ** argcv)
 
         ripv2_route_t * ruta_de_nuestra_tabla = NULL;
         ripv2_route_t * ruta_nueva2 = NULL;
-        ruta_de_nuestra_tabla = rip_route_table_get(tabla_rip, index_ruta);
+        ruta_de_nuestra_tabla = ripv2_route_table_get(rip_table, index_ruta);
         //if(ruta_de_nuestra_tabla!=NULL){
         if(memcmp(ripv2_msg_rcvd->vectores_distancia[i].next_hop, ruta_de_nuestra_tabla->next_hop, IPv4_ADDR_SIZE) ==0){
 
             if(ntohl(ripv2_msg_rcvd->vectores_distancia[i].metric)+1>=16)
             { //Si es del padre y 16 de metrica
-              rip_route_table_remove(tabla_rip,index_ruta);
+              rip_route_table_remove(rip_table,index_ruta);
 
             } else if(ntohl(ripv2_msg_rcvd->vectores_distancia[i].metric)+1 < 16) {
 
@@ -164,9 +169,9 @@ int main(int argc, char ** argcv)
             ruta_nueva2->metric = metrica_nueva;
             ruta_nueva2->timer_ripv2 = timeout;
 
-            rip_route_table_remove(tabla_rip, index_ruta);
-            rip_route_table_add(tabla_rip, ruta_nueva2);
-            rip_route_table_print(tabla_rip);
+            rip_route_table_remove(rip_table, index_ruta);
+            rip_route_table_add(rip_table, ruta_nueva2);
+            rip_route_table_print(rip_table);
 
           } //cierra que la metrica sea menor que la que teniamos guardada
         } //Cierra si no viene del padre
@@ -179,7 +184,7 @@ int main(int argc, char ** argcv)
     } else if(ripv2_msg_rcvd->type == RIPv2_REQUEST){
       printf("\nRecibimos un request\n");
 
-      int numero_rutas = cuantas_rutas(tabla_rip); //Calcula el numero de rutas
+      int numero_rutas = number_of_routes(rip_table); //Calcula el numero de rutas
       struct ripv2_msg paquete_rip;
 
       paquete_rip.type = RIPv2_RESPONSE;
@@ -188,7 +193,7 @@ int main(int argc, char ** argcv)
       ripv2_route_t * rutas;
       for(i = 0; i<numero_rutas; i++)
       {
-        rutas = rip_route_table_get(tabla_rip, i);
+        rutas = ripv2_route_table_get(rip_table, i);
         if(rutas!=NULL){
         paquete_rip.vectores_distancia[i].id_familia = AF_INET; //2
         paquete_rip.vectores_distancia[i].etiqueta = 0x0000;
@@ -205,87 +210,4 @@ int main(int argc, char ** argcv)
   } //Cerramos el while 1
 
   udp_close(my_udp_layer);
-} //Cerramos el main
-
-/**********************************CONTAMOS CAUNTAS RUTAS HAY EN NUESTRA TABLA***********************************************************/
-
-int cuantas_rutas(ripv2_route_table_t * tabla_rip )
-{
-  ripv2_route_t * ruta = NULL;
-  int contador=0;
-  int i;
-  for(i=0;i<RIPv2_ROUTE_TABLE_SIZE;i++)
-  {
-    ruta = rip_route_table_get(tabla_rip, i);
-    if(ruta!=NULL)
-    {
-      contador++;
-    }
-  }
-  return contador;
-}
-
-/**********DEVUELVO 0 EN EL CASO NORMAL CUANDO EL SIGUIENTE SALTO ES EL QUE ME HA ENVIADO LAS RUTAS,  Y 1 SI ES EL CASO RARO*********************/
-
-int calcular_siguiente_salto(ipv4_addr_t siguiente_salto)
-{
-  //memcmp devuelve 0 si son iguales
-  int comp = memcmp(IPv4_ZERO_ADDR, siguiente_salto, IPv4_ADDR_SIZE);
-  if(comp == 0)
-  {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-/******************************DEVUELVE EL MENOR TIEMPO DE LOS TEMORIZADORES DE LAS RUTAS Y EL INDICE DE LA RUTA CON EL MENOR TIEMPO*******************/
-
-int calcular_menor_temporizador(ripv2_route_table_t * tabla_rip)
-{
-  int j = 0;
-  long int time_left;
-  long int tiempo_minimo=180000;
-  ripv2_route_t * ruta_leida= NULL;
-  
-  for(j = 0; j < RIPv2_ROUTE_TABLE_SIZE; j++)
-  {
-    ruta_leida = rip_route_table_get(tabla_rip, j);
-    if (ruta_leida != NULL)
-    {
-    time_left = timerms_left(&ruta_leida->timer_ripv2);
-    printf("el temporizador  %d :%ld\n", j, time_left );
-      if(time_left < tiempo_minimo)
-      {
-        tiempo_minimo = time_left;
-      }
-    }
-  }
-  return tiempo_minimo;
-}
-
-int calcular_indice_menor_temporizador(ripv2_route_table_t * tabla_rip)
-{
-  int j = 0;
-  int index_min;
-  long int time_left;
-  long int tiempo_minimo = 180000;
-  ripv2_route_t* ruta_leida = NULL;
-
-  for(j = 0; j < RIPv2_ROUTE_TABLE_SIZE; j++)
-  {
-    ruta_leida= rip_route_table_get(tabla_rip, j);
-    if(ruta_leida != NULL)
-    {
-      time_left= timerms_left(&ruta_leida->timer_ripv2);
-
-      if(time_left<tiempo_minimo)
-      {
-        tiempo_minimo=time_left;
-        index_min=j;
-
-      }
-    }
-  }
-  return index_min;
 }
