@@ -1,5 +1,5 @@
 #include "global_dependencies.h"
-#include "ipv4_dependencies.h" //errors here
+// #include "ipv4_dependencies.h" //errors here
 
 #include "ripv2.h"
 #include "ripv2_route_table.h"
@@ -131,7 +131,7 @@ int main ( int argc, char * argv[] )
     uint16_t client_port;
     unsigned char buffer_rip[LEN_PAYLOAD_RIP]; //? cuanto? 1400 maybe change later
     
-    udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_client.txt", "./ipv4_route_table_client.txt");
+    udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
         log_trace("udp_layer configuration DONE\n");
     
     if(my_udp_layer == NULL)
@@ -146,7 +146,7 @@ int main ( int argc, char * argv[] )
     int index_min;
     int is_our_route;
     int route_index;
-    ipv4_addr_t* next_hop;
+    ipv4_addr_t next_hop;
     int calc_gateway;
     char rip_iface[10] = "eth1";
     
@@ -211,12 +211,13 @@ int main ( int argc, char * argv[] )
         if(ripv2_msg->type == RIPv2_RESPONSE) // no hace falta hacer noths porque es un entero de 8bits (1 byte).
         {
             char str_route[IPv4_STR_MAX_LENGTH];
-            printf("Received %d distance vectors", numero_de_vectores_distancia);
+            log_trace("Received %d distance vectors", numero_de_vectores_distancia);
+
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
                 ipv4_addr_str(ripv2_msg->vectores_distancia[i].subred, str_route);
 
-                printf("Route %d is %s\n ", i, str_route);
+                log_trace("Route %d is %s\n ", i, str_route);
 
                 route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
 
@@ -227,13 +228,13 @@ int main ( int argc, char * argv[] )
 
                     if(metric_rcvd < 16) //
                     {
-
-                        next_hop = &(ripv2_msg->vectores_distancia[i].next_hop);
+                        memcpy(next_hop, ripv2_msg->vectores_distancia[i].next_hop, IPv4_ADDR_SIZE);
                         calc_gateway = set_gateway(ripv2_msg->vectores_distancia[i].next_hop); //del campo next_hop del vector distancia, razonamos el gateway
-                        //Si devuelve 0,la gateway ha de ser la IP de donde lo hemos recibido, sino, gateway = next_hop.
+                        //Si devuelve 0, la gateway ha de ser la IP de donde lo hemos recibido, sino, gateway = next_hop.
                         if(calc_gateway == 0)
                         {
-                            next_hop = &source_ip; // addr recieved as next hop is different from 0.0.0.0, we will use the source ip
+                            // next_hop = source_ip; // addr recieved as next hop is different from 0.0.0.0, we will use the source ip
+                            memcpy(next_hop, source_ip, IPv4_ADDR_SIZE);
                         }
                         
                         ripv2_route_t * new_route;
@@ -248,9 +249,7 @@ int main ( int argc, char * argv[] )
                 // we already have the route
                 } else if(route_index > -1) { //SI esta en la tabla
                     log_trace("Recieved a route we already have, we will check if we must update it");
-
-                    //khe asemoh papi
-
+                    
                     //mirar de quien viene
                         //caso papa
                             //mirar metrica recibida si 15 o superior, BORRAR (15+1 = inf, 16+1 = inf)
@@ -258,33 +257,43 @@ int main ( int argc, char * argv[] )
                         //caso random
                             //comparar metrica recibida con la actual
                             //si es inferior, actualizar la ruta con la nueva metrica mejor
-
-                    ripv2_route_t * route_to_update;
+                    
+                    ripv2_route_t * route_to_update = NULL;
+                    //ripv2_route created from dv recieved in ripv2_msg
+                    memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred,IPv4_ADDR_SIZE);
+                    memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
+                    uint32_t new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
+                    route_to_update->metric = new_metric;
+                    memcpy(route_to_update->gateway_addr, ripv2_msg->vectores_distancia[i].next_hop, IPv4_ADDR_SIZE);
+                    if(set_gateway(ripv2_msg->vectores_distancia[i].next_hop) == 0)
+                    {
+                        memcpy(route_to_update->gateway_addr, source_ip, IPv4_ADDR_SIZE);
+                    }
+                    
                     ripv2_route_t * registered_route = ripv2_route_table_get(rip_table, route_index);
 
                     // si es del papa -> actualizamos a metrica sin impotar si es menor o mayor que la anterior.
-                    if(memcmp(ripv2_msg->vectores_distancia[i].next_hop, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
+                    //set_gateway(ipv4_addr_t next_hop);
+                    if(memcmp(source_ip, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
                     {
-                        if(ntohl(ripv2_msg->vectores_distancia[i].metric) + 1 >= 16) //si es de gw y tiene 16 o mas de metrica
+                        if(new_metric >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
-                            ripv2_route_table_remove(rip_table,route_index);
+                            ripv2_route_table_remove(rip_table, route_index);
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
-                            int new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
-                            route_to_update->metric = new_metric; //update metric, whatever cost
-                            timerms_reset(&route_to_update->timer_ripv2, RECEPTION_TIMER); //refresh timer
+                            //update metric, whatever cost
+                            registered_route->metric = new_metric; //simple type so equals
+                            timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
                         }
                     } else { // si no es del papa
-                        int new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
-
-                        if(new_metric < registered_route->metric) // Actualizamos la ruta
+                        if(new_metric < registered_route->metric) // actualizamos la ruta
                         {
                             log_trace("Better route detected: We will update it with the latest info (not from our father router)\n");
-
-                            memcpy(route_to_update->subnet_addr, registered_route->subnet_addr, IPv4_ADDR_SIZE); //update address
-                            memcpy(route_to_update->subnet_mask, registered_route->subnet_mask, IPv4_ADDR_SIZE); //update subnet
-                            memcpy(route_to_update->gateway_addr, registered_route->gateway_addr, IPv4_ADDR_SIZE); //update next hop as source_ip
+                            
+                            memcpy(registered_route->subnet_addr, route_to_update->subnet_addr, IPv4_ADDR_SIZE); //update address
+                            memcpy(registered_route->subnet_mask, route_to_update->subnet_mask, IPv4_ADDR_SIZE); //update subnet
+                            memcpy(registered_route->gateway_addr, route_to_update->gateway_addr, IPv4_ADDR_SIZE); //update next hop as source_ip
                             route_to_update->metric = new_metric; //update with better (lower) metric
-                            timerms_reset(&route_to_update->timer_ripv2, RECEPTION_TIMER); //refresh timer
+                            timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
 
                             // POSSIBLY EASIER : but its not updating a route
                             //rip_route_table_remove(rip_table, route_index);
@@ -300,31 +309,31 @@ int main ( int argc, char * argv[] )
             log_trace("Request recieved");
 
             int num_of_routes = number_of_routes(rip_table); //Calcula el numero de rutas
-            ripv2_msg_t ripv2_msg;
+            ripv2_msg_t* ripv2_msg;
 
-            ripv2_msg.type = RIPv2_RESPONSE;
-            ripv2_msg.version = 2;
-            ripv2_msg.dominio_encaminamiento = 0x0000;
+            ripv2_msg->type = RIPv2_RESPONSE;
+            ripv2_msg->version = 2;
+            ripv2_msg->dominio_encaminamiento = 0x0000;
             ripv2_route_t * routes_to_send;
             for(int i = 0; i < num_of_routes; i++)
             {
                 routes_to_send = ripv2_route_table_get(rip_table, i);
                 if(routes_to_send != NULL)
                 {
-                    ripv2_msg.vectores_distancia[i].familia_dirs = AF_INET; //2
-                    ripv2_msg.vectores_distancia[i].etiqueta_ruta = 0x0000;
-                    memcpy(ripv2_msg.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
-                    ripv2_msg.vectores_distancia[i].metric = htonl(routes_to_send->metric);
+                    ripv2_msg->vectores_distancia[i].familia_dirs = AF_INET; //2
+                    ripv2_msg->vectores_distancia[i].etiqueta_ruta = 0x0000;
+                    memcpy(ripv2_msg->vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg->vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg->vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
+                    ripv2_msg->vectores_distancia[i].metric = htonl(routes_to_send->metric);
                 } //Si ruta es NULL
             }
             int total_len = (num_of_routes*20) + 4;
 
-            unsigned char * dest[IPv4_STR_MAX_LENGTH];
-            ipv4_addr_str(source_ip, dest);
+            // unsigned char * dest[IPv4_STR_MAX_LENGTH];
+            // ipv4_addr_str(source_ip, dest);
 
-            udp_send(my_udp_layer, dest, client_port, (unsigned char *) &ripv2_msg, total_len);
+            udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
         }
     }
     return 0;
