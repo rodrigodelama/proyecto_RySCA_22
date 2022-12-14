@@ -361,7 +361,6 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     log_debug("--------------->>>MY IP ADRESS -> %s\n", debug_my_ip);
 
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
-    
 
     if (is_my_ip != 1) {
       is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
@@ -372,8 +371,12 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     } 
     // we have to do all of multicast
     // usar mascaras binarias
+    log_debug("is_my_ip value between unicast and multicast -> %d",is_my_ip);
+    
     if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
     {
+
+      log_trace("Testing\n");
       // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
       // 224.0.0.9 (todos los routers RIPv2 del enlace) 
       // check that first 4 bits are 1110
@@ -382,11 +385,11 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       
       for(int i = 0; i < 4; i++)
       {
-        aux[i] = layer->addr[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
+        aux[i] = layer->netmask[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
       }
       char debug_aux[60];
       ipv4_addr_str (aux, debug_aux);
-      log_debug(debug_aux);
+      log_debug("Resultado de & logico -> %s\n", debug_aux);
 
       if(memcmp(aux, ripv2_mask, 4) == 0) // If the comparation succeeds, we have
       { 

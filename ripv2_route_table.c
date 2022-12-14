@@ -283,7 +283,7 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line ){
  */
 int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
   int err;
-  log_trace("Inside ripv2_route_output() -> Printing route table\n");
+  // log_trace("Inside ripv2_route_output() -> Printing route table\n");
   if (header == 0) {
     err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway  \tMetric  Timer\n");
     if (err < 0) {

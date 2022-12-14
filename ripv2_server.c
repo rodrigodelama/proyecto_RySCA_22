@@ -140,7 +140,7 @@ int main ( int argc, char * argv[] )
     }
     ripv2_route_table_t * rip_table = ripv2_route_table_create(); //Creamos la tabla de rutas
     ripv2_route_table_read ("./ripv2_route_table_server.txt", rip_table); //Rellenamos la tabla
-    ripv2_route_table_print(rip_table);
+    // ripv2_route_table_print(rip_table);
 
     int index_min;
     int is_our_route;
@@ -151,6 +151,7 @@ int main ( int argc, char * argv[] )
     
     while (1)
     {
+        ripv2_route_table_print(rip_table);
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
         int bytes_rcvd = udp_rcv(my_udp_layer, source_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
@@ -180,7 +181,7 @@ int main ( int argc, char * argv[] )
             log_trace("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
             // #ifdef DEBUG
-                ripv2_route_table_print(rip_table);
+                // ripv2_route_table_print(rip_table);
             // #endif
 
         } else if(bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
@@ -202,7 +203,7 @@ int main ( int argc, char * argv[] )
                 log_trace("Deleted the route: %s", subnet_str);
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
-                ripv2_route_table_print(rip_table);
+                // ripv2_route_table_print(rip_table);
             }
         }
 
@@ -240,14 +241,14 @@ int main ( int argc, char * argv[] )
                         new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd);
                         log_trace("Adding new route to our table.\n");
                         ripv2_route_table_add(rip_table, new_route);
-                        ripv2_route_table_print(rip_table);
+                        // ripv2_route_table_print(rip_table);
                     } else {
                         log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or less hops
                     }
 
                 // we already have the route
                 } else if(route_index > -1) { //SI esta en la tabla
-                    log_trace("Recieved a route we already have, we will check if we must update it");
+                    log_trace("Received a route we already have, we will check if we must update it");
                     
                     //mirar de quien viene
                         //caso papa
@@ -257,15 +258,28 @@ int main ( int argc, char * argv[] )
                             //comparar metrica recibida con la actual
                             //si es inferior, actualizar la ruta con la nueva metrica mejor
                     
-                    ripv2_route_t * route_to_update = NULL;
+                    //ripv2_route_table_remove(rip_table, route_index);
+                    //ripv2_route_t * route_to_update = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, ipv4_addr_t gw, new_metric);
+                    //rip_route_table_add(rip_table, route_to_update);
+                    
+                    ripv2_route_t * route_to_update = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
                     //ripv2_route created from dv recieved in ripv2_msg
-                    memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred,IPv4_ADDR_SIZE);
+                    // log_trace("test0");
+                    memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
+                    // log_trace("test1");
                     memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
+                    // log_trace("test2");
                     uint32_t new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
+                    // log_trace("test3");
                     route_to_update->metric = new_metric;
                     memcpy(route_to_update->gateway_addr, ripv2_msg->vectores_distancia[i].next_hop, IPv4_ADDR_SIZE);
+                    // log_trace("test4");
+
                     if(set_gateway(ripv2_msg->vectores_distancia[i].next_hop) == 0)
                     {
+                    //     ipv4_addr_t gw_good;
+                        //memcpy(gw_good, source_ip, IPv4_ADDR_SIZE);
+                        //ripv2_route_t * route_to_update = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, ipv4_addr_t gw_good, new_metric);
                         memcpy(route_to_update->gateway_addr, source_ip, IPv4_ADDR_SIZE);
                     }
                     
@@ -277,6 +291,7 @@ int main ( int argc, char * argv[] )
                     {
                         if(new_metric >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
+                            ripv2_route_table_print(rip_table);
                             ripv2_route_table_remove(rip_table, route_index);
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             //update metric, whatever cost
@@ -296,9 +311,10 @@ int main ( int argc, char * argv[] )
 
                             // POSSIBLY EASIER : but its not updating a route
                             //rip_route_table_remove(rip_table, route_index);
+
                             //rip_route_table_add(rip_table, route_to_update);
 
-                            ripv2_route_table_print(rip_table);
+                            // ripv2_route_table_print(rip_table);
                         }
                     }
                 }
@@ -334,6 +350,7 @@ int main ( int argc, char * argv[] )
 
             udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
         }
+        // ripv2_route_table_print(rip_table);
     }
     return 0;
 
