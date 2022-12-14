@@ -27,7 +27,7 @@ puerto 520:
 
 int main ( int argc, char * argv[] )
 {   
-    if(argc > 4 || argc == 1 || argc < 2)
+    if(argc > 4 || argc < 2)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip> <log_level>\n");

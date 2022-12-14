@@ -1,29 +1,9 @@
 #include "global_dependencies.h"
-// #include "ipv4_dependencies.h" //errors here
 
 #include "ripv2.h"
 #include "ripv2_route_table.h"
 
 ipv4_addr_t IPv4_ZERO_ADDR_3 = { 0, 0, 0, 0 };
-
-/*
-Generar el response (toda la tabla):
-Crear cabecera IPv4+UDP con:
-ipv4.destino = 10.0.1.1 (IPv4 del router del request)
-udp.puerto_destino = puerto origen del request / 520 (RIP port) para periodic responses
-udp.puerto_origen = 520 (RIP port)
-Rellenar las entradas necesarias en el mensaje RIPv2:
-ripv2.command = 2 (response)
-ripv2.version = 2 (RIPv2)
-ripv2.dom_encam = 0x0000
-ripv2.RTE[i].familia_de_direcciones = 2 (IP)
-ripv2.RTE[i].dirección= 10.0.30.0 (ejemplo)
-ripv2.RTE[i].máscara = 255.255.255.0 (ejemplo)
-ripv2.RTE[i].siguiente_salto = 0.0.0.0
-ripv2.RTE[i].métrica = 1
-
-32 bits métrica -> hacer htonl()
-*/
 
 long int least_time(ripv2_route_table_t * rip_table)
 {
@@ -99,10 +79,10 @@ int number_of_routes(ripv2_route_table_t * rip_table)
 
 int main ( int argc, char * argv[] )
 {   
-    if(argc > 3 || argc == 1 || argc < 2)
+    if(argc > 3 || argc < 1)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
-        printf("Uso: <target_ip> <log_level>\n");
+        printf("Uso: <log_level>\n");
         printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
@@ -152,6 +132,8 @@ int main ( int argc, char * argv[] )
     while (1)
     {
         ripv2_route_table_print(rip_table);
+        printf("\n");
+        
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
         int bytes_rcvd = udp_rcv(my_udp_layer, source_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
@@ -264,22 +246,14 @@ int main ( int argc, char * argv[] )
                     
                     ripv2_route_t * route_to_update = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
                     //ripv2_route created from dv recieved in ripv2_msg
-                    // log_trace("test0");
                     memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
-                    // log_trace("test1");
                     memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
-                    // log_trace("test2");
                     uint32_t new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
-                    // log_trace("test3");
                     route_to_update->metric = new_metric;
                     memcpy(route_to_update->gateway_addr, ripv2_msg->vectores_distancia[i].next_hop, IPv4_ADDR_SIZE);
-                    // log_trace("test4");
 
                     if(set_gateway(ripv2_msg->vectores_distancia[i].next_hop) == 0)
                     {
-                    //     ipv4_addr_t gw_good;
-                        //memcpy(gw_good, source_ip, IPv4_ADDR_SIZE);
-                        //ripv2_route_t * route_to_update = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, ipv4_addr_t gw_good, new_metric);
                         memcpy(route_to_update->gateway_addr, source_ip, IPv4_ADDR_SIZE);
                     }
                     
@@ -291,8 +265,10 @@ int main ( int argc, char * argv[] )
                     {
                         if(new_metric >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
+                            registered_route->metric = 16;
                             ripv2_route_table_print(rip_table);
                             ripv2_route_table_remove(rip_table, route_index);
+                            printf("\n");
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             //update metric, whatever cost
                             registered_route->metric = new_metric; //simple type so equals
