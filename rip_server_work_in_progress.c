@@ -271,7 +271,7 @@ int main ( int argc, char * argv[] )
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             int new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
                             route_to_update->metric = new_metric; //update metric, whatever cost
-                            route_to_update->timer_ripv2 = timeout; //refresh timer
+                            timerms_reset(&route_to_update->timer_ripv2, RECEPTION_TIMER); //refresh timer
                         }
                     } else { // si no es del papa
                         int new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
@@ -284,7 +284,7 @@ int main ( int argc, char * argv[] )
                             memcpy(route_to_update->subnet_mask, registered_route->subnet_mask, IPv4_ADDR_SIZE); //update subnet
                             memcpy(route_to_update->next_hop, registered_route->next_hop, IPv4_ADDR_SIZE); //update next hop as source_ip
                             route_to_update->metric = new_metric; //update with better (lower) metric
-                            route_to_update->timer_ripv2 = timeout; //refresh timer
+                            timerms_reset(&route_to_update->timer_ripv2, RECEPTION_TIMER); //refresh timer
 
                             // POSSIBLY EASIER : but its not updating a route
                             //rip_route_table_remove(rip_table, route_index);
@@ -295,10 +295,7 @@ int main ( int argc, char * argv[] )
                     }
                 }
             }
-
-
-//OPTIONAL
-        //someone asks for our route
+        //someone asks for our routes
         } else if(ripv2_msg->type == RIPv2_REQUEST) {
             log_trace("Request recieved");
 
@@ -306,24 +303,24 @@ int main ( int argc, char * argv[] )
             ripv2_msg_t ripv2_msg;
 
             ripv2_msg.type = RIPv2_RESPONSE;
-            ripv2_msg.version=2;
-            ripv2_msg.dominio_encaminamiento=0x0000;
-            ripv2_route_t * rutas;
+            ripv2_msg.version = 2;
+            ripv2_msg.dominio_encaminamiento = 0x0000;
+            ripv2_route_t * routes_to_send;
             for(int i = 0; i < num_of_routes; i++)
             {
-                rutas = ripv2_route_table_get(rip_table, i);
-                if(rutas != NULL)
+                routes_to_send = ripv2_route_table_get(rip_table, i);
+                if(routes_to_send != NULL)
                 {
-                    ripv2_msg.vectores_distancia[i].id_familia = AF_INET; //2
-                    ripv2_msg.vectores_distancia[i].etiqueta = 0x0000;
-                    memcpy(ripv2_msg.vectores_distancia[i].subred, rutas->subnet_addr, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, rutas->subnet_mask, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, rutas->next_hop, IPv4_ADDR_SIZE);
-                    ripv2_msg.vectores_distancia[i].metric = htonl(rutas->metric);
+                    ripv2_msg.vectores_distancia[i].familia_dirs = AF_INET; //2
+                    ripv2_msg.vectores_distancia[i].etiqueta_ruta = 0x0000;
+                    memcpy(ripv2_msg.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->next_hop, IPv4_ADDR_SIZE);
+                    ripv2_msg.vectores_distancia[i].metric = htonl(routes_to_send->metric);
                 } //Si ruta es NULL
             }
-            int total_longitud = (num_of_routes*20) + 4;
-            udp_send(my_udp_layer, client_port, source_ip, (unsigned char *) &ripv2_msg, total_longitud);
+            int total_len = (num_of_routes*20) + 4;
+            udp_send(my_udp_layer, client_port, source_ip, (unsigned char *) &ripv2_msg, total_len);
         }
     }
     return 0;
