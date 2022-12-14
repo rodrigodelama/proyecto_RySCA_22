@@ -46,7 +46,7 @@
     memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
     //memcpy(route->metric, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
     route->metric = (uint32_t) metric;
-    timerms_reset(&(route->timer_ripv2),180000);
+    timerms_reset(&(route->timer_ripv2), 180000);
      //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
   }
   
