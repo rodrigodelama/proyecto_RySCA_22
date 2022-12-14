@@ -363,15 +363,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
     
 
-    if (is_my_ip == 1) {
-      // char debug3[60];
-      // ipv4_addr_str ( layer->addr, debug3 );
-      // log_debug("Packet received to OUR IP -> %s\n", debug3);
-      // char debug4[60];
-      // ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug4 );
-      // log_debug("Packet received FROM IP -> %s\n", debug4);
-      //is_my_ip = 1;
-    }else{
+    if (is_my_ip != 1) {
       is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
       char debug5[60];
       ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug5 );
@@ -392,6 +384,9 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
       {
         aux[i] = layer->addr[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
       }
+      char debug_aux[60];
+      ipv4_addr_str (aux, debug_aux);
+      log_debug(debug_aux);
 
       if(memcmp(aux, ripv2_mask, 4) == 0) // If the comparation succeeds, we have
       { 

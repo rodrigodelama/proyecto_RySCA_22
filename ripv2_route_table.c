@@ -283,9 +283,9 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line ){
  */
 int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
   int err;
-
+  log_trace("Inside ripv2_route_output() -> Printing route table\n");
   if (header == 0) {
-    err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway  \tMetric\n");
+    err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway  \tMetric  Timer\n");
     if (err < 0) {
       return -1;
     }
@@ -296,7 +296,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
   char* ifname = NULL;
   char gw_str[IPv4_STR_MAX_LENGTH];
   char metric_str[IPv4_STR_MAX_LENGTH];
-  
+  char timer_str[IPv4_STR_MAX_LENGTH];
 
   if (route != NULL) {
       ipv4_addr_str(route->subnet_addr, subnet_str);
@@ -304,8 +304,9 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out ){
       ifname = route->iface;
       ipv4_addr_str(route->gateway_addr, gw_str);
       sprintf(metric_str,"%d", route->metric);
+      sprintf(timer_str, "%ld", timerms_left(&(route->timer_ripv2)));
 
-      err = fprintf(out, "%-15s\t%-15s\t%s\t%-15s\t%s\n",subnet_str, mask_str, ifname, gw_str,metric_str);
+      err = fprintf(out, "%-15s\t%-15s\t%s\t%-15s\t%s\t%s\n",subnet_str, mask_str, ifname, gw_str, metric_str, timer_str);
       if (err < 0) {
         return -1;
       }

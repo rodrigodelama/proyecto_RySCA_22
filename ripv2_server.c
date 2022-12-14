@@ -99,18 +99,17 @@ int number_of_routes(ripv2_route_table_t * rip_table)
 
 int main ( int argc, char * argv[] )
 {   
-    if(argc > 4 || argc == 1 || argc < 3)
+    if(argc > 3 || argc == 1 || argc < 2)
     {
         fprintf(stderr, "%s\n", "No input arguments\n");
         printf("Uso: <target_ip> <log_level>\n");
-        printf("     <target_ip>: Direccion ip de destino \n");//No target port, always 520.
         printf("     <log_level>: Nivel superior de logs a usar \n");
         exit(-1);
     }
 
-    if(argc == 3)
+    if(argc == 2)
     {
-        switch(argv[2][0])
+        switch(argv[1][0])
         { //todas las opciones empiezan por letra distinta, solo miro la primera
             case 't':
                 log_set_level(LOG_TRACE);

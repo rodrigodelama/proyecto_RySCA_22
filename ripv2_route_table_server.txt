@@ -1,6 +1,6 @@
-# ripv2_route_table_client.txt
+# ripv2_route_table_server.txt
 
-# SubnetAddr        SubnetMask           Gateway           Metric       Timer
-# 0.0.0.0             0.0.0.0            10.0.1.1          7
-10.0.1.0            255.255.255.0        10.0.3.1          10
-10.0.2.0            255.255.255.0        10.0.3.2          4
+# SubnetAddr     SubnetMask           iface          Gateway        Metric       Timer
+
+10.0.1.0         255.255.255.0        eth1           10.0.3.1         8          
+10.0.2.0         255.255.255.0        eth1           10.0.3.2         4          
