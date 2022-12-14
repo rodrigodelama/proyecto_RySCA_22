@@ -263,7 +263,7 @@ int main ( int argc, char * argv[] )
                     ripv2_route_t * registered_route = ripv2_route_table_get(rip_table, route_index);
 
                     // si es del papa -> actualizamos a metrica sin impotar si es menor o mayor que la anterior.
-                    if(memcmp(ripv2_msg->vectores_distancia[i].next_hop, registered_route->next_hop, IPv4_ADDR_SIZE) == 0)
+                    if(memcmp(ripv2_msg->vectores_distancia[i].next_hop, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
                     {
                         if(ntohl(ripv2_msg->vectores_distancia[i].metric) + 1 >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
@@ -282,7 +282,7 @@ int main ( int argc, char * argv[] )
 
                             memcpy(route_to_update->subnet_addr, registered_route->subnet_addr, IPv4_ADDR_SIZE); //update address
                             memcpy(route_to_update->subnet_mask, registered_route->subnet_mask, IPv4_ADDR_SIZE); //update subnet
-                            memcpy(route_to_update->next_hop, registered_route->next_hop, IPv4_ADDR_SIZE); //update next hop as source_ip
+                            memcpy(route_to_update->gateway_addr, registered_route->gateway_addr, IPv4_ADDR_SIZE); //update next hop as source_ip
                             route_to_update->metric = new_metric; //update with better (lower) metric
                             timerms_reset(&route_to_update->timer_ripv2, RECEPTION_TIMER); //refresh timer
 
@@ -315,7 +315,7 @@ int main ( int argc, char * argv[] )
                     ripv2_msg.vectores_distancia[i].etiqueta_ruta = 0x0000;
                     memcpy(ripv2_msg.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
                     memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->next_hop, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
                     ripv2_msg.vectores_distancia[i].metric = htonl(routes_to_send->metric);
                 } //Si ruta es NULL
             }
