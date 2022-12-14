@@ -36,6 +36,7 @@ network eth0.0
 network eth0.1
 network eth0.2
 redistribute connected
+redistribute static
 exit
 exit
 show ip route
