@@ -1,0 +1,6 @@
+
+# para copiar las tablas a /tmp/
+
+cp ipv4_*.txt /tmp/
+
+

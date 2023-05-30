@@ -326,23 +326,23 @@ int main ( int argc, char * argv[] )
             log_trace("Request recieved");
 
             int num_of_routes = number_of_routes(rip_table); //Calcula el numero de rutas
-            ripv2_msg_t* ripv2_msg;
+            ripv2_msg_t ripv2_msg;
 
-            ripv2_msg->type = RIPv2_RESPONSE;
-            ripv2_msg->version = 2;
-            ripv2_msg->dominio_encaminamiento = 0x0000;
+            ripv2_msg.type = RIPv2_RESPONSE;
+            ripv2_msg.version = 2;
+            ripv2_msg.dominio_encaminamiento = 0x0000;
             ripv2_route_t * routes_to_send;
             for(int i = 0; i < num_of_routes; i++)
             {
                 routes_to_send = ripv2_route_table_get(rip_table, i);
                 if(routes_to_send != NULL)
                 {
-                    ripv2_msg->vectores_distancia[i].familia_dirs = AF_INET; //2
-                    ripv2_msg->vectores_distancia[i].etiqueta_ruta = 0x0000;
-                    memcpy(ripv2_msg->vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg->vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
-                    memcpy(ripv2_msg->vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
-                    ripv2_msg->vectores_distancia[i].metric = htonl(routes_to_send->metric);
+                    ripv2_msg.vectores_distancia[i].familia_dirs = AF_INET; //2
+                    ripv2_msg.vectores_distancia[i].etiqueta_ruta = 0x0000;
+                    memcpy(ripv2_msg.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
+                    ripv2_msg.vectores_distancia[i].metric = htonl(routes_to_send->metric);
                 } //Si ruta es NULL
             }
             int total_len = (num_of_routes*20) + 4;

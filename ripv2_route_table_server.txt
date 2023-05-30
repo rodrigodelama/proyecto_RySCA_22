@@ -2,5 +2,13 @@
 
 # SubnetAddr     SubnetMask           iface          Gateway        Metric       Timer
 
-10.0.1.0         255.255.255.0        eth1           10.0.3.1         8          
-10.0.2.0         255.255.255.0        eth1           10.0.3.2         4          
+10.100.10.0         255.255.255.0        eth1           10.0.3.2         0          
+10.100.11.0         255.255.255.0        eth1           10.0.3.2         8
+10.100.12.0         255.255.255.0        eth1           10.0.3.10        0
+10.100.13.0         255.255.255.0        eth1           10.0.3.10        8          
+
+
+# mirar porque no se actualiza en general
+
+# con trace a veces
+# mirar porque no actualiza rutas de su padre aun que sean peores
