@@ -53,13 +53,14 @@ int main ( int argc, char * argv[] )
     }
     unsigned char fake_payload[1200];
     int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, fake_payload, 0);//Solamente queremos que mande ahora mismo la cabecera udp.
-    log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+        log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     unsigned char fake_payload_rcv[1200];
     int timeout = 6000;
     int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, 0, timeout);
-    if(bytes_rcvd == 0){
+    if(bytes_rcvd == 0)
+    {
         log_trace("Reception timeout reached...\n\n");
-    }else{
+    } else {
         log_trace("ECHO Packet received!!\n");
     }
     udp_close(my_udp_layer);

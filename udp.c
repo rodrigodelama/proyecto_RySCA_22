@@ -73,25 +73,25 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     //rellenar datagrama
     udp_header_t udp_header_t;
     memset(&udp_header_t, 0, sizeof(udp_header_t)); //Relleno la zona de memoria que guarda nuestra cabecera IP con 0s
-    log_debug("Source port before htons -> %d \n",my_udp_iface->local_port);
+    	log_debug("Source port before htons -> %d \n",my_udp_iface->local_port);
     udp_header_t.src_port = htons(my_udp_iface->local_port);
-    log_debug("Source port after htons -> %d \n",udp_header_t.src_port);
+    	log_debug("Source port after htons -> %d \n",udp_header_t.src_port);
 
-    log_debug("Dest port before htons -> %d \n",dest_port);
+    	log_debug("Dest port before htons -> %d \n",dest_port);
     udp_header_t.dest_port = htons(dest_port);
-    log_debug("Dest port after htons -> %d \n",udp_header_t.dest_port);
+    	log_debug("Dest port after htons -> %d \n",udp_header_t.dest_port);
 
     //memcpy(payload, udp_header_t.payload, payload_len); //copying char arrays (somos tonticos, copiabamos lo vacio en lo no-vacio)
 
     udp_header_t.datagram_length = htons( 8 + payload_len);
-    log_debug("Datagram_length before htons -> %d \n",ntohs(udp_header_t.datagram_length));
-    log_debug("Payload_len after htons -> %d \n",udp_header_t.datagram_length);
+    	log_debug("Datagram_length before htons -> %d \n",ntohs(udp_header_t.datagram_length));
+    	log_debug("Payload_len after htons -> %d \n",udp_header_t.datagram_length);
     udp_header_t.checksum = 0; //initially 0, maybe a later improvement
     memcpy(udp_header_t.payload, payload, payload_len);
-    log_debug("Payload -> %s \n",udp_header_t.payload);
-    //log_debug("udp_header_t.payload -> %d\n", udp_header_t.payload);
+    	log_debug("Payload -> %s \n",udp_header_t.payload);
+    	log_debug("udp_header_t.payload -> %d\n", udp_header_t.payload);
     int bytes_sent = ipv4_send(my_udp_iface->local_ip_stack, dest, UDP_PROTOCOL_TYPE, (unsigned char *) &udp_header_t, (payload_len + 8)); //No estamos mandando el paquete UDP, estabamos mandando la payload de UDP.
-    log_trace("UDP datagram sent. Number of data bytes sent -> %d\n", bytes_sent - 8 );
+    	log_trace("UDP datagram sent. Number of data bytes sent -> %d\n", bytes_sent - 8 );
     if(bytes_sent == -1)
     {
         fprintf(stderr, "udp_send(): ERROR: ipv4_send failed\n");
@@ -104,69 +104,69 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
 
 int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsigned char buffer[], int buf_len, long int timeout)
 {
-  int payload_len;
+	int payload_len;
 
-  /* Comprobar parámetros */
-  if (my_udp_layer == NULL)
-  {
-    fprintf(stderr, "udp_recv(): ERROR: my_udp_layer == NULL\n");
-    return -1;
-  }
+	/* Comprobar parámetros */
+	if (my_udp_layer == NULL)
+	{
+		fprintf(stderr, "udp_recv(): ERROR: my_udp_layer == NULL\n");
+		return -1;
+	}
 
-  /* Inicializar temporizador para mantener timeout si se reciben tramas con
-     tipo incorrecto. */
-  timerms_t timer;
-  timerms_reset(&timer, timeout);
+	/* Inicializar temporizador para mantener timeout si se reciben tramas con
+		tipo incorrecto. */
+	timerms_t timer;
+	timerms_reset(&timer, timeout);
 
-  int datagram_len = 0;
-  //UDP HEADER_SIZE
-  int udp_buf_len = UDP_HEADER_SIZE + buf_len;//ipv4_send(), sends hader (8bytes) + payload (buf_len).
-  unsigned char udp_buffer[udp_buf_len];
-  udp_header_t * udp_datagram_ptr = NULL;
-  int is_dest_port;//To check if the dest port of  the recieved datagram is my local port.
+	int datagram_len = 0;
+	//UDP HEADER_SIZE
+	int udp_buf_len = UDP_HEADER_SIZE + buf_len;//ipv4_send(), sends hader (8bytes) + payload (buf_len).
+	unsigned char udp_buffer[udp_buf_len];
+	udp_header_t * udp_datagram_ptr = NULL;
+	int is_dest_port;//To check if the dest port of  the recieved datagram is my local port.
 
-  do {
-    long int time_left = timerms_left(&timer);
+	do {
+		long int time_left = timerms_left(&timer);
 
-    /* Recibir trama del interfaz Ethernet y procesar errores */
-    datagram_len = ipv4_recv(my_udp_layer->local_ip_stack, UDP_PROTOCOL_TYPE, udp_buffer, src, udp_buf_len, time_left);
-    if (datagram_len < 0)
-    {
-      printf("udp_recv(): ERROR en ipv4_recv()");
-      return -1;
-    } else if (datagram_len == 0) {
-      /* Timeout! */
-      printf("Timeout\n");
-      return 0;
-    } else if (datagram_len < UDP_HEADER_SIZE) {
-      fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",
-              datagram_len);
-      continue;//Pq hay un "continue aqui??"
-    }
+		/* Recibir trama del interfaz Ethernet y procesar errores */
+		datagram_len = ipv4_recv(my_udp_layer->local_ip_stack, UDP_PROTOCOL_TYPE, udp_buffer, src, udp_buf_len, time_left);
+		if (datagram_len < 0)
+		{
+			printf("udp_recv(): ERROR en ipv4_recv()");
+			return -1;
+		} else if (datagram_len == 0) {
+			/* Timeout! */
+			printf("Timeout\n");
+			return 0;
+		} else if (datagram_len < UDP_HEADER_SIZE) {
+			fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",
+					datagram_len);
+			continue; //TODO: pq hay un "continue" aqui??
+		}
 
-    /* Comprobar si es la trama que estamos buscando */
-    udp_datagram_ptr = (udp_header_t *) udp_buffer;
-    is_dest_port = (ntohs(udp_datagram_ptr->dest_port) == my_udp_layer->local_port);
-    //is_src_port = (ntohs(udp_datagram_ptr->src_port) == dest_port); -> dest_port parametro de salida.
-  } while (! is_dest_port);
-  
-  /* Trama recibida con 'tipo' indicado. Copiar datos y dirección MAC origen */
-  
-  payload_len = datagram_len - UDP_HEADER_SIZE;
-  if (buf_len > payload_len)
-  {
-    buf_len = payload_len;
-  }
-  memcpy(buffer, udp_datagram_ptr->payload, buf_len);
-  // dest_port = ntohs(udp_datagram_ptr->src_port);
-  *(dest_port) = ntohs(udp_datagram_ptr->src_port);
-  // uint16_t* dest_port_returned;
-  // *(dest_port_returned) = ntohs(udp_datagram_ptr->src_port);
-  // memcpy(dest_port, dest_port_returned, sizeof(udp_datagram_ptr->dest_port));
-  //payload_len = payload_len - UDP_HEADER_SIZE;//ya lo hacemos mas arriba, sino le restamos 16 en vez de 8 
-  log_debug("UDP bytes received -> %d\n", payload_len);
+		/* Comprobar si es la trama que estamos buscando */
+		udp_datagram_ptr = (udp_header_t *) udp_buffer;
+		is_dest_port = (ntohs(udp_datagram_ptr->dest_port) == my_udp_layer->local_port);
+		//is_src_port = (ntohs(udp_datagram_ptr->src_port) == dest_port); -> dest_port parametro de salida.
+	} while (! is_dest_port);
+	
+	/* Trama recibida con 'tipo' indicado. Copiar datos y dirección MAC origen */
+	
+	payload_len = datagram_len - UDP_HEADER_SIZE;
+	if (buf_len > payload_len)
+	{
+		buf_len = payload_len;
+	}
+	memcpy(buffer, udp_datagram_ptr->payload, buf_len);
+	// dest_port = ntohs(udp_datagram_ptr->src_port);
+	*(dest_port) = ntohs(udp_datagram_ptr->src_port);
+	// uint16_t* dest_port_returned;
+	// *(dest_port_returned) = ntohs(udp_datagram_ptr->src_port);
+	// memcpy(dest_port, dest_port_returned, sizeof(udp_datagram_ptr->dest_port));
+	//payload_len = payload_len - UDP_HEADER_SIZE;//ya lo hacemos mas arriba, sino le restamos 16 en vez de 8 
+		log_debug("UDP bytes received -> %d\n", payload_len);
 
-  return payload_len;
+	return payload_len;
 }
 
 int random_port_generator(void) //Funcion de aula global.
@@ -178,11 +178,7 @@ int random_port_generator(void) //Funcion de aula global.
         int dice = rand();
         /* Número entero aleatorio entre 1 y 10 */
         dice = 1024 + (int) (65535.0 * dice / (RAND_MAX + 1.0));
-        // if(dice < 1025)
-        // {
-        //   dice = dice + 1025;//Para que no sea un puerto reservado
-        // }
-        log_debug("Random port -> %i\n", dice);
+            log_debug("Random port -> %i\n", dice);
 
     return dice;
 }

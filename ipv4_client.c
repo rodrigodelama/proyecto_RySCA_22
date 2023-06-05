@@ -74,10 +74,11 @@ int main(int argc, char* argv[])
     long timeout = 6000;
     int bytes_rcvd; 
     bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, received_ip, 0, timeout);
-    log_debug("Bytes received -> %d\n",bytes_rcvd);
-    if(bytes_rcvd == 0){
+        log_debug("Bytes received -> %d\n",bytes_rcvd);
+    if(bytes_rcvd == 0)
+    {
         log_trace("Reception timeout reached...\n\n");
-    }else{
+    } else {
         log_trace("ECHO Packet received!!\n");
     }
     ipv4_close(my_ip_iface);
