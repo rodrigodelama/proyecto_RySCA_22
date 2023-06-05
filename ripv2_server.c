@@ -10,7 +10,7 @@ long int least_time(ripv2_route_table_t * rip_table)
 {
     long int time_left;
     long int min_time = 180000;
-    ripv2_route_t * current_route= NULL;
+    ripv2_route_t * current_route = NULL;
 
     for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++)
     {
@@ -18,7 +18,7 @@ long int least_time(ripv2_route_table_t * rip_table)
         if (current_route != NULL)
         {
             time_left = timerms_left(&current_route->timer_ripv2);
-            log_trace("the timer %d has left: %ld\n", i, time_left );
+                log_trace("the timer %d has left: %ld\n", i, time_left);
             if(time_left < min_time)
             {
                 min_time = time_left;
@@ -35,7 +35,7 @@ int index_least_time(ripv2_route_table_t * rip_table)
     long int min_time = 180000;
     ripv2_route_t * current_route = NULL;
 
-    for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++) //itera hasta ripv2routetablesize, cuanto es este valor?????
+    for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++) //itera hasta ripv2routetable size
     {
     current_route = ripv2_route_table_get(rip_table, i);
         if(current_route != NULL)
@@ -109,7 +109,7 @@ int main ( int argc, char * argv[] )
     ipv4_addr_t source_ip; // from where the recieved packet came
     uint16_t server_port = RIPv2_PORT;
     uint16_t client_port;
-    unsigned char buffer_rip[LEN_PAYLOAD_RIP]; //? cuanto? 1400 maybe change later
+    unsigned char buffer_rip[LEN_PAYLOAD_RIP];
     
     udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
         log_trace("udp_layer configuration DONE\n");
@@ -119,9 +119,10 @@ int main ( int argc, char * argv[] )
         fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
         exit(-1);
     }
+
     ripv2_route_table_t * rip_table = ripv2_route_table_create(); //Creamos la tabla de rutas
     ripv2_route_table_read ("./ripv2_route_table_server.txt", rip_table); //Rellenamos la tabla
-    #ifdef DDEBUG
+    #ifdef DEBUG
         ripv2_route_table_print(rip_table);
     #endif
 
@@ -159,6 +160,10 @@ int main ( int argc, char * argv[] )
 
     while (1)
     {
+        //TODO:
+        //check if empty table and loop awaiting a new entry
+        //if table entries time out default to the listening loop
+
         ripv2_route_table_print(rip_table);
         printf("\n");
         
@@ -187,12 +192,10 @@ int main ( int argc, char * argv[] )
             fprintf(stderr, "Error on recieved UDP datagram");
             return(-1);
 
-        } else if(bytes_rcvd == 0) { // we will eliminate bca timer is up
+        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is up
             log_trace("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
-            // #ifdef DEBUG
-                // ripv2_route_table_print(rip_table);
-            // #endif
+            ripv2_route_table_print(rip_table);
 
         } else if(bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
             for(int i = 0; i < numero_de_vectores_distancia; i++)
@@ -206,16 +209,13 @@ int main ( int argc, char * argv[] )
                     is_our_route = 1;
                 }
             }
-
             // this if might not be needed
             if(is_our_route != 1)
             {
                 log_trace("Deleted the route: %s", subnet_str);
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
-                #ifdef DDEBUG
-                    ripv2_route_table_print(rip_table);
-                #endif
+                ripv2_route_table_print(rip_table);
             }
         }
 
@@ -259,7 +259,7 @@ int main ( int argc, char * argv[] )
                     }
 
                 // we already have the route
-                } else if(route_index > -1) { //SI esta en la tabla
+                } else if (route_index > -1) { //SI esta en la tabla
                     log_trace("Received a route we already have, we will check if we must update it");
                     
                     //mirar de quien viene
@@ -287,7 +287,8 @@ int main ( int argc, char * argv[] )
                         memcpy(route_to_update->gateway_addr, source_ip, IPv4_ADDR_SIZE);
                     }
                     
-                    ripv2_route_t * registered_route = ripv2_route_table_get(rip_table, route_index);
+                    ripv2_route_t * registered_route = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
+                    registered_route = ripv2_route_table_get(rip_table, route_index);
 
                     // si es del papa -> actualizamos a metrica sin impotar si es menor o mayor que la anterior.
                     //set_gateway(ipv4_addr_t next_hop);
@@ -355,12 +356,11 @@ int main ( int argc, char * argv[] )
             // ipv4_addr_str(source_ip, dest);
 
             udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
-        }
-        #ifdef DDEBUG
-            ripv2_route_table_print(rip_table);
-        #endif
-    }
-    return 0;
 
+        }
+        ripv2_route_table_print(rip_table);
+    }
     udp_close(my_udp_layer);
+
+    return 0;
 }

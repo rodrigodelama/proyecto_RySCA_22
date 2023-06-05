@@ -1,0 +1,10 @@
+TODO
+
+arreglar como lidiamos con una table RIPv2 vacia
+tanto cuando se vacia del todo, como cuando empieza vacia
+
+
+arreglar el fitrado del subnet mask para verificar que esta suscrito al grupo multicast
+ripv2 ip is 224.0.0.9
+        LINEAS 390-410 ipv4.c
+eth_recv() necesario hacer cambio a multicast

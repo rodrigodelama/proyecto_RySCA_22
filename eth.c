@@ -12,7 +12,7 @@
 /* Dirección MAC de difusión: FF:FF:FF:FF:FF:FF */
 mac_addr_t MAC_BCAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 // mulitcast is a specific case of broadcast
-// mac_addr_t MAC_MULTICAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+mac_addr_t MAC_MULTICAST_MASK = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 /* Estructura del manejador del interfaz ethernet */
 struct eth_iface {
@@ -273,44 +273,60 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
     int is_target_type;
 
     int is_my_mac;
-    int is_ripv2_mac; //FF:FF:FF:FF:FF:FF just like broadcast frames
+    int is_ripv2_mac; //(xxx1 xxxx)F:FF:FF:FF:FF:FF
+                    // similar to broadcast frames
+                //0001 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
 
     do {
         long int time_left = timerms_left(&timer);
 
         /* Recibir trama del interfaz Ethernet y procesar errores */
-        frame_len = rawnet_recv (iface->raw_iface, eth_buffer, eth_buf_len,
-                                time_left);
-        if (frame_len < 0) {
-        fprintf(stderr, "eth_recv(): ERROR en rawnet_recv(): %s\n", 
-                rawnet_strerror());
-        return -1;
+        frame_len = rawnet_recv (iface->raw_iface, eth_buffer, eth_buf_len, time_left);
+        if (frame_len < 0)
+        {
+            fprintf(stderr, "eth_recv(): ERROR en rawnet_recv(): %s\n", 
+                    rawnet_strerror());
+            return -1;
         } else if (frame_len == 0) {
-        /* Timeout! */
-        return 0;
+            /* Timeout! */
+            return 0;
         } else if (frame_len < ETH_HEADER_SIZE) {
-        fprintf(stderr, "eth_recv(): Trama de tamaño invalido: %d bytes\n",
-                frame_len);
-        continue;
+            fprintf(stderr, "eth_recv(): Trama de tamaño invalido: %d bytes\n",
+                    frame_len);
+            continue;
         }
 
         /* Comprobar si es la trama que estamos buscando */
         eth_frame_ptr = (struct eth_frame *) eth_buffer;
 
         is_my_mac = (memcmp(eth_frame_ptr->dest_addr, iface->mac_address, MAC_ADDR_SIZE) == 0);
+
         if (is_my_mac == 0)
         {
-        char debug1[60];
-        mac_addr_str ( iface->mac_address, debug1);
-        log_debug("Packet received to OUR MAC -> %s\n",debug1);
+            char debug1[60];
+            mac_addr_str ( iface->mac_address, debug1);
+            log_debug("Packet received to OUR MAC -> %s\n",debug1);
         } else {
-        //comprobar si es broadcast: RIPv2 usa la dirección MAC de BROADCAST
-        is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
+            //comprobar si es multicast: RIPv2 usa una dirección MAC asi (xxx1 xxxx)F:FF:FF:FF:FF:FF
+            //TODO: ask how to fix this: idea below
+            //is_ripv2_mac = eth_frame_ptr->dest_addr && MAC_MULTICAST_MASK;
+
+            //from ipv4.c
+            // for(int i = 0; i < 4; i++)
+            // {
+            //     aux[i] = layer->netmask[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
+            // }
+
+            //      BROKEN CODE
+                //comprobar si es broadcast: RIPv2 usa la dirección MAC de BROADCAST
+                is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
+            //
+
             if (is_ripv2_mac == 0)
             {
-            char debug2[60];
-            mac_addr_str ( eth_frame_ptr->dest_addr, debug2);
-            log_debug("Packet received to BCAST MAC -> %s\n", debug2);
+                char debug2[60];
+                mac_addr_str ( eth_frame_ptr->dest_addr, debug2);
+                log_debug("Packet received to BCAST MAC -> %s\n", debug2);
             }
         }
 

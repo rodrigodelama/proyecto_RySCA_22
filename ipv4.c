@@ -257,7 +257,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
             printf("Error: function arp_resolve not working...\n");
             return -1;
         }
-        printf("Sendig inside our subnet....\n");
+        log_debug("Sending inside our subnet....\n");
         // bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
         bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
     
@@ -277,7 +277,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
             printf("Error: function arp_resolve not working...\n");
             return -1;
         }
-        printf("Sendig outside our subnet....\n");
+        log_debug("Sending inside our subnet....\n");
         bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, (20 + payload_len));
         if(bytes_sent == -1)
         {
@@ -344,7 +344,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
 
         /* Comprobar si es el paquete que estamos buscando */
         #ifdef DEBUG
-        print_pkt(ipv4_buffer, (packet_buf_len + 20), -1);
+            print_pkt(ipv4_buffer, (packet_buf_len + 20), -1);
         #endif
         ipv4_packet_ptr = (struct ipv4_header *) ipv4_buffer;
             log_trace("ANTES DE COMPARACION DE IP's\n");
@@ -368,10 +368,12 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
         //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
         }
+        
         //TODO:
         // we have to do all of multicast
         // usar mascaras binarias
-            log_debug("is_my_ip value between unicast and multicast -> %d",is_my_ip);
+
+            log_debug("is_my_ip value between unicast and multicast -> %d", is_my_ip);
         
         if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
         {
