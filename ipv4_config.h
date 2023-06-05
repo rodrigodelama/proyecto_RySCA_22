@@ -36,6 +36,4 @@
  */
 int ipv4_config_read ( char* filename, char ifname[], ipv4_addr_t addr, ipv4_addr_t netmask );
 
-
-
 #endif /* _IPv4_CONFIG_H*/

@@ -26,9 +26,8 @@ typedef struct ipv4_route {
 } ipv4_route_t;
 
 typedef struct ipv4_route_table {
-  ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
+    ipv4_route_t * routes[IPv4_ROUTE_TABLE_SIZE];
 } ipv4_route_table_t;
-/*--------------------------------------------------------------------------------------------*/
 
 /*ipv4----------------------------------------------------------------------------------------*/
 /* Estructura del manejador de la interfaz ivp4 */
@@ -43,16 +42,15 @@ typedef struct ipv4_layer
 /* Estructura de la cabecera de ipv4 */
 struct ipv4_header
 {
-  uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
-  uint8_t service_type; //This field to zeros.
-  uint16_t total_length; //total payload that is being used.
-  uint16_t identification; //Set to a number by default that we like.
-  uint16_t frag_flags; //Set to 0 as we don't fragmentate.
-  uint8_t ttl; //Set to 64
-  uint8_t protocol; //UDP 
-  uint16_t checksum; //returned value from checksum() function.
-  ipv4_addr_t src_ip;
-  ipv4_addr_t dest_ip;
-  unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
+    uint8_t version_and_length; //Default value = VERSION_AND_LENGTH -> 0x45
+    uint8_t service_type; //This field to zeros.
+    uint16_t total_length; //total payload that is being used.
+    uint16_t identification; //Set to a number by default that we like.
+    uint16_t frag_flags; //Set to 0 as we don't fragmentate.
+    uint8_t ttl; //Set to 64
+    uint8_t protocol; //UDP 
+    uint16_t checksum; //returned value from checksum() function.
+    ipv4_addr_t src_ip;
+    ipv4_addr_t dest_ip;
+    unsigned char payload[1460]; // 1500 MTU - 20cab eth - 20cab IP = 1460
 };
-/*--------------------------------------------------------------------------------------------*/

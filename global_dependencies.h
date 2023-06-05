@@ -2,16 +2,16 @@
 
 #include <stdlib.h> // malloc y memset.
 
-#include <unistd.h> //
+#include <unistd.h>
 
 #include <string.h> // memecpy, memcpm
 
 #include <timerms.h> // for our timers
 
-#include <netinet/in.h> //
+#include <netinet/in.h>
 
 #include <arpa/inet.h> //for htons and ntohs
 
-#include <errno.h> //
+#include <errno.h>
 
 #include "log.h"

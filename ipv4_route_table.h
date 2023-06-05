@@ -334,5 +334,4 @@ void ipv4_route_table_print ( ipv4_route_table_t * table );
  */
 int ipv4_route_table_write ( ipv4_route_table_t * table, char * filename );
 
-
 #endif /* _IPv4_ROUTE_TABLE_H */
