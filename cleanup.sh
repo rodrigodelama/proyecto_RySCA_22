@@ -1,15 +1,22 @@
 #! /bin/bash
-#IP Client:
-sudo rm ipv4_client -rf
-#IP Server:
-sudo rm ipv4_server -rf
-#Arp client
+
+# Arp Client
 sudo rm arp_client -rf
-#UDP client:
+
+# IP Client:
+sudo rm ipv4_client -rf
+
+# IP Server:
+sudo rm ipv4_server -rf
+
+# UDP Client:
 sudo rm udp_client -rf
-#UDP server:
+
+# UDP Server:
 sudo rm udp_server -rf
-#RIP client:
+
+# RIP Client:
 sudo rm ripv2_client -rf
-#rng
-sudo rm rng -rf
+
+# RIP Server:
+sudo rm ripv2_server -rf
