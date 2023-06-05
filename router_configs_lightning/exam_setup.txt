@@ -1,6 +1,43 @@
+# Host 1 - Cliente RIPv2
 
-# para copiar las tablas a /tmp/
+Descargar ultima copia del proyecto
+    git clone || bajar de Aula Global
 
-cp ipv4_*.txt /tmp/
+Cambiar IP de eth1 y añadir rutas
+    sudo ip addr del 192.100.100.1/24 dev eth1
+    sudo ip addr add 192.168.4.2/24 dev eth1
 
+Conectar eth1 a eth0.4 de R1
+    Injectar script de configuracion
+        R1.txt
 
+Conectar eth1 a eth0.4 de R2
+    Injectar script de configuracion
+        R2.txt
+
+Cambiar IP de eth1 al entorno de la red 10.0.1.2/24
+    sudo ip addr del 192.168.4.2/24 dev eth1
+    sudo ip addr add 10.0.1.2/24 dev eth1
+ 
+telnet a R1 10.0.1.1
+    Injectar FINAL del script de configuracion
+    de R1.txt:
+        conf t
+        interface eth0.4
+        no ip address 192.168.4.1/24
+        shutdown
+        exit
+        exit
+
+telnet a R2 10.0.0.2
+    Injectar FINAL del script de configuracion
+    de R2.txt:
+        conf t
+        interface eth0.4
+        no ip address 192.168.4.1/24
+        shutdown
+        exit
+        exit
+
+Copiar las tablas de enrutamiento a /tmp/
+    cp ipv4_*.txt /tmp/

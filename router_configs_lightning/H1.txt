@@ -2,6 +2,10 @@
 # IP 10.0.1.2
 
 sudo ip addr del 192.100.100.1/24 dev eth1
+
+sudo ip addr add 192.168.4.2/24 dev eth1
+sudo ip addr del 192.168.4.2/24 dev eth1
+
 sudo ip addr add 10.0.1.2/24 dev eth1
 
 sudo ip ro add 10.0.0.0/30 via 10.0.1.1 dev eth1

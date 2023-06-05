@@ -3,6 +3,8 @@
 # eht0.1 10.0.0.2
 # eth0.2 10.0.3.2
 
+# Configuramos todo menos eth0.4
+
 conf t
 interface eth0.0
 no shutdown
@@ -23,10 +25,6 @@ interface eth0.3
 no ip address 192.168.3.1/24
 shutdown
 exit
-interface eth0.4
-no ip address 192.168.4.1/24
-shutdown
-exit
 interface wlan0
 no ip address 192.168.5.1/24
 shutdown
@@ -40,3 +38,12 @@ redistribute static
 exit
 exit
 show ip route
+
+# After re-connection via tenet from R1
+
+conf t
+interface eth0.4
+no ip address 192.168.4.1/24
+shutdown
+exit
+exit
