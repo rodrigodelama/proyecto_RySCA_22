@@ -122,9 +122,6 @@ int main ( int argc, char * argv[] )
 
     ripv2_route_table_t * rip_table = ripv2_route_table_create(); //Creamos la tabla de rutas
     ripv2_route_table_read ("./ripv2_route_table_server.txt", rip_table); //Rellenamos la tabla
-    #ifdef DEBUG
-        ripv2_route_table_print(rip_table);
-    #endif
 
     int index_min;
     int is_our_route;
@@ -154,28 +151,30 @@ int main ( int argc, char * argv[] )
 
     //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
     int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
-    log_debug("Length of request packet -> %d\n", length_request);
+    log_trace("Length of request packet -> %d\n", length_request);
     int bytes_sent = udp_send(my_udp_layer, RIPv2_ADDR_2, RIPv2_PORT, (unsigned char*) &request_message, length_request);
-    log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+    log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
 
+    //initial print of the table
+    ripv2_route_table_print(rip_table);
+    printf("\n\n");
+    
     while (1)
     {
         //TODO:
         //check if empty table and loop awaiting a new entry
         //if table entries time out default to the listening loop
 
-        ripv2_route_table_print(rip_table);
-        printf("\n");
         
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
         int bytes_rcvd = udp_rcv(my_udp_layer, source_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
-            log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
+            log_trace("Total number of bytes received -> %d \n", bytes_rcvd);
         //SIEMPRE hay que mirar el origen del mensaje, si es mi padre, solamente actualizo la metrica y reseteo el timer. Si no viene de mi padre (mi garteway)
         //hay que mirar tambien si la métrica es mejor y si eso actualizar.
 
         int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
-            log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
+            log_trace("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
         
         ripv2_msg_t* ripv2_msg = (ripv2_msg_t*) buffer_rip;
         // expiration_time + index_min es sobre todo para encontrar la ruta que ha expirado, y poder seleccionarla con la funcion "ripv2_route_table_get()" 
@@ -193,29 +192,30 @@ int main ( int argc, char * argv[] )
             return(-1);
 
         } else if (bytes_rcvd == 0) { // we will eliminate bca timer is up
-            log_trace("Timer's up, route %s has been eliminated", subnet_str);
+                log_debug("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
             ripv2_route_table_print(rip_table);
+            printf("\n");
 
         } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
-                // int index_min;
                 route_index = 0;
                 route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
                 //devuelve el índice de la ruta para llegar a la subred especificada.
                 if(index_min == route_index)
                 {
                     is_our_route = 1;
+                    //TODO: actualizaremos timer a 180 otra vez
                 }
             }
-            // this if might not be needed
             if(is_our_route != 1)
             {
-                log_trace("Deleted the route: %s", subnet_str);
+                    log_debug("Deleted the route: %s", subnet_str);
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
                 ripv2_route_table_print(rip_table);
+                printf("\n");
             }
         }
 
@@ -223,22 +223,21 @@ int main ( int argc, char * argv[] )
         if(ripv2_msg->type == RIPv2_RESPONSE) // no hace falta hacer noths porque es un entero de 8bits (1 byte).
         {
             char str_route[IPv4_STR_MAX_LENGTH];
-                log_trace("Received %d distance vectors", numero_de_vectores_distancia);
+                log_debug("Received %d distance vectors", numero_de_vectores_distancia);
 
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
                 ipv4_addr_str(ripv2_msg->vectores_distancia[i].subred, str_route);
-
-                log_trace("Route %d is %s\n ", i, str_route);
+                    log_trace("Route %d is %s\n ", i, str_route);
 
                 route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
 
-                if(route_index == -1) // case in which we dont have the route inside our ripv2_table.
+                if(route_index == -1) //We DONT have the route in our ripv2_table
                 {
                         log_trace("We dont have the route, we will create a new entry for it");
                     int metric_rcvd = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
 
-                    if(metric_rcvd < 16) //
+                    if(metric_rcvd < 16)
                     {
                         memcpy(next_hop, ripv2_msg->vectores_distancia[i].next_hop, IPv4_ADDR_SIZE);
                         calc_gateway = set_gateway(ripv2_msg->vectores_distancia[i].next_hop); //del campo next_hop del vector distancia, razonamos el gateway
@@ -250,32 +249,31 @@ int main ( int argc, char * argv[] )
                         }
                         
                         ripv2_route_t * new_route;
-                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd);
-                            log_trace("Adding new route to our table.\n");
+                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred,
+                                                       ripv2_msg->vectores_distancia[i].subnet_mask,
+                                                       rip_iface,
+                                                       next_hop,
+                                                       metric_rcvd);
                         ripv2_route_table_add(rip_table, new_route);
-                        // ripv2_route_table_print(rip_table);
+                            log_trace("Added new route to our table.\n");
+                        ripv2_route_table_print(rip_table);
+                        printf("\n");
                     } else {
-                        log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or less hops
+                        log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or more hops
                     }
 
-                // we already have the route
-                } else if (route_index > -1) { //SI esta en la tabla
+                //We HAVE the route
+                } else if (route_index > -1) {
                     log_trace("Received a route we already have, we will check if we must update it");
-                    
-                    //mirar de quien viene
-                        //caso papa
+                    //Miramos de quien viene:
+                        //PADRE
                             //mirar metrica recibida si 15 o superior, BORRAR (15+1 = inf, 16+1 = inf)
                             //SINO actualizamos la ruta con la nueva metrica (aunq sea peor), y reiniciamos el timer
-                        //caso random
+                        //RANDOM
                             //comparar metrica recibida con la actual
                             //si es inferior, actualizar la ruta con la nueva metrica mejor
                     
-                    //ripv2_route_table_remove(rip_table, route_index);
-                    //ripv2_route_t * route_to_update = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, ipv4_addr_t gw, new_metric);
-                    //rip_route_table_add(rip_table, route_to_update);
-                    
                     ripv2_route_t * route_to_update = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
-                    //memset(&route_to_update, 0, sizeof(ripv2_route_t));
                     //ripv2_route created from dv recieved in ripv2_msg
                     memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
                     memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
@@ -291,7 +289,7 @@ int main ( int argc, char * argv[] )
                     ripv2_route_t * registered_route = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
                     registered_route = ripv2_route_table_get(rip_table, route_index);
 
-                    // si es del papa -> actualizamos a metrica sin impotar si es menor o mayor que la anterior.
+                    //si es de mi PADRE -> actualizamos a metrica sin impotar si es menor o mayor que la anterior.
                     //set_gateway(ipv4_addr_t next_hop);
                     if(memcmp(source_ip, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
                     {
@@ -300,11 +298,17 @@ int main ( int argc, char * argv[] )
                             registered_route->metric = 16;
                             ripv2_route_table_print(rip_table);
                             ripv2_route_table_remove(rip_table, route_index);
+                            ripv2_route_table_print(rip_table);
                             printf("\n");
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             //update metric, whatever cost
                             registered_route->metric = new_metric; //simple type so equals
                             timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
+
+                            ripv2_route_table_print(rip_table);
+                            printf("\n");
+
+                            free(registered_route);
                         }
                     } else { // si no es del papa
                         if(new_metric < registered_route->metric) // actualizamos la ruta
@@ -317,17 +321,15 @@ int main ( int argc, char * argv[] )
                             route_to_update->metric = new_metric; //update with better (lower) metric
                             timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
 
-                            // POSSIBLY EASIER : but its not updating a route
-                            //rip_route_table_remove(rip_table, route_index);
+                            ripv2_route_table_print(rip_table);
+                            printf("\n");
 
-                            //rip_route_table_add(rip_table, route_to_update);
-
-                            // ripv2_route_table_print(rip_table);
+                            free(route_to_update);
                         }
                     }
                 }
             }
-        //someone asks for our routes
+        //someone asks us for our routes
         } else if(ripv2_msg->type == RIPv2_REQUEST) {
             log_trace("Request recieved");
 
@@ -359,7 +361,6 @@ int main ( int argc, char * argv[] )
             udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
 
         }
-        ripv2_route_table_print(rip_table);
     }
     udp_close(my_udp_layer);
 

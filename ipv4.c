@@ -149,11 +149,6 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
         exit(-1);
     }
 
-        log_trace("Printing route table from  -> %s \n", file_conf_route);
-    #ifdef DEBUG
-        //ipv4_route_table_print(ipv4_layer->routing_table);
-    #endif
-
     /* 4. Inicializar capa Ethernet con eth_open() */
     //Guardamos el manejador en el campo de "iface".
     ipv4_layer->iface = eth_open(iface_name); //Returns eth interface controller

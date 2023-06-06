@@ -8,6 +8,8 @@
 
 #include <timerms.h> // for our timers
 
+#include <stdlib.h>
+
 #include <netinet/in.h>
 
 #include <arpa/inet.h> //for htons and ntohs

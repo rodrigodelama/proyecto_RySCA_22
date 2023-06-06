@@ -49,23 +49,17 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, i
     //variables para almacenar datos de eth_rcv
     mac_addr_t src_addr; 
     unsigned char buffer[ETH_MTU];
-    
-    /*
-    int eth_buf_len = ETH_HEADER_SIZE + buf_len;
-    unsigned char eth_buffer[eth_buf_len];
-    */
 
     long int timeout = 2000;
     timerms_t timer;
     timerms_reset(&timer, timeout);
     struct arp_header * arp_header_recv = NULL;
-    //int is_hardware_type;
-    //int is_protocol_type;
-    //int is_my_ip;//checckea si es para mi ip y no es broadcast.
+
     int is_my_dest_ip;//checkea si es la ip de destino pasada como argumento de esta función.
     int is_my_src_ip;//checkea si es la ip de origen pasada como argumento de esta función.
     int is_request;
     int len;
+
     do
     {
         long int time_left = timerms_left(&timer);
@@ -107,13 +101,11 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, i
 
         /* Comprobar si es la trama que estamos buscando */
         arp_header_recv = (struct arp_header*) buffer;
-        //is_my_mac = (memcmp(arp_header_recv->dest_MAC_addr,iface->mac_address, MAC_ADDR_SIZE) == 0);
-        //is_my_ip = (memcmp(arp_header_recv ->dest_IPv4_addr, "0.0.0.0") == 0); no hace falta, hay que ser permisivo en este caso
-        //is_hardware_type = (ntohs(arp_header_recv->hardware_type) == HW_TYPE_ETH);
-        //is_protocol_type = (ntohs(arp_header_recv->hardware_type) == PROT_TYPE_IPV4);
+
         is_request = (ntohs(arp_header_recv -> opcode) == OPCODE_REPLY);
         is_my_dest_ip = (memcmp(arp_header_recv ->src_IPv4_addr, ip_addr, sizeof(ipv4_addr_t)) == 0);
         is_my_src_ip = (memcmp(arp_header_recv ->dest_IPv4_addr, my_ip_addr, sizeof(ipv4_addr_t)) == 0);
+        
         //eth_recv ya checkea la MAC y el tipo de hardware para que sea Ethernet.
         //TODO: mirar si hay que checkear más campos.
     } while(!(is_my_dest_ip && is_request && is_my_src_ip)); //nos importa solo la ip de dest del sender y el opcode para que sea "request"
@@ -123,8 +115,9 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, i
     ipv4_addr_str(ip_addr, dest_ip_str);
     char* dest_mac_str = (char*) malloc(sizeof(mac_addr_t));
     mac_addr_str(mac_addr, dest_mac_str);
+
     log_trace("At the end of arp_resolve();\n");
-    printf("%s -> %s \n", dest_ip_str, dest_mac_str);
+    log_trace("%s -> %s \n", dest_ip_str, dest_mac_str);
 
     //Necessary to clear memory after use (and to avoid warnings hehe)
     free(dest_ip_str);
