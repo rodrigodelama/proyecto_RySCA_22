@@ -151,7 +151,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
 
         log_trace("Printing route table from  -> %s \n", file_conf_route);
     #ifdef DEBUG
-    ipv4_route_table_print(ipv4_layer->routing_table);
+        //ipv4_route_table_print(ipv4_layer->routing_table);
     #endif
 
     /* 4. Inicializar capa Ethernet con eth_open() */
@@ -362,11 +362,11 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
         is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
 
         if (is_my_ip != 1) {
-        is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
-        char debug5[60];
-        ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug5 );
-            log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
-        //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
+            is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
+            char debug5[60];
+            ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug5 );
+                log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
+            //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
         }
         
         //TODO:
@@ -378,7 +378,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
         if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
         {
 
-            log_trace("Testing\n");
+            //log_trace("Testing\n");
             // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
             // 224.0.0.9 (todos los routers RIPv2 del enlace) 
             // check that first 4 bits are 1110

@@ -197,7 +197,7 @@ int main ( int argc, char * argv[] )
             ripv2_route_table_remove(rip_table, index_min);
             ripv2_route_table_print(rip_table);
 
-        } else if(bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
+        } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
                 // int index_min;
@@ -275,6 +275,7 @@ int main ( int argc, char * argv[] )
                     //rip_route_table_add(rip_table, route_to_update);
                     
                     ripv2_route_t * route_to_update = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
+                    //memset(&route_to_update, 0, sizeof(ripv2_route_t));
                     //ripv2_route created from dv recieved in ripv2_msg
                     memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
                     memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
