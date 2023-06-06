@@ -9,9 +9,6 @@
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
-//listen on this recieving address for messages
-ipv4_addr_t RIPv2_ADDR = { 224, 0, 0, 9 };
-
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
  * DESCRIPCIÓN:
@@ -311,7 +308,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     struct ipv4_header *ipv4_packet_ptr = NULL;
     int is_target_type;
     int is_my_ip;
-    int is_ripv2_ip = 0;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
+    int is_multicast_ip = 0;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
                         //In our links the routers will send and recieve on 224.0.0.9
     mac_addr_t mac_src;
     int original_checksum;
@@ -363,39 +360,16 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
                 log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
             //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
         }
-        
-        //TODO:
-        // we have to do all of multicast
-        // usar mascaras binarias
-
             log_debug("is_my_ip value between unicast and multicast -> %d", is_my_ip);
         
-        if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
+        if (is_my_ip == 0) //check if it is multicast 224 - 239
         {
-
-            //log_trace("Testing\n");
-            // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
-            // 224.0.0.9 (todos los routers RIPv2 del enlace) 
-            // check that first 4 bits are 1110
-
             ipv4_addr_t aux; //aux de ipv4 X.X.X.X
             
-            for(int i = 0; i < 4; i++)
-            {
-                aux[i] = layer->netmask[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
-            }
-            char debug_aux[60];
-            ipv4_addr_str (aux, debug_aux);
-                log_debug("Resultado de & logico -> %s\n", debug_aux);
-
-            if(memcmp(aux, ripv2_mask, 4) == 0) // If the comparation succeeds, we have
-            { 
-                //do is RIPv2 IP
-                is_ripv2_ip = (memcmp(ipv4_packet_ptr->dest_ip, RIPv2_ADDR, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
-                if (is_ripv2_ip == 1)
-                {
-                    log_debug("Packet received to RIPv2 MULTICAST IP -> %d\n", RIPv2_ADDR);
-                }
+            //Check multicast, check if the first octet is in the multicast range
+            if ((ipv4_packet_ptr->dest_ip[0] >= 224) && (ipv4_packet_ptr->dest_ip[0] <= 239)){
+                log_debug("Packet received to MULTICAST IP -> %d\n", ipv4_packet_ptr->dest_ip[0]);
+                is_multicast_ip = 1;
             }
         }
 
@@ -411,9 +385,9 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             log_debug("is_my_checksum -> %d\n",is_my_checksum);
             log_debug("is_my_ip -> %d\n",is_my_ip);
             log_debug("is_my_target_type -> %d\n",is_target_type);
-            log_debug("is_ripv2_ip -> %d\n", is_ripv2_ip);
+            log_debug("is_multicast_ip -> %d\n", is_multicast_ip);
 
-    } while ( !((is_my_ip || is_ripv2_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
+    } while ( !((is_my_ip || is_multicast_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
         log_trace("Paquete bien recibido (tipo, checksum e ip destino del paquete son los correctos)");//Los mios, al fin y al cabo.
     
     /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
