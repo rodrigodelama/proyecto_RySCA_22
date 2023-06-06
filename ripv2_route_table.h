@@ -88,7 +88,7 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
 void ripv2_route_print ( ripv2_route_t * route );
 
 // printing distance vectors.
-void ripv2_vector_print(vector_distancia_t * vector);
+void ripv2_vector_print ( vector_distancia_t * vector );
 
 /* void ripv2_route_free ( ripv_route_t * route );
  *

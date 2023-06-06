@@ -156,6 +156,7 @@ int main ( int argc, char * argv[] )
     log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
 
     //initial print of the table
+    printf("Initial table from config file:\n")
     ripv2_route_table_print(rip_table);
     printf("\n\n");
     
@@ -186,18 +187,18 @@ int main ( int argc, char * argv[] )
         char subnet_str[IPv4_STR_MAX_LENGTH];
         ipv4_addr_str(current_route->subnet_addr, subnet_str);
 
-        if(bytes_rcvd < 0) // should never happen
+        if (bytes_rcvd < 0) // should never happen
         {
             fprintf(stderr, "Error on recieved UDP datagram");
             return(-1);
 
-        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is up
+        } else if (bytes_rcvd == 0) { // we will eliminate because timer is up for min roure
                 log_debug("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
             ripv2_route_table_print(rip_table);
             printf("\n");
 
-        } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
+        } else if (bytes_rcvd > 0 && expiration_time == 0) { //if its our target route, update timer, if not delete min time entry
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
                 route_index = 0;
@@ -296,7 +297,6 @@ int main ( int argc, char * argv[] )
                         if(new_metric >= 16) //si es de gw y tiene 16 o mas de metrica
                         {
                             registered_route->metric = 16;
-                            ripv2_route_table_print(rip_table);
                             ripv2_route_table_remove(rip_table, route_index);
                             ripv2_route_table_print(rip_table);
                             printf("\n");
@@ -354,9 +354,6 @@ int main ( int argc, char * argv[] )
                 } //Si ruta es NULL
             }
             int total_len = (num_of_routes*20) + 4;
-
-            // unsigned char * dest[IPv4_STR_MAX_LENGTH];
-            // ipv4_addr_str(source_ip, dest);
 
             udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
 

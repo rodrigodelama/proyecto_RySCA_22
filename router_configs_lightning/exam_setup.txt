@@ -40,4 +40,4 @@ telnet a R2 10.0.0.2
         exit
 
 Copiar las tablas de enrutamiento a /tmp/
-    cp ipv4_*.txt /tmp/
+    cp *.txt /tmp/

@@ -305,7 +305,7 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
             //comprobar si es multicast: RIPv2 usa una dirección MAC asi (xxx xxx1)F:FF:FF:FF:FF:FF
             // XX:XX:XX:XX:XX:XX
             // 0000 0001 : 0000 0000 : 0000 0000 : 0000 0000 : 0000 0000 : 0000 0000
-            if (eth_frame_ptr->dest_addr[0] & 0x01 == 0x01)
+            if ((eth_frame_ptr->dest_addr[0] & 0x01) == 0x01)
             {
                 is_multicast_mac = 1;
             }
