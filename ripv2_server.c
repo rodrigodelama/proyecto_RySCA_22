@@ -156,7 +156,7 @@ int main ( int argc, char * argv[] )
     log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
 
     //initial print of the table
-    printf("Initial table from config file:\n")
+    printf("Initial table from config file:\n");
     ripv2_route_table_print(rip_table);
     printf("\n\n");
     
