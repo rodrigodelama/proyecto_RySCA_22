@@ -112,19 +112,16 @@ int main ( int argc, char * argv[] )
     unsigned char buffer_rip[LEN_PAYLOAD_RIP];
     
     udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
-        log_trace("udp_layer configuration DONE\n");
     
     if(my_udp_layer == NULL)
     {
-        fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
+        fprintf(stderr, "%s\n", "Error abriendo interfaz UDP Layer.\n");
         exit(-1);
     }
+    log_trace("udp_layer configuration DONE\n");
 
     ripv2_route_table_t * rip_table = ripv2_route_table_create(); //Creamos la tabla de rutas
     ripv2_route_table_read ("./ripv2_route_table_server.txt", rip_table); //Rellenamos la tabla
-    #ifdef DEBUG
-        ripv2_route_table_print(rip_table);
-    #endif
 
     int index_min;
     int is_our_route;
@@ -138,44 +135,47 @@ int main ( int argc, char * argv[] )
     log_trace("Building (REQUEST) message\n");    
     ripv2_msg_t request_message;//Si no hago el malloc, me dice que la variable no esta inicializada ??
     memset(&request_message, 0, sizeof(ripv2_msg_t));
-    //Cabecera RIP:
+    //Cabecera
     request_message.type = (uint8_t) 1; //request
     request_message.version = (uint8_t) 2; //response
     request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
-    //Entrada 1, vector distancia:
+    //ceros
     request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
-    //log_debug("Familia_dirs");
     request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
+    //datos
     memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].next_hop, IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     request_message.vectores_distancia[0].metric = htonl((uint32_t) 16);
     
-
-    //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
     int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
-    log_debug("Length of request packet -> %d\n", length_request);
+        log_trace("Length of request packet -> %d\n", length_request);
     int bytes_sent = udp_send(my_udp_layer, RIPv2_ADDR_2, RIPv2_PORT, (unsigned char*) &request_message, length_request);
-    log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+        log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+    
+    //initial print of the table
+    printf("\nInitial table from configuration file:\n");
+    ripv2_route_table_print(rip_table);
+    printf("\n\n");
 
     while (1)
     {
         //TODO:
         //check if empty table and loop awaiting a new entry
+        
         //if table entries time out default to the listening loop
 
-        ripv2_route_table_print(rip_table);
-        printf("\n");
+        //check the format of the RIPv2 message - its not appearing correctly in wireshark
         
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
         int bytes_rcvd = udp_rcv(my_udp_layer, source_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
-            log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
+            log_trace("Total number of bytes received -> %d \n", bytes_rcvd);
         //SIEMPRE hay que mirar el origen del mensaje, si es mi padre, solamente actualizo la metrica y reseteo el timer. Si no viene de mi padre (mi garteway)
         //hay que mirar tambien si la métrica es mejor y si eso actualizar.
 
         int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
-            log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
+            log_trace("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
         
         ripv2_msg_t* ripv2_msg = (ripv2_msg_t*) buffer_rip;
         // expiration_time + index_min es sobre todo para encontrar la ruta que ha expirado, y poder seleccionarla con la funcion "ripv2_route_table_get()" 
@@ -196,6 +196,7 @@ int main ( int argc, char * argv[] )
             log_trace("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
             ripv2_route_table_print(rip_table);
+            printf("\n");
 
         } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
             for(int i = 0; i < numero_de_vectores_distancia; i++)
@@ -207,15 +208,20 @@ int main ( int argc, char * argv[] )
                 if(index_min == route_index)
                 {
                     is_our_route = 1;
+                    //NEW CODE
+                    // timerms_t * index_timer = & rip_table->routes[i]->timer_ripv2;
+                    // timerms_reset(index_timer, RECEPTION_TIMER); //actualizamos el timer a 180 otra vez
+                    // log_debug("Reinitialized timer");
+                    //
                 }
             }
-            // this if might not be needed
             if(is_our_route != 1)
             {
-                log_trace("Deleted the route: %s", subnet_str);
+                log_debug("Deleted the route: %s", subnet_str);
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
                 ripv2_route_table_print(rip_table);
+                printf("\n");
             }
         }
 
@@ -253,7 +259,8 @@ int main ( int argc, char * argv[] )
                         new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd);
                             log_trace("Adding new route to our table.\n");
                         ripv2_route_table_add(rip_table, new_route);
-                        // ripv2_route_table_print(rip_table);
+                        ripv2_route_table_print(rip_table);
+                        printf("\n");
                     } else {
                         log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or less hops
                     }
@@ -325,6 +332,8 @@ int main ( int argc, char * argv[] )
                             // ripv2_route_table_print(rip_table);
                         }
                     }
+                    // free(route_to_update);
+                    // free(registered_route);
                 }
             }
         //someone asks for our routes
@@ -359,7 +368,8 @@ int main ( int argc, char * argv[] )
             udp_send(my_udp_layer, source_ip, client_port, (unsigned char *) &ripv2_msg, total_len);
 
         }
-        ripv2_route_table_print(rip_table);
+        // printf("\nTABLE REQUESTED\n");
+        // ripv2_route_table_print(rip_table);
     }
     udp_close(my_udp_layer);
 

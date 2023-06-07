@@ -11,8 +11,6 @@
 
 /* Dirección MAC de difusión: FF:FF:FF:FF:FF:FF */
 mac_addr_t MAC_BCAST_ADDR = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-// mulitcast is a specific case of broadcast
-mac_addr_t MAC_MULTICAST_MASK = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 /* Estructura del manejador del interfaz ethernet */
 struct eth_iface {
@@ -273,10 +271,7 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
     int is_target_type;
 
     int is_my_mac;
-    int is_ripv2_mac; //(xxx1 xxxx)F:FF:FF:FF:FF:FF
-                    // similar to broadcast frames
-                //0001 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
-
+    int is_multicast_mac;
     do {
         long int time_left = timerms_left(&timer);
 
@@ -305,34 +300,27 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
         {
             char debug1[60];
             mac_addr_str ( iface->mac_address, debug1);
-            log_debug("Packet received to OUR MAC -> %s\n",debug1);
+            log_trace("Packet received to OUR MAC -> %s\n",debug1);
         } else {
-            //comprobar si es multicast: RIPv2 usa una dirección MAC asi (xxx1 xxxx)F:FF:FF:FF:FF:FF
-            //TODO: ask how to fix this: idea below
-            //is_ripv2_mac = eth_frame_ptr->dest_addr && MAC_MULTICAST_MASK;
+            //comprobar si es multicast: RIPv2 usa una dirección MAC asi (xxx xxx1)F:FF:FF:FF:FF:FF
+            // XX:XX:XX:XX:XX:XX
+            // 0000 0001 : 0000 0000 : 0000 0000 : 0000 0000 : 0000 0000 : 0000 0000
+            if ((eth_frame_ptr->dest_addr[0] & 0x01) == 0x01)
+            {
+                is_multicast_mac = 1;
+            }
 
-            //from ipv4.c
-            // for(int i = 0; i < 4; i++)
-            // {
-            //     aux[i] = layer->netmask[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
-            // }
-
-            //      BROKEN CODE
-                //comprobar si es broadcast: RIPv2 usa la dirección MAC de BROADCAST
-                is_ripv2_mac = (memcmp(eth_frame_ptr->dest_addr, MAC_BCAST_ADDR, MAC_ADDR_SIZE) == 0);
-            //
-
-            if (is_ripv2_mac == 0)
+            if (is_multicast_mac == 0)
             {
                 char debug2[60];
                 mac_addr_str ( eth_frame_ptr->dest_addr, debug2);
-                log_debug("Packet received to BCAST MAC -> %s\n", debug2);
+                log_trace("Packet received to BCAST MAC -> %s\n", debug2);
             }
         }
 
         is_target_type = (ntohs(eth_frame_ptr->type) == type);
 
-    } while ( ! ((is_my_mac || is_ripv2_mac) && is_target_type) );
+    } while ( ! ((is_my_mac || is_multicast_mac) && is_target_type) );
     
     /* Trama recibida con 'tipo' indicado. Copiar datos y dirección MAC origen */
     memcpy(src, eth_frame_ptr->src_addr, MAC_ADDR_SIZE);

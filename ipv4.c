@@ -9,9 +9,6 @@
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 
-//listen on this recieving address for messages
-ipv4_addr_t RIPv2_ADDR = { 224, 0, 0, 9 };
-
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
  * DESCRIPCIÓN:
@@ -124,7 +121,7 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     }
     memset(ipv4_layer, 0, sizeof(ipv4_layer_t));
     char iface_name[32]; //eth hard limit on iface length
-        log_debug("Memset of <ipv4_layer> done correctly\n");
+        log_trace("Memset of <ipv4_layer> done correctly\n");
     /* 2. Leer direcciones y subred de file_conf */
     if (ipv4_config_read(file_conf, iface_name, ipv4_layer->addr, ipv4_layer->netmask) != 0)
     {
@@ -137,9 +134,9 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
     //LOGS:
     char debug[60];
     ipv4_addr_str(ipv4_layer->addr, debug);
-        log_debug("My ip address -> %s\n", debug);
+        log_trace("My ip address -> %s\n", debug);
     ipv4_addr_str(ipv4_layer->netmask, debug);
-        log_debug("My subnet mask -> %s\n", debug);
+        log_trace("My subnet mask -> %s\n", debug);
 
     /* 3. Leer tabla de reenvío IP de file_conf_route */
     ipv4_layer->routing_table = ipv4_route_table_create();
@@ -148,11 +145,6 @@ ipv4_layer_t* ipv4_open(char * file_conf, char * file_conf_route)
         fprintf(stderr,"ERROR: file could not be opened correctly.\n");
         exit(-1);
     }
-
-        log_trace("Printing route table from  -> %s \n", file_conf_route);
-    #ifdef DEBUG
-        //ipv4_route_table_print(ipv4_layer->routing_table);
-    #endif
 
     /* 4. Inicializar capa Ethernet con eth_open() */
     //Guardamos el manejador en el campo de "iface".
@@ -194,7 +186,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     ipv4_header_t.service_type = 0;
     ipv4_header_t.total_length = htons((uint16_t) 20 + payload_len);//Size datos (payload_len) + 20 (size cabecera ip sin datos)
 
-        log_debug("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
+        log_trace("Total length -> %u\n", (unsigned int) ipv4_header_t.total_length);//No pasa nada por hacer la conversion, sigue siendo un tipo de dato de 16 bits entero sin signo.
 
     ipv4_header_t.identification = htons((uint16_t) ID);
     ipv4_header_t.frag_flags = (uint16_t) 0;
@@ -205,19 +197,19 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
 
     char debug1[60];
     ipv4_addr_str(layer->addr, debug1);
-        log_debug("My ip address -> %s\n", debug1);
+        log_trace("My ip address -> %s\n", debug1);
     
     memcpy(ipv4_header_t.dest_ip, dst, sizeof(ipv4_addr_t));
     
     char debug2[60];
     ipv4_addr_str(dst, debug2);
-        log_debug("Dest ip address -> %s\n", debug2);
+        log_trace("Dest ip address -> %s\n", debug2);
     
     //memset de la payload con un valor distinto de 0.
     memcpy(ipv4_header_t.payload, payload, payload_len);
     //Calculo de checksum:
     ipv4_header_t.checksum = htons(ipv4_checksum((unsigned char *) &ipv4_header_t, IPV4_HDR_LEN)); // IPV4_HDR_LEN defined in ipv4.h
-        log_debug("Checksum made -> %u \n", (unsigned int)ipv4_header_t.checksum);
+        log_trace("Checksum made -> %u \n", (unsigned int)ipv4_header_t.checksum);
     // 1500 ETH - 20 cab IP = 1480
     //ipv4_open ya lo hace el cliente o el servidor.
     //for knowing MAC address of dest, we call arp_resolve function from arp.c & arp.h
@@ -257,7 +249,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
             printf("Error: function arp_resolve not working...\n");
             return -1;
         }
-        log_debug("Sending inside our subnet....\n");
+        log_trace("Sending inside our subnet....\n");
         // bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, sizeof(struct ipv4_header));
         bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
     
@@ -277,7 +269,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
             printf("Error: function arp_resolve not working...\n");
             return -1;
         }
-        log_debug("Sending inside our subnet....\n");
+        log_trace("Sending inside our subnet....\n");
         bytes_sent = eth_send (sender_iface, mac_dest, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t, (20 + payload_len));
         if(bytes_sent == -1)
         {
@@ -286,7 +278,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
         }
     }
     log_trace("ipv4_send() finished\n");
-    log_debug("Number of data bytes sent -> %d\n",bytes_sent - IPV4_HDR_LEN);
+    log_trace("Number of data bytes sent -> %d\n",bytes_sent - IPV4_HDR_LEN);
     //IPV4_HDR_LEN inside eth.h.  
     //bytes_sent is what eth sends, minus 20 of eth header - ipv4 hdr length
     return (bytes_sent - IPV4_HDR_LEN); //eth header size inside eth.c, not included.
@@ -316,12 +308,11 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     struct ipv4_header *ipv4_packet_ptr = NULL;
     int is_target_type;
     int is_my_ip;
-    int is_ripv2_ip = 0;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
+    int is_multicast_ip = 0;  //Of 224.0.0.9 (todos los routers RIPv2 del enlace) 
                         //In our links the routers will send and recieve on 224.0.0.9
     mac_addr_t mac_src;
     int original_checksum;
     int is_my_checksum = 0; //declared as false initially
-    ipv4_addr_t ripv2_mask = {240, 0, 0, 0};
 
     do
     {
@@ -350,14 +341,14 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             log_trace("ANTES DE COMPARACION DE IP's\n");
         char debug_dest_ip[60];
         ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug_dest_ip);
-            log_debug("--------------->>>IP destino del paquete recibido -> %s\n", debug_dest_ip);
+            log_trace("--------------->>>IP destino del paquete recibido -> %s\n", debug_dest_ip);
         char debug_src_ip[60];
         ipv4_addr_str ( ipv4_packet_ptr->dest_ip, debug_src_ip);
-            log_debug("--------------->>>IP origen del paquete recibido -> %s\n", debug_src_ip);
+            log_trace("--------------->>>IP origen del paquete recibido -> %s\n", debug_src_ip);
 
         char debug_my_ip[60];
         ipv4_addr_str ( layer->addr, debug_my_ip);
-            log_debug("--------------->>>MY IP ADRESS -> %s\n", debug_my_ip);
+            log_trace("--------------->>>MY IP ADRESS -> %s\n", debug_my_ip);
 
         is_my_ip = (memcmp(ipv4_packet_ptr->dest_ip, layer->addr, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
 
@@ -365,47 +356,22 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             is_my_ip = 0;//queremos que cuando la comparacion sea exitosa, is_my_ip sea 1, y no 0.
             char debug5[60];
             ipv4_addr_str ( ipv4_packet_ptr->src_ip, debug5 );
-                log_debug(" NOT My IP Packet received FROM IP -> %s\n", debug5);
+                log_trace(" NOT My IP Packet received FROM IP -> %s\n", debug5);
             //Entonces, cuando no es exitosa y hacemos multicast, le doy un valor conocido en el caso de que no coincidan directamente las IP de destino del paquete y la mia.
         }
+            log_trace("is_my_ip value between unicast and multicast -> %d", is_my_ip);
         
-        //TODO:
-        // we have to do all of multicast
-        // usar mascaras binarias
-
-            log_debug("is_my_ip value between unicast and multicast -> %d", is_my_ip);
-        
-        if (is_my_ip == 0) //obtain the netmask of the ip recieved and check if it belongs to 224.0.0.0/4
-        {
-
-            //log_trace("Testing\n");
-            // is_other_ip = (memcmp(ipv4_packet_ptr->dest_ip, other_ip, IPv4_ADDR_SIZE) == 0); //comparing to check if its the RIPv2 multicast addr
-            // 224.0.0.9 (todos los routers RIPv2 del enlace) 
-            // check that first 4 bits are 1110
-
-            ipv4_addr_t aux; //aux de ipv4 X.X.X.X
-            
-            for(int i = 0; i < 4; i++)
-            {
-                aux[i] = layer->netmask[i] & (ripv2_mask[i]); //Bit AND con addr y la mask. Se guarda en aux
-            }
-            char debug_aux[60];
-            ipv4_addr_str (aux, debug_aux);
-                log_debug("Resultado de & logico -> %s\n", debug_aux);
-
-            if(memcmp(aux, ripv2_mask, 4) == 0) // If the comparation succeeds, we have
-            { 
-                //do is RIPv2 IP
-                is_ripv2_ip = (memcmp(ipv4_packet_ptr->dest_ip, RIPv2_ADDR, IPv4_ADDR_SIZE) == 0); //comparing memory reults is a 0 if comparison is successful.
-                if (is_ripv2_ip == 1)
-                {
-                    log_debug("Packet received to RIPv2 MULTICAST IP -> %d\n", RIPv2_ADDR);
-                }
+        if (is_my_ip == 0) //check if it is multicast 224 - 239
+        {   
+            //Check multicast, check if the first octet is in the multicast range
+            if ((ipv4_packet_ptr->dest_ip[0] >= 224) && (ipv4_packet_ptr->dest_ip[0] <= 239)){
+                log_trace("Packet received to MULTICAST IP -> %d\n", ipv4_packet_ptr->dest_ip[0]);
+                is_multicast_ip = 1;
             }
         }
 
         is_target_type = (ipv4_packet_ptr->protocol == protocol);
-            log_debug("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
+            log_trace("Received target type -> %d, my_target_type -> %d\n",ipv4_packet_ptr->protocol, protocol);
         original_checksum = ntohs(ipv4_packet_ptr->checksum);
         ipv4_packet_ptr->checksum = 0;
         uint16_t calculated_checksum = ipv4_checksum ((unsigned char *) ipv4_buffer, IPV4_HDR_LEN);
@@ -413,12 +379,12 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
         {
             is_my_checksum = 1; //is true
         } //by default, has value 0 (False).
-            log_debug("is_my_checksum -> %d\n",is_my_checksum);
-            log_debug("is_my_ip -> %d\n",is_my_ip);
-            log_debug("is_my_target_type -> %d\n",is_target_type);
-            log_debug("is_ripv2_ip -> %d\n", is_ripv2_ip);
+            log_trace("is_my_checksum -> %d\n",is_my_checksum);
+            log_trace("is_my_ip -> %d\n",is_my_ip);
+            log_trace("is_my_target_type -> %d\n",is_target_type);
+            log_trace("is_multicast_ip -> %d\n", is_multicast_ip);
 
-    } while ( !((is_my_ip || is_ripv2_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
+    } while ( !((is_my_ip || is_multicast_ip) && is_target_type && is_my_checksum) ); //if all is 1, !1 = 0, therefore the do-while will end
         log_trace("Paquete bien recibido (tipo, checksum e ip destino del paquete son los correctos)");//Los mios, al fin y al cabo.
     
     /* Paquete recibido con 'protocolo' indicado. Copiar datos y dirección IP origen */
@@ -430,6 +396,6 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
     }
     memcpy(buffer, ipv4_packet_ptr->payload, buf_len);
     //payload_len = payload_len + IPV4_HDR_LEN;
-        log_debug("Bytes received (client) -> %d\n", payload_len);
+        log_trace("Bytes received (client) -> %d\n", payload_len);
     return payload_len;
 }
