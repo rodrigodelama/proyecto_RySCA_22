@@ -80,18 +80,18 @@ int main ( int argc, char * argv[] )
     //Cabecera RIP:
     request_message.type = (uint8_t) 1; //request
     request_message.version = (uint8_t) 2; //response
-    request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
+    request_message.dominio_encaminamiento = (uint16_t) 0x0000;
     //Entrada 1, vector distancia:
-    request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
+    request_message.vectores_distancia[0].familia_dirs = (uint16_t) 0x0000;
         //log_debug("Familia_dirs");
-    request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
-    memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
+    request_message.vectores_distancia[0].etiqueta_ruta = (uint16_t) 0x0000;
+    memcpy(request_message.vectores_distancia[0].subnet , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].next_hop, IPv4_ZERO_ADDR_2, sizeof(ipv4_addr_t));
     request_message.vectores_distancia[0].metric = htonl((uint32_t) 16);
 
     //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
-    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
+    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_SIZE * 1);
         log_debug("Length of request packet -> %d\n", length_request);
     int bytes_sent = udp_send(my_udp_layer, dest_ip, destport, (unsigned char*) &request_message, length_request);
         log_debug("Bytes of data sent by UDP send -> %d\n",bytes_sent);
@@ -100,7 +100,7 @@ int main ( int argc, char * argv[] )
     int bytes_rcvd = udp_rcv(my_udp_layer,dest_ip, &destport, fake_payload_rcv, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
         log_debug("Total number of bytes received -> %d \n", bytes_rcvd);
     
-    int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+    int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_SIZE; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
         log_debug("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
 
     ripv2_msg_t* ripv2_response = (ripv2_msg_t*) fake_payload_rcv;

@@ -112,13 +112,12 @@ int main ( int argc, char * argv[] )
     unsigned char buffer_rip[LEN_PAYLOAD_RIP];
     
     udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
-        log_trace("udp_layer configuration DONE\n");
-    
     if(my_udp_layer == NULL)
     {
-        fprintf(stderr, "%s\n", "Error abriendo interfaz IP Layer.\n");
+        fprintf(stderr, "%s\n", "Error abriendo interfaz UDP.\n");
         exit(-1);
     }
+    log_trace("udp_layer configuration DONE\n");
 
     ripv2_route_table_t * rip_table = ripv2_route_table_create(); //Creamos la tabla de rutas
     ripv2_route_table_read ("./ripv2_route_table_server.txt", rip_table); //Rellenamos la tabla
@@ -133,33 +132,32 @@ int main ( int argc, char * argv[] )
     //TTL is part of IPv4 and to change it we would need a more profound overhaul than simply making the request
 
     log_trace("Building (REQUEST) message\n");    
-    ripv2_msg_t request_message;//Si no hago el malloc, me dice que la variable no esta inicializada ??
+    ripv2_msg_t request_message;
     memset(&request_message, 0, sizeof(ripv2_msg_t));
-    //Cabecera RIP:
-    request_message.type = (uint8_t) 1; //request
-    request_message.version = (uint8_t) 2; //response
-    request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
-    //Entrada 1, vector distancia:
-    request_message.vectores_distancia[0].familia_dirs = htons((uint16_t) 0x0000);
-    //log_debug("Familia_dirs");
-    request_message.vectores_distancia[0].etiqueta_ruta = htons((uint16_t) 0x0000);
-    memcpy(request_message.vectores_distancia[0].subred , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
+    //Cabecera
+    request_message.type = (uint8_t) 1; //no need to htons/l since 1 byte
+    request_message.version = (uint8_t) 2;
+    request_message.dominio_encaminamiento = (uint16_t) 0x0000; //da igual el orden de bits para 0s
+    //Contenido
+    //ceros
+    request_message.vectores_distancia[0].familia_dirs = (uint16_t) 0x0000;
+    request_message.vectores_distancia[0].etiqueta_ruta = (uint16_t) 0x0000;
+    //datos
+    memcpy(request_message.vectores_distancia[0].subnet , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].subnet_mask , IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     memcpy(request_message.vectores_distancia[0].next_hop, IPv4_ZERO_ADDR_3, sizeof(ipv4_addr_t));
     request_message.vectores_distancia[0].metric = htonl((uint32_t) 16);
     
-
-    //unsigned char* ripv2_request_payload = (unsigned char*) &request_message;
-    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_ENTRY_SIZE * 1);
-    log_trace("Length of request packet -> %d\n", length_request);
+    int length_request = RIPv2_MESSAGE_HEADER_SIZE + (RIPv2_DISTANCE_VECTOR_SIZE * 1); // solo contiene una entrada el mensaje de request
+        log_trace("Length of request packet -> %d\n", length_request);
     int bytes_sent = udp_send(my_udp_layer, RIPv2_ADDR_2, RIPv2_PORT, (unsigned char*) &request_message, length_request);
-    log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
+        log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
 
     //initial print of the table
-    printf("Initial table from config file:\n");
+    printf("\nInitial table from configuration file:\n");
     ripv2_route_table_print(rip_table);
     printf("\n\n");
-    
+
     while (1)
     {
         //TODO:
@@ -179,7 +177,7 @@ int main ( int argc, char * argv[] )
         //SIEMPRE hay que mirar el origen del mensaje, si es mi padre, solamente actualizo la metrica y reseteo el timer. Si no viene de mi padre (mi garteway)
         //hay que mirar tambien si la métrica es mejor y si eso actualizar.
 
-        int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_ENTRY_SIZE ; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
+        int numero_de_vectores_distancia = (bytes_rcvd - RIPv2_MESSAGE_HEADER_SIZE) / RIPv2_DISTANCE_VECTOR_SIZE ; //deberíamos tener como resultado un entero, así sabremos hasta qué posición de la tabla tenemos que iterar en el "for". 
             log_trace("Number of table entrys received -> %d \n", numero_de_vectores_distancia);
         
         ripv2_msg_t* ripv2_msg = (ripv2_msg_t*) buffer_rip;
@@ -192,27 +190,32 @@ int main ( int argc, char * argv[] )
         char subnet_str[IPv4_STR_MAX_LENGTH];
         ipv4_addr_str(current_route->subnet_addr, subnet_str);
 
+        //ERROR
         if (bytes_rcvd < 0) // should never happen
         {
             fprintf(stderr, "Error on recieved UDP datagram");
             return(-1);
 
-        } else if (bytes_rcvd == 0) { // we will eliminate because timer is up for min roure
+        //GARBAGE COLLECTOR (DEFFAULT: nothing was recieved)
+        } else if (bytes_rcvd == 0) { // we will eliminate because timer is up for the lowest timer route
                 log_debug("Timer's up, route %s has been eliminated", subnet_str);
             ripv2_route_table_remove(rip_table, index_min);
             ripv2_route_table_print(rip_table);
             printf("\n");
 
-        } else if (bytes_rcvd > 0 && expiration_time == 0) { //if its our target route, update timer, if not delete min time entry
+        //VALID ROUTE UPDATE
+        } else if (bytes_rcvd > 0 && expiration_time == 0) { //if it is our targeted route, update timer, if not delete the entry
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
-                route_index = 0;
-                route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
-                //devuelve el índice de la ruta para llegar a la subred especificada.
+                route_index = 0; //reinitialize index
+                route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subnet, ripv2_msg->vectores_distancia[i].subnet_mask);
+                
+                //devuelve el índice de la ruta para llegar a la subnet especificada.
                 if(index_min == route_index)
                 {
                     is_our_route = 1;
-                    //TODO: actualizaremos timer a 180 otra vez
+                    timerms_t * index_timer = & rip_table->routes[route_index]->timer_ripv2;
+                    timerms_reset(index_timer, 180000); //actualizamos el timer a 180 otra vez
                 }
             }
             if(is_our_route != 1)
@@ -225,18 +228,18 @@ int main ( int argc, char * argv[] )
             }
         }
 
-        // someone sends us their routes
-        if(ripv2_msg->type == RIPv2_RESPONSE) // no hace falta hacer noths porque es un entero de 8bits (1 byte).
+        //RECIBIMOS un mensaje RIPv2
+        if(ripv2_msg->type == RIPv2_RESPONSE)
         {
             char str_route[IPv4_STR_MAX_LENGTH];
-                log_debug("Received %d distance vectors", numero_de_vectores_distancia);
+                log_debug("RESPONSE: Received %d distance vectors", numero_de_vectores_distancia);
 
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
-                ipv4_addr_str(ripv2_msg->vectores_distancia[i].subred, str_route);
+                ipv4_addr_str(ripv2_msg->vectores_distancia[i].subnet, str_route);
                     log_trace("Route %d is %s\n ", i, str_route);
 
-                route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask);
+                route_index = ripv2_route_table_find(rip_table, ripv2_msg->vectores_distancia[i].subnet, ripv2_msg->vectores_distancia[i].subnet_mask);
 
                 if(route_index == -1) //We DONT have the route in our ripv2_table
                 {
@@ -255,7 +258,7 @@ int main ( int argc, char * argv[] )
                         }
                         
                         ripv2_route_t * new_route;
-                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred,
+                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subnet,
                                                        ripv2_msg->vectores_distancia[i].subnet_mask,
                                                        rip_iface,
                                                        next_hop,
@@ -281,7 +284,7 @@ int main ( int argc, char * argv[] )
                     
                     ripv2_route_t * route_to_update = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
                     //ripv2_route created from dv recieved in ripv2_msg
-                    memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subred, IPv4_ADDR_SIZE);
+                    memcpy(route_to_update->subnet_addr, ripv2_msg->vectores_distancia[i].subnet, IPv4_ADDR_SIZE);
                     memcpy(route_to_update->subnet_mask, ripv2_msg->vectores_distancia[i].subnet_mask, IPv4_ADDR_SIZE);
                     uint32_t new_metric = ntohl(ripv2_msg->vectores_distancia[i].metric) + 1;
                     route_to_update->metric = new_metric;
@@ -334,15 +337,15 @@ int main ( int argc, char * argv[] )
                     }
                 }
             }
-        //someone asks us for our routes
-        } else if(ripv2_msg->type == RIPv2_REQUEST) {
-            log_trace("Request recieved");
+        //RECIBIMOS UN REQUEST (de nuestro cliente o quien sea)
+        } else if (ripv2_msg->type == RIPv2_REQUEST) {
+            log_debug("REQUEST Received");
 
             int num_of_routes = number_of_routes(rip_table); //Calcula el numero de rutas
             ripv2_msg_t ripv2_msg;
 
             ripv2_msg.type = RIPv2_RESPONSE;
-            ripv2_msg.version = 2;
+            ripv2_msg.version = 0x02;
             ripv2_msg.dominio_encaminamiento = 0x0000;
             ripv2_route_t * routes_to_send;
             for(int i = 0; i < num_of_routes; i++)
@@ -352,7 +355,7 @@ int main ( int argc, char * argv[] )
                 {
                     ripv2_msg.vectores_distancia[i].familia_dirs = AF_INET; //2
                     ripv2_msg.vectores_distancia[i].etiqueta_ruta = 0x0000;
-                    memcpy(ripv2_msg.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
+                    memcpy(ripv2_msg.vectores_distancia[i].subnet, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
                     memcpy(ripv2_msg.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
                     memcpy(ripv2_msg.vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
                     ripv2_msg.vectores_distancia[i].metric = htonl(routes_to_send->metric);

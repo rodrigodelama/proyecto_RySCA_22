@@ -93,36 +93,36 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr )
         switch (route->subnet_mask[i])
         { //para cada caso, sumo los bytes correspondientes
             case 255:
-            prefix_length += 8;
-            break;
+                prefix_length += 8;
+                break;
             case 254:
-            prefix_length += 7;
-            break;
+                prefix_length += 7;
+                break;
             case 252:
-            prefix_length += 6;
-            break;
+                prefix_length += 6;
+                break;
             case 248:
-            prefix_length += 5;
-            break;
+                prefix_length += 5;
+                break;
             case 240:
-            prefix_length += 4;
-            break;
+                prefix_length += 4;
+                break;
             case 224:
-            prefix_length += 3;
-            break;
+                prefix_length += 3;
+                break;
             case 192:
-            prefix_length += 2;
-            break;
+                prefix_length += 2;
+                break;
             case 128:
-            prefix_length += 1;
-            break;
+                prefix_length += 1;
+                break;
             default:
-            prefix_length +=0;
-            break;
+                prefix_length +=0;
+                break;
         }
         }
     }
-    log_debug("Prefix_length -> %d",prefix_length);
+    log_trace("Prefix_length -> %d",prefix_length);
     return prefix_length;
 }
 
@@ -157,13 +157,13 @@ void ripv2_vector_print(vector_distancia_t * vector)
     if (vector != NULL)
     {
         char subred_str[IPv4_STR_MAX_LENGTH];
-        ipv4_addr_str(vector->subred, subred_str);
+        ipv4_addr_str(vector->subnet, subred_str);
         char mask_str[IPv4_STR_MAX_LENGTH];
         ipv4_addr_str(vector->subnet_mask, mask_str);
         char next_hop_str[IPv4_STR_MAX_LENGTH];
         ipv4_addr_str(vector->next_hop, next_hop_str);
         //uint32_t metrica= (uint32_t) ntohs(vector->metric);
-        uint32_t metrica= vector->metric;//ya hacemos ntohl en el cliente antes de imprimir (y guardamos el valor transformado en cada vector distancias).
+        uint32_t metrica = vector->metric;//ya hacemos ntohl en el cliente antes de imprimir (y guardamos el valor transformado en cada vector distancias).
         //uint32_t metrica= ntohl(vector->metric);
         printf("%s/%s via %s metric %ld \n", subred_str, mask_str, next_hop_str, (long int) metrica);
     }
@@ -219,7 +219,7 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
     int params = sscanf(line, "%s %s %s %s %s\n", 
                 subnet_str, mask_str, iface_name, gw_str, metric_str);
     if (params != 5) {
-        fprintf(stderr, "%s:%d: Invalid IPv4 Route format: '%s' (%d params)\n",
+        fprintf(stderr, "%s:%d: Invalid RIPv2 Route format: '%s' (%d params)\n",
             filename, linenum, line, params);
         fprintf(stderr, 
             "%s:%d: Format must be: <subnet> <mask> <iface> <gw> <metric>\n",
@@ -289,11 +289,11 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
 int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
 {
     int err;
-        //log_trace("Inside ripv2_route_output() -> Printing route table\n");
+        log_trace("Inside ripv2_route_output() -> Printing route table\n");
     if (header == 0) {
-        err = fprintf(out, "# SubnetAddr  \tSubnetMask    \tIface  \tGateway  \tMetric  Timer\n");
+        err = fprintf(out, "SubnetAddr  \tSubnetMask  \tIface  \tGateway  \tMetric  \tTimer\n");
         if (err < 0) {
-        return -1;
+            return -1;
         }
     }
     
@@ -346,7 +346,7 @@ ripv2_route_table_t * ripv2_route_table_create()
     if (table != NULL) {
         int i;
         for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
-        table->routes[i] = NULL;
+            table->routes[i] = NULL;
         }
     }
 
@@ -379,11 +379,11 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
         /* Find an empty place in the route table */
         int i;
         for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
-        if (table->routes[i] == NULL) {
-            table->routes[i] = route;
-            route_index = i;
-            break;
-        }
+            if (table->routes[i] == NULL) {
+                table->routes[i] = route;
+                route_index = i;
+                break;
+            }
         }
     }
 
@@ -469,8 +469,8 @@ ripv2_route_t * ripv2_route_table_lookup ( ripv2_route_table_t * table, ipv4_add
                 int route_i_lookup = ripv2_route_lookup(route_i, addr);
                 if (route_i_lookup > best_route_prefix)
                 {
-                best_route = route_i;
-                best_route_prefix = route_i_lookup;
+                    best_route = route_i;
+                    best_route_prefix = route_i_lookup;
                 }
             }
         }
@@ -548,8 +548,8 @@ int ripv2_route_table_find( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv
                 
                 if (same_subnet && same_mask)
                 {
-                route_index = i;
-                break;
+                    route_index = i;
+                    break;
                 }
             }
         }
@@ -626,29 +626,29 @@ int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table )
 
         /* Read next line of file */
         char* line = fgets(line_buf, 1024, routes_file);
-        if (line == NULL) {
-        break;
+            if (line == NULL) {
+            break;
         }
 
         /* If this line is empty or a comment, just ignore it */
         if ((line_buf[0] == '\n') || (line_buf[0] == '#')) {
-        err = 0;
-        continue;
+            err = 0;
+            continue;
         }
 
         /* Parse route from line */
         ripv2_route_t* new_route = ripv2_route_read(filename, linenum, line);
         if (new_route == NULL) {
-        err = -1;
-        break;
+            err = -1;
+            break;
         }
         
         /* Add new route to Route Table */
         if (table != NULL) {
-        err = ripv2_route_table_add(table, new_route);
+            err = ripv2_route_table_add(table, new_route);
         if (err >= 0) {
-        err = 0;
-        read_routes++;
+            err = 0;
+            read_routes++;
         }
         }
     } /* while() */
@@ -690,10 +690,10 @@ int ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out )
     for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
         ripv2_route_t * route_i = ripv2_route_table_get(table, i);
         if (route_i != NULL) {
-        err = ripv2_route_output(route_i, i, out);
-        if (err == -1) {
-        return -1;
-        }
+            err = ripv2_route_output(route_i, i, out);
+            if (err == -1) {
+                return -1;
+            }
         }
     }
 
@@ -737,9 +737,9 @@ int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename )
     if (table != NULL) {
         num_routes = ripv2_route_table_output (table, routes_file);
         if (num_routes == -1) {
-        fprintf(stderr, "Error writing IPv4 Routes file \"%s\": %s.\n",
-                filename, strerror(errno));
-        return -1;
+            fprintf(stderr, "Error writing IPv4 Routes file \"%s\": %s.\n",
+                    filename, strerror(errno));
+            return -1;
         }
     }
 
