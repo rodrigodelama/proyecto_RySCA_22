@@ -93,32 +93,32 @@ int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr )
         switch (route->subnet_mask[i])
         { //para cada caso, sumo los bytes correspondientes
             case 255:
-            prefix_length += 8;
-            break;
+                prefix_length += 8;
+                break;
             case 254:
-            prefix_length += 7;
-            break;
+                prefix_length += 7;
+                break;
             case 252:
-            prefix_length += 6;
-            break;
+                prefix_length += 6;
+                break;
             case 248:
-            prefix_length += 5;
-            break;
+                prefix_length += 5;
+                break;
             case 240:
-            prefix_length += 4;
-            break;
+                prefix_length += 4;
+                break;
             case 224:
-            prefix_length += 3;
-            break;
+                prefix_length += 3;
+                break;
             case 192:
-            prefix_length += 2;
-            break;
+                prefix_length += 2;
+                break;
             case 128:
-            prefix_length += 1;
-            break;
+                prefix_length += 1;
+                break;
             default:
-            prefix_length +=0;
-            break;
+                prefix_length +=0;
+                break;
         }
         }
     }
@@ -293,7 +293,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
     if (header == 0) {
         err = fprintf(out, "SubnetAddr  \tSubnetMask  \tIface  \tGateway  \tMetric  Timer\n");
         if (err < 0) {
-        return -1;
+            return -1;
         }
     }
     
@@ -690,10 +690,10 @@ int ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out )
     for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
         ripv2_route_t * route_i = ripv2_route_table_get(table, i);
         if (route_i != NULL) {
-        err = ripv2_route_output(route_i, i, out);
-        if (err == -1) {
-        return -1;
-        }
+            err = ripv2_route_output(route_i, i, out);
+                if (err == -1) {
+                    return -1;
+                }
         }
     }
 

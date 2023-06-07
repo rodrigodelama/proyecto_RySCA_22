@@ -307,11 +307,13 @@ int main ( int argc, char * argv[] )
                             registered_route->metric = 16;
                             ripv2_route_table_print(rip_table);
                             ripv2_route_table_remove(rip_table, route_index);
+                            ripv2_route_table_print(rip_table);
                             printf("\n");
                         } else { // si su metrica es inferior a 16 (aunque sea peor)
                             //update metric, whatever cost
                             registered_route->metric = new_metric; //simple type so equals
                             timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
+                            ripv2_route_table_print(rip_table);
                         }
                     } else { // si no es del papa
                         if(new_metric < registered_route->metric) // actualizamos la ruta
