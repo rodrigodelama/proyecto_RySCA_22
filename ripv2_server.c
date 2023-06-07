@@ -163,9 +163,14 @@ int main ( int argc, char * argv[] )
     while (1)
     {
         //TODO:
-        //check if empty table and loop awaiting a new entry
-        //if table entries time out default to the listening loop
+        //check if empty table and loop awaiting a new entry information
 
+        //if table entries time out: default to the listening loop
+
+        //TODO:
+        //check why we might be saving multiple times the same route???
+        
+        //check the format of the RIPv2 message - its not appearing correctly in wireshark
         
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
