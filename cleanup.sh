@@ -20,3 +20,5 @@ sudo rm /tmp/ripv2_client -rf
 
 # RIP Server:
 sudo rm /tmp/ripv2_server -rf
+
+sudo rm /tmp/*.txt -rf
