@@ -300,7 +300,7 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
         {
             char debug1[60];
             mac_addr_str ( iface->mac_address, debug1);
-            log_debug("Packet received to OUR MAC -> %s\n",debug1);
+            log_trace("Packet received to OUR MAC -> %s\n",debug1);
         } else {
             //comprobar si es multicast: RIPv2 usa una dirección MAC asi (xxx xxx1)F:FF:FF:FF:FF:FF
             // XX:XX:XX:XX:XX:XX
@@ -314,7 +314,7 @@ int eth_recv (eth_iface_t * iface, mac_addr_t src, uint16_t type, unsigned char 
             {
                 char debug2[60];
                 mac_addr_str ( eth_frame_ptr->dest_addr, debug2);
-                log_debug("Packet received to BCAST MAC -> %s\n", debug2);
+                log_trace("Packet received to BCAST MAC -> %s\n", debug2);
             }
         }
 

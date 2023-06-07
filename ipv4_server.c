@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         bytes_rcvd = 0;
         ipv4_addr_t received_ip;
         bytes_rcvd = ipv4_recv(my_ip_iface, 17, buffer, received_ip, 0, timeout);
-        log_debug("Bytes received -> %d\n", bytes_rcvd);
+        log_trace("Bytes received -> %d\n", bytes_rcvd);
         if(bytes_rcvd > 0) //Si he recibido un paquete sin que haya habido un error ni se haya agotado el temporizador.
         {
             ipv4_send(my_ip_iface, received_ip, 17, buffer, (bytes_rcvd - 20));
