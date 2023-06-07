@@ -532,11 +532,11 @@ ripv2_route_t * ripv2_route_table_get ( ripv2_route_table_t * table, int index )
  */
 int ripv2_route_table_find( ripv2_route_table_t * table, ipv4_addr_t subnet, ipv4_addr_t mask )
 {
-    int route_index = -2;
+    int route_index = -2; //if table is null
 
     if (table != NULL)
     {
-        route_index = -1;
+        route_index = -1; //if we dont find a match
         int i;
         for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++)
         {
