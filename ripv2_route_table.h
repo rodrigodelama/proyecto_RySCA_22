@@ -296,6 +296,27 @@ void ripv2_route_table_free ( ripv2_route_table_t * table );
 int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table );
 
 
+/* void ripv2_route_output ( ripv2_route_t * route, FILE * out );
+ *
+ * DESCRIPCIÓN:
+ *   Esta función imprime por la salida indicada la ruta RIPv2
+ *   especificada.
+ *
+ * PARÁMETROS:
+ *      'route': Ruta a imprimir.
+ *     'header': '0' para imprimir una línea con la cabecera de la ruta.
+ *        'out': Salida por la que imprimir la ruta.
+ *
+ * VALOR DEVUELTO:
+ *   La función devuelve '0' si la ruta se ha impreso correctamente.
+ *
+ * ERRORES:
+ *   La función devuelve '-1' si se ha producido algún error al escribir por
+ *   la salida indicada.
+ */
+int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out, int route_index );
+
+
 /* void ripv2_route_table_print ( ripv2_route_table_t * table );
  *
  * DESCRIPCIÓN:

@@ -44,7 +44,7 @@ ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* i
         memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
         //memcpy(route->metric, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
         route->metric = (uint32_t) metric;
-        timerms_reset(&(route->timer_ripv2), 180000);
+        timerms_reset(&(route->timer_ripv2), RECEPTION_TIMER);
         //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
     }
     
@@ -286,12 +286,12 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
  *   La función devuelve '-1' si se ha producido algún error al escribir por
  *   la salida indicada.
  */
-int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
+int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out, int route_index )
 {
     int err;
         //log_trace("Inside ripv2_route_output() -> Printing route table\n");
     if (header == 0) {
-        err = fprintf(out, "SubnetAddr  \tSubnetMask  \tIface  \tGateway  \tMetric  Timer\n");
+        err = fprintf(out, "# SubnetAddr  \tSubnetMask  \tIface  \tGateway  \tMetric  Timer\n");
         if (err < 0) {
             return -1;
         }
@@ -304,6 +304,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
     char metric_str[IPv4_STR_MAX_LENGTH];
     char timer_str[IPv4_STR_MAX_LENGTH];
 
+    
     if (route != NULL) {
         ipv4_addr_str(route->subnet_addr, subnet_str);
         ipv4_addr_str(route->subnet_mask, mask_str);
@@ -312,7 +313,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out )
         sprintf(metric_str,"%d", route->metric);
         sprintf(timer_str, "%ld", timerms_left(&(route->timer_ripv2)));
 
-        err = fprintf(out, "%-15s\t%-15s\t%s\t%-15s\t%s\t%s\n",subnet_str, mask_str, ifname, gw_str, metric_str, timer_str);
+        err = fprintf(out, "%d %-15s\t%-15s\t%s\t%-15s\t%s\t%s\n", route_index, subnet_str, mask_str, ifname, gw_str, metric_str, timer_str);
         if (err < 0) {
             return -1;
         }
@@ -346,7 +347,7 @@ ripv2_route_table_t * ripv2_route_table_create()
     if (table != NULL) {
         int i;
         for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
-        table->routes[i] = NULL;
+            table->routes[i] = NULL;
         }
     }
 
@@ -379,11 +380,11 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
         /* Find an empty place in the route table */
         int i;
         for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
-        if (table->routes[i] == NULL) {
-            table->routes[i] = route;
-            route_index = i;
-            break;
-        }
+            if (table->routes[i] == NULL) {
+                table->routes[i] = route;
+                route_index = i;
+                break;
+            }
         }
     }
 
@@ -414,13 +415,19 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
  *   Esta función devuelve 'NULL' si la ruta no ha podido ser borrada, o no
  *   existía ninguna ruta en dicha posición.
  */
-ripv2_route_t * ripv2_route_table_remove ( ripv2_route_table_t * table, int index )
+ripv2_route_t * ripv2_route_table_remove(ripv2_route_table_t * table, int index)
 {
-    ripv2_route_t * removed_route = NULL;
+    ripv2_route_t *removed_route = NULL;
     
     if ((table != NULL) && (index >= 0) && (index < RIPv2_ROUTE_TABLE_SIZE)) {
         removed_route = table->routes[index];
-        table->routes[index] = NULL;
+
+        // Shift the remaining routes to fill the gap
+        for (int i = index; i < RIPv2_ROUTE_TABLE_SIZE - 1; i++) {
+            table->routes[i] = table->routes[i + 1];
+        }
+
+        table->routes[RIPv2_ROUTE_TABLE_SIZE - 1] = NULL;
     }
 
     return removed_route;
@@ -685,12 +692,13 @@ int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table )
 int ripv2_route_table_output ( ripv2_route_table_t * table, FILE * out )
 {
     int err;
-
     int i;
+    int route_index;
     for (i=0; i<RIPv2_ROUTE_TABLE_SIZE; i++) {
         ripv2_route_t * route_i = ripv2_route_table_get(table, i);
         if (route_i != NULL) {
-            err = ripv2_route_output(route_i, i, out);
+            route_index = ripv2_route_table_find(table, route_i->subnet_addr, route_i->subnet_mask);
+            err = ripv2_route_output(route_i, i, out, route_index);
                 if (err == -1) {
                     return -1;
                 }

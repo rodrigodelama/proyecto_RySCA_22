@@ -101,13 +101,6 @@ int udp_send(udp_layer_t *my_udp_iface, ipv4_addr_t dest, uint16_t dest_port, un
     	log_debug("udp_header_t.payload -> %d\n", udp_header_t.payload);
     int bytes_sent = ipv4_send(my_udp_iface->local_ip_stack, dest, UDP_PROTOCOL_TYPE, (unsigned char *) &udp_header_t, (payload_len + 8)); //No estamos mandando el paquete UDP, estabamos mandando la payload de UDP.
     	log_trace("UDP datagram sent. Number of data bytes sent -> %d\n", bytes_sent - 8 );
-    
-    //RIPv2 case
-    if(bytes_sent == -224) {
-        return -224; // RIP frame, no need to "succeed" on send
-        printf("RIP initial RESPONSE frame sent!\n");
-    }
-
     if(bytes_sent == -1)
     {
         fprintf(stderr, "udp_send(): ERROR: ipv4_send failed\n");
