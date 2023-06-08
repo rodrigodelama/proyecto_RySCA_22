@@ -186,12 +186,6 @@ int main ( int argc, char * argv[] )
         index_min = index_least_time(rip_table); // route
 
         ripv2_route_t* current_route = ripv2_route_table_get(rip_table, index_min); //ruta con menor temporizador
-        char subnet_str[IPv4_STR_MAX_LENGTH];
-        if (current_route != NULL)
-        {
-            ipv4_addr_str(current_route->subnet_addr, subnet_str);
-        }
-
 
         if(bytes_rcvd < 0) // should never happen
         {
@@ -201,7 +195,10 @@ int main ( int argc, char * argv[] )
         } else if (bytes_rcvd == 0) { // we will eliminate bca timer is upç
             if (current_route != NULL)
             {
-                printf("Print #%d - Timer's up, route %d: %s has been eliminated\n", update_count, index_min, subnet_str);
+                printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
+                ripv2_route_print(current_route);
+                printf("Has been eliminated\n\n");
+
                     update_count++;
                 ripv2_route_table_remove(rip_table, index_min);
                 ripv2_route_table_print(rip_table);
@@ -211,7 +208,7 @@ int main ( int argc, char * argv[] )
             printf("Awaiting RIP Routes\n");
             continue;
 
-        } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar
+        } else if (bytes_rcvd > 0 && expiration_time == 0) { //EDGE CASE - basicamente nunca va a pasar
             for(int i = 0; i < numero_de_vectores_distancia; i++)
             {
                 route_index = 0;
@@ -230,7 +227,9 @@ int main ( int argc, char * argv[] )
             }
             if(is_our_route != 1)
             {
-                printf("Print #%d - Deleted the route: %s", update_count, subnet_str);
+                printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
+                ripv2_route_print(current_route);
+                printf("Has been eliminated\n\n");
                     update_count++;
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
