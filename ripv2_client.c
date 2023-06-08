@@ -113,10 +113,12 @@ int main ( int argc, char * argv[] )
     // no recibimos tabla, solamente array de entradas, por tanto, usamos bucle "for" y ripv2_route_print() para cada posición "i" del array.  
         log_trace("Received table -> \n");
     //ripv2_route_table_print ( ripv2_response->vectores_distancia);
+    printf("\nDistance Vectors received:\n");
     for(int i = 0; i < numero_de_vectores_distancia; i++){
             log_trace("Vector distancia, posicion (%d) -> ", i);
         //uint32_t correct_metric = nthol(ripv2_response->vectores_distancia[i]);
         ripv2_response->vectores_distancia[i].metric = ntohl(ripv2_response->vectores_distancia[i].metric);
+        printf("DV %d: ", i);
         ripv2_vector_print(&(ripv2_response->vectores_distancia[i]));
     }
     if(bytes_rcvd == 0)
@@ -125,6 +127,7 @@ int main ( int argc, char * argv[] )
     } else {
         log_trace("RESPONSE Packet received!!\n");
     }
+    printf("\n");
     udp_close(my_udp_layer);
 
     return 0;

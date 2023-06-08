@@ -165,7 +165,7 @@ void ripv2_vector_print(vector_distancia_t * vector)
         //uint32_t metrica= (uint32_t) ntohs(vector->metric);
         uint32_t metrica= vector->metric;//ya hacemos ntohl en el cliente antes de imprimir (y guardamos el valor transformado en cada vector distancias).
         //uint32_t metrica= ntohl(vector->metric);
-        printf("%s/%s via %s metric %ld \n", subred_str, mask_str, next_hop_str, (long int) metrica);
+        printf("%s/%s via %s metric %ld\n", subred_str, mask_str, next_hop_str, (long int) metrica);
     }
 }
 
