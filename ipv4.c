@@ -253,6 +253,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
         }
 
         printf("\nInitial RIPv2 RESPONSE sent!\n");
+        return (bytes_sent - IPV4_HDR_LEN);
     }
 
     ipv4_addr_t zeros_ip_address;
