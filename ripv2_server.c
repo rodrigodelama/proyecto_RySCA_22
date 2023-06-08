@@ -158,16 +158,8 @@ int main ( int argc, char * argv[] )
     ripv2_route_table_print(rip_table);
     printf("\n");
 
-    // int route_count; //can be between 0 and 24 
-
     while (1)
     {
-        //TODO: check if empty table and loop awaiting a new entry
-        // if (rip_table == NULL)
-        // {
-
-        // }
-
         long int timeout = least_time(rip_table);
         //En la primera iteración, tenemos tabla con cosas.
         int bytes_rcvd = udp_rcv(my_udp_layer, source_ip, &client_port, buffer_rip, sizeof(ripv2_msg_t), timeout); //udp ya nos devuelve el número de bytes útiles (no worries en teoría). 
@@ -197,8 +189,8 @@ int main ( int argc, char * argv[] )
                 printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
                 ripv2_route_print(current_route);
                 printf("Has been eliminated\n\n");
-
                     update_count++;
+
                 ripv2_route_table_remove(rip_table, index_min);
                 ripv2_route_table_print(rip_table);
                 printf("\n");
@@ -220,6 +212,7 @@ int main ( int argc, char * argv[] )
                     //TODO: check later - this is a weird edge case anyways
                     timerms_reset(&current_route->timer_ripv2, RECEPTION_TIMER); //refresh timer of minimum time route
                     printf("Reinitialized timer for route #%d", route_index);
+
                     ripv2_route_table_print(rip_table);
                     printf("\n");
                 }
@@ -230,6 +223,7 @@ int main ( int argc, char * argv[] )
                 ripv2_route_print(current_route);
                 printf("Has been eliminated\n\n");
                     update_count++;
+
                 is_our_route = 0;
                 ripv2_route_table_remove(rip_table, index_min);
                 ripv2_route_table_print(rip_table);
@@ -239,7 +233,7 @@ int main ( int argc, char * argv[] )
         }
 
         //RESPONSE MESSAGE recieved - we will check the distance vectors recieved to update our table
-        if(ripv2_msg->type == RIPv2_RESPONSE) // no hace falta hacer noths porque es un entero de 8bits (1 byte).
+        if(ripv2_msg->type == RIPv2_RESPONSE)
         {
             char str_route[IPv4_STR_MAX_LENGTH];
                 log_trace("Received %d distance vectors", numero_de_vectores_distancia);
@@ -308,10 +302,6 @@ int main ( int argc, char * argv[] )
                     }
 
                     ripv2_route_t * registered_route = ripv2_route_table_get(rip_table, route_index);
-                    
-                    //when registered_route was not a pointer
-                    //memset(&registered_route, 0, sizeof(ripv2_route_t));
-                    //memcpy(&registered_route, ripv2_route_table_get(rip_table, route_index), sizeof(ripv2_route_t)); //WORKS
 
                     //Si es del padre -> actualizamos la metrica sin impotar si es menor o mayor que la anterior
                     if(memcmp(source_ip, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
@@ -359,8 +349,6 @@ int main ( int argc, char * argv[] )
                             printf("\n");
                         }
                     }
-                    // free(route_to_update);
-                    // free(registered_route);
                 }
             }
         //REQUEST MESSAGE revieved - we will send our table as distance vectors
