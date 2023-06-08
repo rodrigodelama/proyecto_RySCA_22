@@ -387,6 +387,7 @@ int ripv2_route_table_add ( ripv2_route_table_t * table, ripv2_route_t * route )
             }
         }
     }
+    //We need to be able to deal with more than 25 routes
 
     return route_index;
 }

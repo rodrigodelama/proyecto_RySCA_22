@@ -383,7 +383,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
         }
             log_trace("is_my_ip value between unicast and multicast -> %d", is_my_ip);
         
-        if (is_my_ip == 0) //check if it is multicast 224 - 239
+        if (is_my_ip == 0) //0 means not my ip - check if it is multicast 224 - 239
         {   
             //Check multicast, check if the first octet is in the multicast range
             if ((ipv4_packet_ptr->dest_ip[0] >= 224) && (ipv4_packet_ptr->dest_ip[0] <= 239)){

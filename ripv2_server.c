@@ -107,11 +107,10 @@ int main ( int argc, char * argv[] )
     }
 
     ipv4_addr_t source_ip; //From where the recieved packet came
-    uint16_t server_port = RIPv2_PORT;
     uint16_t client_port;
     unsigned char buffer_rip[LEN_PAYLOAD_RIP];
     
-    udp_layer_t * my_udp_layer = udp_open(server_port, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
+    udp_layer_t * my_udp_layer = udp_open(RIPv2_PORT, "./ipv4_config_server.txt", "./ipv4_route_table_server.txt");
     
     if(my_udp_layer == NULL)
     {
