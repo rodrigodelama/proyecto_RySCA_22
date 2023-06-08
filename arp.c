@@ -4,7 +4,6 @@
 #include <timerms.h>
 #include "log.h"
 mac_addr_t ARP_BCAST_ADDR = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-ipv4_addr_t RIPv2_ADDR_ARP = { 224, 0, 0, 9 };
 
 //ARP request and reply handling
 int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, ipv4_addr_t my_ip_addr)
@@ -14,7 +13,7 @@ int arp_resolve(eth_iface_t * iface, ipv4_addr_t ip_addr, mac_addr_t mac_addr, i
         ipv4_addr_str(my_ip_addr, arp_debug);
         printf("IP sent to arp_resolver: %s", arp_debug);
     #endif
-    
+
     //Proveniente del "main" tenemos la interfaz y direccion IP convertidas a sus respectivos tipos
     struct arp_header arp_header_t; //Creo header de ARP
     //Empezamos a convertir y rellenar los campos de la cabecera ARP
