@@ -145,7 +145,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
 			return -1;
 		} else if (datagram_len == 0) {
 			/* Timeout! */
-			printf("Timeout\n");
+			fprintf(stderr, "Timeout\n\n");
 			return 0;
 		} else if (datagram_len < UDP_HEADER_SIZE) {
 			fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",

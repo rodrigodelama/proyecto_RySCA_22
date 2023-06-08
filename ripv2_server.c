@@ -187,19 +187,28 @@ int main ( int argc, char * argv[] )
 
         ripv2_route_t* current_route = ripv2_route_table_get(rip_table, index_min); //ruta con menor temporizador
         char subnet_str[IPv4_STR_MAX_LENGTH];
-        ipv4_addr_str(current_route->subnet_addr, subnet_str);
+        if (current_route != NULL)
+        {
+            ipv4_addr_str(current_route->subnet_addr, subnet_str);
+        }
+
 
         if(bytes_rcvd < 0) // should never happen
         {
-            fprintf(stderr, "Error on recieved UDP datagram");
+            fprintf(stderr, "Error on recieved UDP datagram\n");
             return(-1);
 
-        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is up
-            printf("Print #%d - Timer's up, route %s has been eliminated\n", update_count, subnet_str);
-                update_count++;
-            ripv2_route_table_remove(rip_table, index_min);
-            ripv2_route_table_print(rip_table);
-            printf("\n");
+        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is upç
+            if (current_route != NULL)
+            {
+                printf("Print #%d - Timer's up, route %d: %s has been eliminated\n", update_count, index_min, subnet_str);
+                    update_count++;
+                ripv2_route_table_remove(rip_table, index_min);
+                ripv2_route_table_print(rip_table);
+                printf("\n");
+                continue;
+            }
+            printf("Awaiting RIP Routes\n");
             continue;
 
         } else if (bytes_rcvd > 0 && expiration_time == 0) { //deberia estar bien -> comprobar

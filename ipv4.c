@@ -348,7 +348,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             return -1;
         } else if (packet_len == 0) {
             /* Timeout! */
-            fprintf(stderr, "ipv4_recv(): Temporizador de %ld segundos agotado.\n",timeout);
+            fprintf(stderr, "ipv4_recv(): Temporizador de %ld segundos agotado\n", timeout);
             return 0;
         } else if (packet_len < IPV4_HDR_LEN) {//Minimum packet length = ipv4_header (20 bytes) + 0 bytes payload.
             fprintf(stderr, "ipv4_recv(): cabecera incorrecta, paquete incompleto: %d bytes\n", packet_len);
