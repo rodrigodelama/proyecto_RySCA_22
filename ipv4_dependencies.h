@@ -11,6 +11,7 @@
 #define VERSION_AND_LENGTH 0x45
 #define ID 0x8397
 #define TTL_DEF 64
+#define TTL_RIP 1
 
 typedef unsigned char ipv4_addr_t[IPv4_ADDR_SIZE];
 

@@ -8,6 +8,8 @@
 //Cuando capturemos ip, hacerlo en el que envía la trama, dado que en lightning descarta las tramas con el checksum mal.   
 /* Dirección IPv4 a cero: "0.0.0.0" */
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
+ipv4_addr_t RIPv2_ADDR_IP = { 224, 0, 0, 9 };
+mac_addr_t MAC_BCAST_ADDR_IP = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
@@ -237,6 +239,22 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     int bytes_sent = 0;
     int err_arp = 0;
 
+    if (memcmp(dst, RIPv2_ADDR_IP, sizeof(ipv4_addr_t)) == 0)
+    {
+        ipv4_header_t.ttl = (uint8_t) TTL_RIP; //TTL CASE FOR RIPv2 (TTL = 1)
+
+        //sent to MAC broadcast
+        bytes_sent = eth_send (sender_iface, MAC_BCAST_ADDR_IP, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
+        
+        if(bytes_sent == -1)
+        {
+            printf("Error sending eth frame....");
+            return -1;
+        }
+
+        printf("\nInitial RIPv2 RESPONSE sent!\n");
+    }
+
     ipv4_addr_t zeros_ip_address;
     ipv4_str_addr("0.0.0.0", zeros_ip_address); //IP por defecto segun el pdf
     //Estabamos comparando la 0.0.0.0 del gateway con 0 y no con la ip vacia 0.0.0.0 (no tenemos constante definida para esta ip de ceros, sí para ethernet).
@@ -244,6 +262,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     {
         log_trace("Gateway addr = 0.0.0.0\n");
         err_arp = arp_resolve(sender_iface, dst, mac_dest, layer->addr); //mac destino
+
         if(err_arp != 0)
         {
             printf("Error: function arp_resolve not working...\n");
@@ -261,9 +280,10 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     } else { //Fuera de nuestra subred, pedimos mac a la ip_gateway
         char gateway_debug[60];
         ipv4_addr_str(route_to_dst->gateway_addr, gateway_debug);
-            log_trace("Dest ip not in my subnet, Gateway -> %s\n",gateway_debug);
+            log_trace("Dest ip not in my subnet, Gateway -> %s\n", gateway_debug);
 
         err_arp = arp_resolve(sender_iface, route_to_dst->gateway_addr, mac_dest, layer->addr); //mac gateway
+
         if(err_arp != 0 )
         {
             printf("Error: function arp_resolve not working...\n");
@@ -320,6 +340,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
 
         /* Recibir trama del interfaz Ethernet y procesar errores */
         packet_len = eth_recv(layer->iface, mac_src, PROT_TYPE_IPV4, ipv4_buffer, (20 + packet_buf_len) , time_left);
+
         if(packet_len < 0)
         {
             fprintf(stderr, "ipv4_recv(): ERROR en eth_recv()");
