@@ -168,7 +168,7 @@ int ipv4_close ( ipv4_layer_t * iface_ipv4 )
     }
     return err;
 }
-                //layer = manejador ipv4.
+
 int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned char * payload, int payload_len)
 {
         log_trace("Inside __ipv4_send__\n");
@@ -223,8 +223,8 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
     //if not, ¿why do we want "layer" as a parameter?
     ipv4_route_t *route_to_dst =  ipv4_route_table_lookup (layer->routing_table, dst); //returns most efficient route
 
-        log_trace("Best route to our destiny -> ");
     #ifdef DEBUG
+        log_trace("Best route to our destination -> ");
         ipv4_route_print (route_to_dst);
     #endif
 
