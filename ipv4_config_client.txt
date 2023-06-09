@@ -1,5 +1,5 @@
 # ipv4_config_client.txt
 #
 Interface eth1
-IPv4Address 10.0.1.2
+IPv4Address SET_CLIENT_IP_ADDR
 SubnetMask 255.255.255.0

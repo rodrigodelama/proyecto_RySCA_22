@@ -297,6 +297,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out, int rout
         }
     }
     
+    char route_index_str[IPv4_STR_MAX_LENGTH];
     char subnet_str[IPv4_STR_MAX_LENGTH];
     char mask_str[IPv4_STR_MAX_LENGTH];
     char* ifname = NULL;
@@ -304,8 +305,8 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out, int rout
     char metric_str[IPv4_STR_MAX_LENGTH];
     char timer_str[IPv4_STR_MAX_LENGTH];
 
-    
     if (route != NULL) {
+        sprintf(route_index_str,"%d", route_index);
         ipv4_addr_str(route->subnet_addr, subnet_str);
         ipv4_addr_str(route->subnet_mask, mask_str);
         ifname = route->iface;
@@ -313,7 +314,7 @@ int ripv2_route_output ( ripv2_route_t * route, int header, FILE * out, int rout
         sprintf(metric_str,"%d", route->metric);
         sprintf(timer_str, "%ld", timerms_left(&(route->timer_ripv2)));
 
-        err = fprintf(out, "%d %-15s\t%-15s\t%s\t%-15s\t%s\t%s\n", route_index, subnet_str, mask_str, ifname, gw_str, metric_str, timer_str);
+        err = fprintf(out, "%s %s\t%s\t%s\t%s\t%s\t%s\n", route_index_str, subnet_str, mask_str, ifname, gw_str, metric_str, timer_str);
         if (err < 0) {
             return -1;
         }

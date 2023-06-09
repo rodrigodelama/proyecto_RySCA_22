@@ -1,5 +1,5 @@
 # ipv4_config_server.txt
 #
 Interface eth1
-IPv4Address 10.0.3.3
+IPv4Address SET_SERVER_IP_ADDR
 SubnetMask 255.255.255.0
