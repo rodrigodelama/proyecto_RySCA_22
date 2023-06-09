@@ -252,7 +252,7 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
             return -1;
         }
 
-        printf("\nInitial RIPv2 RESPONSE sent!\n");
+        printf("\nRIPv2 message sent\n");
         return (bytes_sent - IPV4_HDR_LEN);
     }
 
@@ -348,7 +348,7 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
             return -1;
         } else if (packet_len == 0) {
             /* Timeout! */
-            fprintf(stderr, "ipv4_recv(): Temporizador de %ld segundos agotado\n", timeout);
+            fprintf(stderr, "ipv4_recv(): Temporizador de %ld milisegundos agotado\n", timeout);
             return 0;
         } else if (packet_len < IPV4_HDR_LEN) {//Minimum packet length = ipv4_header (20 bytes) + 0 bytes payload.
             fprintf(stderr, "ipv4_recv(): cabecera incorrecta, paquete incompleto: %d bytes\n", packet_len);
@@ -383,11 +383,12 @@ int ipv4_recv(ipv4_layer_t *layer, uint8_t protocol, unsigned char buffer[], ipv
         }
             log_trace("is_my_ip value between unicast and multicast -> %d", is_my_ip);
         
-        if (is_my_ip == 0) //0 means not my ip - check if it is multicast 224 - 239
+        if (is_my_ip == 0) //0 means not my ip - check if it is multicast 
         {   
-            //Check multicast, check if the first octet is in the multicast range
-            if ((ipv4_packet_ptr->dest_ip[0] >= 224) && (ipv4_packet_ptr->dest_ip[0] <= 239)){
-                log_trace("Packet received to MULTICAST IP -> %d\n", ipv4_packet_ptr->dest_ip[0]);
+            //Check multicast, check if the first octet is in the multicast range (224 to 239)
+            if ((ipv4_packet_ptr->dest_ip[0] & 0xE0) == 0xE0)
+            {
+                log_trace("IP Packet received on MULTICAST (addr starts by: %d)\n", ipv4_packet_ptr->dest_ip[0]);
                 is_multicast_ip = 1;
             }
         }

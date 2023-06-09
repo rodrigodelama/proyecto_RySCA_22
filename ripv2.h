@@ -13,6 +13,7 @@
 #define RIPv2_DISTANCE_VECTOR_ENTRY_SIZE 20
 #define RIPv2_REQUEST 1
 #define RIPv2_RESPONSE 2
+#define THIRTY_SECS 30000
 
 /* ripv2 ---------------------------------------------------------------------------------------*/
 /* Estructura de las entradas de vectores de distancia de ripv2 */

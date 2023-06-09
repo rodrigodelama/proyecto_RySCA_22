@@ -620,7 +620,7 @@ int ripv2_route_table_read ( char * filename, ripv2_route_table_t * table )
 
     FILE * routes_file = fopen(filename, "r");
     if (routes_file == NULL) {
-        fprintf(stderr, "Error opening input IPv4 Routes file \"%s\": %s.\n",
+        fprintf(stderr, "Error opening input RIPv2 Routes file \"%s\": %s.\n",
                 filename, strerror(errno));
         return -1;
     }
@@ -736,7 +736,7 @@ int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename )
 
     FILE * routes_file = fopen(filename, "w");
     if (routes_file == NULL) {
-        fprintf(stderr, "Error opening output IPv4 Routes file \"%s\": %s.\n",
+        fprintf(stderr, "Error opening output RIPv2 Routes file \"%s\": %s.\n",
                 filename, strerror(errno));
         return -1;
     }
@@ -747,7 +747,7 @@ int ripv2_route_table_write ( ripv2_route_table_t * table, char * filename )
     if (table != NULL) {
         num_routes = ripv2_route_table_output (table, routes_file);
         if (num_routes == -1) {
-        fprintf(stderr, "Error writing IPv4 Routes file \"%s\": %s.\n",
+        fprintf(stderr, "Error writing RIPv2 Routes file \"%s\": %s.\n",
                 filename, strerror(errno));
         return -1;
         }
