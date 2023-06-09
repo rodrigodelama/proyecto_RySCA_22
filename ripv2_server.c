@@ -32,7 +32,7 @@ int index_least_time(ripv2_route_table_t * rip_table)
 {
     int index;
     long int time_left;
-    long int min_time = 180000;
+    long int min_time = RECEPTION_TIMER;
     ripv2_route_t * current_route = NULL;
 
     for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++) //itera hasta ripv2routetable size
@@ -246,14 +246,25 @@ int main ( int argc, char * argv[] )
             {
                 if (timerms_left(&current_route->timer_ripv2) == 0)
                 {
-                    printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
-                    ripv2_route_print(current_route);
-                    printf("Has been eliminated\n\n");
-                        update_count++;
+                    if (current_route->metric == 16)
+                    {
+                        printf("Print #%d - Garbage collection timer is up, route #%d:\n", update_count, index_min);
+                        ripv2_route_print(current_route);
+                        printf("Has been eliminated\n\n");
+                            update_count++;
 
-                    is_our_route = 0;
-                    ripv2_route_free(ripv2_route_table_remove(rip_table, index_min));
+                        is_our_route = 0;
+                        ripv2_route_free(ripv2_route_table_remove(rip_table, index_min));
+                        ripv2_route_table_print(rip_table);
+                        printf("\n\n");
+                    continue;
+                    }
+                    printf("Print #%d - Timer of route #%d is up\n", update_count, index_min);
+                        update_count++;
+                    timerms_reset(&current_route->timer_ripv2, GARBAGE_COLLECTION_TIMER);
+                    current_route->metric = 16;
                     ripv2_route_table_print(rip_table);
+                    printf("Garbage collection timer initiated on route #%d\n", index_min);
                     printf("\n\n");
                 }
             continue;
