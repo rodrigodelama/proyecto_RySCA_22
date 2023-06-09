@@ -132,7 +132,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
 	int udp_buf_len = UDP_HEADER_SIZE + buf_len;//ipv4_send(), sends hader (8bytes) + payload (buf_len).
 	unsigned char udp_buffer[udp_buf_len];
 	udp_header_t * udp_datagram_ptr = NULL;
-	int is_dest_port;//To check if the dest port of  the recieved datagram is my local port.
+	int is_dest_port; //To check if the dest port of the recieved datagram is my local port.
 
 	do {
 		long int time_left = timerms_left(&timer);
@@ -145,7 +145,7 @@ int udp_rcv(udp_layer_t *my_udp_layer,ipv4_addr_t src, uint16_t* dest_port, unsi
 			return -1;
 		} else if (datagram_len == 0) {
 			/* Timeout! */
-			fprintf(stderr, "udp_rcv(): timeout in ipv4_recv()\n\n");
+			fprintf(stderr, "udp_rcv(): timeout in ipv4_recv()\n\n\n");
 			return 0;
 		} else if (datagram_len < UDP_HEADER_SIZE) {
 			fprintf(stderr, "udp_recv(): Datagrama de tamaño invalido: %d bytes\n",

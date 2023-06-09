@@ -10,6 +10,7 @@
 ipv4_addr_t IPv4_ZERO_ADDR = { 0, 0, 0, 0 };
 ipv4_addr_t RIPv2_ADDR_IP = { 224, 0, 0, 9 };
 mac_addr_t MAC_BCAST_ADDR_IP = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+mac_addr_t MAC_RIPv2_MULTICAST_ADDR_IP = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0x09 }; //fixed multicast address to RIPv2 specific
 
 /* void ipv4_addr_str ( ipv4_addr_t addr, char* str );
  *
@@ -244,15 +245,17 @@ int ipv4_send (ipv4_layer_t * layer, ipv4_addr_t dst, uint8_t protocol, unsigned
         ipv4_header_t.ttl = (uint8_t) TTL_RIP; //TTL CASE FOR RIPv2 (TTL = 1)
 
         //sent to MAC broadcast
-        bytes_sent = eth_send (sender_iface, MAC_BCAST_ADDR_IP, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
+        bytes_sent = eth_send (sender_iface, MAC_RIPv2_MULTICAST_ADDR_IP, PROT_TYPE_IPV4, (unsigned char *) &ipv4_header_t,  (20 + payload_len));//En vez de poner el campo total_length
         
         if(bytes_sent == -1)
         {
             printf("Error sending eth frame....");
             return -1;
         }
-
-        printf("\nRIPv2 message sent\n");
+        #ifdef DEBUG
+            printf("\nRIPv2 message sent\n");
+        #endif
+        
         return (bytes_sent - IPV4_HDR_LEN);
     }
 

@@ -7,6 +7,7 @@
 
 #define RIPv2_PORT 520
 #define RECEPTION_TIMER 180000 //3 minutos
+#define GARBAGE_COLLECTION_TIMER 120000
 #define RIPv2_ROUTE_TABLE_SIZE 256
 #define LEN_PAYLOAD_RIP 1400
 #define RIPv2_MESSAGE_HEADER_SIZE 4 // fam_dirs (1 byte) + uint8_t version (1 byte) + dominio_encaminamiento (2 bytes) = 4 bytes; 

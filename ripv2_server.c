@@ -9,7 +9,7 @@ ipv4_addr_t RIPv2_ADDR_SERVER = { 224, 0, 0, 9 };
 long int least_time(ripv2_route_table_t * rip_table)
 {
     long int time_left;
-    long int min_time = 180000;
+    long int min_time = RECEPTION_TIMER;
     ripv2_route_t * current_route = NULL;
 
     for(int i = 0; i < RIPv2_ROUTE_TABLE_SIZE; i++)
@@ -178,13 +178,15 @@ int main ( int argc, char * argv[] )
     int bytes_sent = udp_send(my_udp_layer, RIPv2_ADDR_SERVER, RIPv2_PORT, (unsigned char*) &request_message, length_request);
         log_trace("Bytes of data sent by UDP send -> %d\n",bytes_sent);
     
+    printf("\nInitial RIPv2 REQUEST sent\n");
+    
     int update_count = 0;
 
     //initial print of the table
     printf("\nPrint #%d - Initial table from configuration file:\n", update_count);
         update_count++;
     ripv2_route_table_print(rip_table);
-    printf("\n");
+    printf("\n\n");
 
     //timer for periodic RIP response messages
     timerms_t periodic_response;
@@ -201,7 +203,7 @@ int main ( int argc, char * argv[] )
 
         if (timerms_left(&periodic_response) == 0)
         {
-            printf("Periodic RIP RESPONSE sent (every 30s)\n");
+            printf("Periodic RIP RESPONSE sent (every 30s)\n\n\n");
             memcpy(rip_response_ip, RIPv2_ADDR_SERVER, IPv4_ADDR_SIZE);
             send_distance_vectors(rip_table, rip_response_ip, my_udp_layer, client_port);
             timerms_reset(&periodic_response, THIRTY_SECS);
@@ -225,6 +227,11 @@ int main ( int argc, char * argv[] )
         // expiration_time + index_min es sobre todo para encontrar la ruta que ha expirado, y poder seleccionarla con la funcion "ripv2_route_table_get()" 
         // y (llegado el caso) eliminarla con la funcion ripv2_route_table_remove(). -> es sobre todo para tenerla localizada.
         long int expiration_time = least_time(rip_table); // route with smallest timer found
+        
+        #ifdef DEBUG
+            printf("\nleast time is: %ld\n", expiration_time);
+        #endif
+
         index_min = index_least_time(rip_table); // route
 
         ripv2_route_t* current_route = ripv2_route_table_get(rip_table, index_min); //ruta con menor temporizador
@@ -234,20 +241,24 @@ int main ( int argc, char * argv[] )
             fprintf(stderr, "Error on recieved UDP datagram\n");
             return(-1);
 
-        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is upç
-            if (current_route != NULL)
+        } else if (bytes_rcvd == 0) { // we will eliminate bca timer is up
+            if (current_route != NULL) //verify route timer is actually at zero
             {
-                printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
-                ripv2_route_print(current_route);
-                printf("Has been eliminated\n\n");
-                    update_count++;
+                if (timerms_left(&current_route->timer_ripv2) == 0)
+                {
+                    printf("Print #%d - Timer's up, route #%d:\n", update_count, index_min);
+                    ripv2_route_print(current_route);
+                    printf("Has been eliminated\n\n");
+                        update_count++;
 
-                ripv2_route_free(ripv2_route_table_remove(rip_table, index_min));
-                ripv2_route_table_print(rip_table);
-                printf("\n");
-                continue;
+                    is_our_route = 0;
+                    ripv2_route_free(ripv2_route_table_remove(rip_table, index_min));
+                    ripv2_route_table_print(rip_table);
+                    printf("\n\n");
+                }
+            continue;
             }
-            printf("Awaiting RIP Routes\n");
+            printf("Awaiting RIP Routes\n\n"); // this is the case for an empty table
             continue;
 
         } else if (bytes_rcvd > 0 && expiration_time == 0) { //EDGE CASE - basicamente nunca va a pasar
@@ -261,10 +272,10 @@ int main ( int argc, char * argv[] )
                     is_our_route = 1;
 
                     timerms_reset(&current_route->timer_ripv2, RECEPTION_TIMER); //refresh timer of minimum time route
-                    printf("Reinitialized timer for route #%d", route_index);
+                    printf("Reinitialized timer for route #%d\n", route_index);
 
                     ripv2_route_table_print(rip_table);
-                    printf("\n");
+                    printf("\n\n");
                 }
             }
             if(is_our_route != 1)
@@ -277,7 +288,7 @@ int main ( int argc, char * argv[] )
                 is_our_route = 0;
                 ripv2_route_free(ripv2_route_table_remove(rip_table, index_min));
                 ripv2_route_table_print(rip_table);
-                printf("\n");
+                printf("\n\n");
             }
             continue;
         }
@@ -319,7 +330,7 @@ int main ( int argc, char * argv[] )
                         //TODO: show do we deal with when we want to add a 26th route - should ignore the route ??
                         ripv2_route_table_add(rip_table, new_route);
                         ripv2_route_table_print(rip_table);
-                        printf("\n");
+                        printf("\n\n");
                     }
                     //"else"
                     log_trace("Distance for us is infinity, route discarded"); //only for routes of 15 or less hops
@@ -356,31 +367,28 @@ int main ( int argc, char * argv[] )
                     //Si es del padre -> actualizamos la metrica sin impotar si es menor o mayor que la anterior
                     if(memcmp(source_ip, registered_route->gateway_addr, IPv4_ADDR_SIZE) == 0)
                     {
-                        if(new_metric >= 16) //si es de gw y tiene 16 o mas de metrica
+                        if (registered_route->metric == 16)
+                            continue; //guard clause for garbage collection timer active - exit update process
+
+                        if(new_metric > 16) //si es de gw y tiene 16 o mas de metrica
                         {
                             registered_route->metric = 16;
-                            printf("Print #%d - Infinity metric route #%d to be deleted\n", update_count, route_index);
+                            printf("Print #%d - Infinity metric on route #%d - to be deleted\n", update_count, route_index);
                                 update_count++;
+                            timerms_reset(&registered_route->timer_ripv2, GARBAGE_COLLECTION_TIMER);
                             ripv2_route_table_print(rip_table);
-                            printf("\n");
-                            ripv2_route_free(ripv2_route_table_remove(rip_table, route_index));
+                            printf("Garbage collection timer initiated on route #%d\n", route_index);
+                            printf("\n\n");
+                        } else { //si su metrica es inferior a 16 (aunque sea peor) actualizamos la ruta
+                            registered_route->metric = new_metric;
 
-                            printf("Print #%d - Route #%d deleted\n", update_count, route_index);
-                                update_count++;
-                            ripv2_route_table_print(rip_table);
-                            printf("\n");
-                        }
-                        //"else" si su metrica es inferior a 16 (aunque sea peor) actualizamos la ruta
-                        registered_route->metric = new_metric;
-
-                        timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
+                            timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
                             
-                        printf("Print #%d - Route #%d updated with father metric\n", update_count, route_index);
-                            update_count++;
-                        printf("Timer of route #%d updated\n", route_index);
-                            update_count++;
-                        ripv2_route_table_print(rip_table);
-                        printf("\n");
+                            printf("Print #%d - Route #%d updated (with father metric) - Timer restarted\n", update_count, route_index);
+                                update_count++;
+                            ripv2_route_table_print(rip_table);
+                            printf("\n\n");
+                        }
                     } else { // si no es del papa
                         if(new_metric < registered_route->metric) // actualizamos la ruta
                         {
@@ -393,11 +401,10 @@ int main ( int argc, char * argv[] )
 
                             timerms_reset(&registered_route->timer_ripv2, RECEPTION_TIMER); //refresh timer
 
-                            printf("Print #%d - Route #%d updated with better metric\n", update_count, route_index);
+                            printf("Print #%d - Route #%d updated (with better metric) - Timer restarted\n", update_count, route_index);
                                 update_count++;
-                            printf("Timer of route #%d updated\n", route_index);
                             ripv2_route_table_print(rip_table);
-                            printf("\n");
+                            printf("\n\n");
                         }
                     }
                 }
@@ -414,7 +421,7 @@ int main ( int argc, char * argv[] )
             printf("DEBUGGING: Print #%d - PRINTED BC TABLE WAS REQUESTED\n", update_count);
                 update_count++;
             ripv2_route_table_print(rip_table);
-            printf("\n");
+            printf("\n\n");
         #endif
         }
     }
