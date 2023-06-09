@@ -1,0 +1,19 @@
+DIRECTIVES
+
+environment
+    configure routers w RIP
+
+    set client and host IPs (ipv4_config_*.txt)
+
+    set client and host IP Route Tables (ipv4_route_table_*.txt)
+
+code
+    compile
+        ls *c
+        rawnetcc /tmp/ripv2_* ripv2_* and *c
+            (IGNORE misc like upd and ip client and servers)
+
+    copy all config txts
+        UNNECESSARY if launched from local folder, /tmp/ripv2_*
+        if launched from /tmp do
+            cp *.txt /tmp/
