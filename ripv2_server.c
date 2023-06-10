@@ -85,19 +85,19 @@ void send_distance_vectors(ripv2_route_table_t * rip_table, ipv4_addr_t rip_resp
 
     ripv2_msg_to_send.type = RIPv2_RESPONSE;
     ripv2_msg_to_send.version = 2;
-    ripv2_msg_to_send.dominio_encaminamiento = 0x0000;
+    ripv2_msg_to_send.dominio_encaminamiento = htons((uint16_t) 0x0000);
     ripv2_route_t * routes_to_send;
     for(int i = 0; i < num_of_routes; i++)
     {
         routes_to_send = ripv2_route_table_get(rip_table, i);
         if(routes_to_send != NULL)
         {
-            ripv2_msg_to_send.vectores_distancia[i].familia_dirs = 0x0000;
-            ripv2_msg_to_send.vectores_distancia[i].etiqueta_ruta = 0x0000;
+            ripv2_msg_to_send.vectores_distancia[i].familia_dirs = htons((uint16_t) AF_INET); //AF_INET = 2
+            ripv2_msg_to_send.vectores_distancia[i].etiqueta_ruta = htons((uint16_t) 0x0000);
             memcpy(ripv2_msg_to_send.vectores_distancia[i].subred, routes_to_send->subnet_addr, IPv4_ADDR_SIZE);
             memcpy(ripv2_msg_to_send.vectores_distancia[i].subnet_mask, routes_to_send->subnet_mask, IPv4_ADDR_SIZE);
             memcpy(ripv2_msg_to_send.vectores_distancia[i].next_hop, routes_to_send->gateway_addr, IPv4_ADDR_SIZE);
-            ripv2_msg_to_send.vectores_distancia[i].metric = htonl(routes_to_send->metric);
+            ripv2_msg_to_send.vectores_distancia[i].metric = htonl((uint32_t) routes_to_send->metric);
         }
     }
     int total_len = (num_of_routes*20) + 4;
@@ -161,7 +161,7 @@ int main ( int argc, char * argv[] )
     ripv2_msg_t request_message;
     memset(&request_message, 0, sizeof(ripv2_msg_t));
     //Cabecera
-    request_message.type = (uint8_t) 1;
+    request_message.type = (uint8_t) RIPv2_REQUEST;
     request_message.version = (uint8_t) 2;
     request_message.dominio_encaminamiento = htons((uint16_t) 0x0000);
     //ceros
