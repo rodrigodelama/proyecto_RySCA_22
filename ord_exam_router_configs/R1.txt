@@ -37,6 +37,9 @@ router rip
 network eth0.0
 network eth0.1
 network eth0.2
+neighbor 10.0.0.2
+neighbor 10.0.1.2
+neighbor 10.0.3.3
 redistribute connected
 redistribute static
 exit
