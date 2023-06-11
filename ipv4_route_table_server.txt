@@ -2,3 +2,4 @@
 #
 # SubnetAddr    SubnetMask      Iface    Gateway
 0.0.0.0         0.0.0.0         eth1     SET_PHY_CONN_ROUTER
+0.0.0.0         0.0.0.0         eth1     SET_PHY_CONN_ROUTER_2_etc

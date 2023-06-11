@@ -1,11 +1,12 @@
 # ripv2_route_table_server.txt
 
-# SubnetAddr     SubnetMask           iface          Gateway        Metric       Timer
+# SubnetAddr     SubnetMask           iface         Gateway        Metric       Timer
 
-10.100.10.0         255.255.255.0        eth1           10.0.3.2         0          
-10.100.11.0         255.255.255.0        eth1           10.0.3.2         8
-10.100.12.0         255.255.255.0        eth1           10.0.3.10        0
-10.100.13.0         255.255.255.0        eth1           10.0.3.10        8          
+10.100.0.0       255.255.255.0        eth1          1.1.1.1        2            10000
+10.0.10.0        255.255.255.0        eth1          10.0.3.1       1            180000
+10.0.11.0        255.255.255.0        eth1          10.0.3.1       10           180000
+10.0.12.0        255.255.255.0        eth1          10.0.3.10      1            180000
+10.0.13.0        255.255.255.0        eth1          10.0.3.10      10           180000
 
 
 # mirar porque no se actualiza en general
