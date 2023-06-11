@@ -32,7 +32,7 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric)
+ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric, long timerms)
 {
     ripv2_route_t * route = (ripv2_route_t *) malloc(sizeof(ripv2_route_t));
 
@@ -42,9 +42,15 @@ ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* i
         memcpy(route->subnet_mask, mask, IPv4_ADDR_SIZE);
         strncpy(route->iface, iface, IFACE_NAME_MAX_LENGTH);
         memcpy(route->gateway_addr, gw, IPv4_ADDR_SIZE);
-        //memcpy(route->metric, metric, IPv4_ADDR_SIZE);//metric is a uint32_t, 4 bytes (same as ip address size).
         route->metric = (uint32_t) metric;
-        timerms_reset(&(route->timer_ripv2), RECEPTION_TIMER);
+        if (timerms == 0) //didnt do it with NULL due to further complexity
+        {
+            timerms_reset(&(route->timer_ripv2), RECEPTION_TIMER);
+        }
+        else
+        {
+            timerms_reset(&(route->timer_ripv2), timerms);
+        }
         //solo reseteamos el timer cuando recibimos del siguiente salto de antes , el padre(también en el caso de que la metrica sea peor).
     }
     
@@ -213,16 +219,17 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
     char mask_str[256];
     char iface_name[256];
     char gw_str[256];
-    char metric_str[256] ;
+    char metric_str[256];
+    char timer_str[256];
 
     /* Parse line: Format "<subnet> <mask> <iface> <gw>\n" */
-    int params = sscanf(line, "%s %s %s %s %s\n", 
-                subnet_str, mask_str, iface_name, gw_str, metric_str);
-    if (params != 5) {
-        fprintf(stderr, "%s:%d: Invalid IPv4 Route format: '%s' (%d params)\n",
+    int params = sscanf(line, "%s %s %s %s %s %s\n", 
+                subnet_str, mask_str, iface_name, gw_str, metric_str, timer_str);
+    if (params != 6) {
+        fprintf(stderr, "%s:%d: Invalid RIPv2 Route format: '%s' (%d params)\n",
             filename, linenum, line, params);
         fprintf(stderr, 
-            "%s:%d: Format must be: <subnet> <mask> <iface> <gw> <metric>\n",
+            "%s:%d: Format must be: <subnet> <mask> <iface> <gw> <metric> <timer>\n",
             filename, linenum);
         return NULL;
     }
@@ -253,12 +260,17 @@ ripv2_route_t* ripv2_route_read ( char* filename, int linenum, char * line )
             filename, linenum, gw_str);
         return NULL;
     }
+
     /* Parse metric */
     uint32_t metric;
-    metric=atoi(metric_str);
+    metric = atoi(metric_str);
+
+    /* Parse timer */
+    long timer;
+    timer = atoi(timer_str);
 
     /* Create new route with parsed parameters */
-    route = ripv2_route_create(subnet, mask, iface_name, gateway,metric );
+    route = ripv2_route_create(subnet, mask, iface_name, gateway, metric, timer);
     if (route == NULL) {
         fprintf(stderr, "%s:%d: Error creating the new route\n",
             filename, linenum);    

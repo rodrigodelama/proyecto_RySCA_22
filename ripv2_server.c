@@ -335,7 +335,8 @@ int main ( int argc, char * argv[] )
                         }
                         
                         ripv2_route_t * new_route;
-                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd);
+                        long dummy_timer = 0;
+                        new_route = ripv2_route_create(ripv2_msg->vectores_distancia[i].subred, ripv2_msg->vectores_distancia[i].subnet_mask, rip_iface, next_hop, metric_rcvd, dummy_timer);
                         printf("Print #%d - Added new route\n", update_count);
                             update_count++;
                         //TODO: show do we deal with when we want to add a 26th route - should ignore the route ??

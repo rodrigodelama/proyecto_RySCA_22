@@ -47,9 +47,7 @@
  *   La función devuelve 'NULL' si no ha sido posible reservar memoria para
  *   crear la ruta.
  */
-ripv2_route_t* ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric);
-//from .c
-//ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric, timerms_t* timer)
+ripv2_route_t * ripv2_route_create(ipv4_addr_t subnet, ipv4_addr_t mask, char* iface, ipv4_addr_t gw, uint32_t metric, long timerms);
 
 /* int ripv2_route_lookup ( ripv2_route_t * route, ipv4_addr_t addr );
  *
